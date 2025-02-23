@@ -1,6 +1,0 @@
-com\produto\oficina\service\TesteService.class
-com\produto\oficina\controller\TesteController.class
-com\produto\oficina\config\SpringWebConfig.class
-com\produto\oficina\repository\TesteRepository.class
-com\produto\oficina\entity\Teste.class
-com\produto\oficina\OficinaApplication.class
