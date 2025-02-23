@@ -33,10 +33,14 @@ public class SpringWebConfig implements ApplicationContextAware, WebMvcConfigure
 
 
 
-    /* ******************************************************************* */
-    /*  GENERAL CONFIGURATION ARTIFACTS                                    */
-    /*  Static Resources, i18n Messages, Formatters (Conversion Service)   */
-    /* ******************************************************************* */
+ /********************************************************************
+
+  GENERAL CONFIGURATION ARTIFACTS
+
+  Static Resources, i18n Messages, Formatters (Conversion Service)
+
+ ******************************************************************* */
+
 
     @Override
     public void addResourceHandlers(final ResourceHandlerRegistry registry) {
@@ -52,8 +56,6 @@ public class SpringWebConfig implements ApplicationContextAware, WebMvcConfigure
         messageSource.setBasename("Messages");
         return messageSource;
     }
-
-
 
     @Bean
     public DateFormatter dateFormatter() {

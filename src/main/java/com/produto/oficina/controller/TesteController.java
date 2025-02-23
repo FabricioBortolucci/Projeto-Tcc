@@ -25,7 +25,6 @@ public class TesteController {
         return "index";
     }
 
-
     @PostMapping("/salvar")
     public void salvarTeste(@RequestBody Teste t) {
         testeService.salvar(t);
