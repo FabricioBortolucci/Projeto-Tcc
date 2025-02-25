@@ -1,6 +1,6 @@
 package com.produto.oficina.service;
 
-import com.produto.oficina.entity.Teste;
+import com.produto.oficina.model.Teste;
 import com.produto.oficina.repository.TesteRepository;
 import org.springframework.stereotype.Service;
 

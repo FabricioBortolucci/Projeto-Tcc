@@ -1,4 +1,4 @@
-package com.produto.oficina.entity;
+package com.produto.oficina.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

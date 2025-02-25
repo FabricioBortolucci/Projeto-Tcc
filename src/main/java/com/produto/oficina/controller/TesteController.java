@@ -1,10 +1,12 @@
 package com.produto.oficina.controller;
 
-import com.produto.oficina.entity.Teste;
+import com.produto.oficina.model.Teste;
 import com.produto.oficina.service.TesteService;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 
@@ -19,10 +21,11 @@ public class TesteController {
     }
 
     @GetMapping("/")
-    public String home(Model model) {
+    public ModelAndView home() {
         List<Teste> nomes = testeService.listar();
-        model.addAttribute("nomes", nomes);
-        return "index";
+        ModelAndView modelAndView = new ModelAndView("index");
+        modelAndView.addObject("nomes", nomes);
+        return modelAndView;
     }
 
     @PostMapping("/salvar")
