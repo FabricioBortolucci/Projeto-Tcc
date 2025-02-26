@@ -9,14 +9,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/ibge")
 public class IBGEController {
 
-    private IBGEDataService ibgeDataService;
+    private final IBGEDataService ibgeDataService;
 
     public IBGEController(IBGEDataService ibgeDataService) {
         this.ibgeDataService = ibgeDataService;
     }
 
     @PostMapping("/importar")
-    public String importar(){
+    public String importar() {
         ibgeDataService.inserirdados();
         return "importação concluida";
     }
