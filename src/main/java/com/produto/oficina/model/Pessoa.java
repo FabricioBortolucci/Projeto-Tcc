@@ -45,6 +45,11 @@ public class Pessoa {
     @ToString.Exclude
     private List<Telefone> telefones = new ArrayList<>();
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "usuario_id")
+    @ToString.Exclude
+    private Usuario usuario;
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
