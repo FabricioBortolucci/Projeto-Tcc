@@ -33,6 +33,11 @@ public class Usuario implements UserDetails, Serializable {
     @Column(name = "usu_role", nullable = false)
     private Role role;
 
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "pes_id")
+    @ToString.Exclude
+    private Pessoa pessoaRel;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(() -> "ROLE_" + role.name());

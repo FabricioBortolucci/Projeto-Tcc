@@ -1,7 +1,6 @@
 package com.produto.oficina.config;
 
 import com.produto.oficina.service.CustomUserDetailsService;
-import com.produto.oficina.service.UsuarioService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,18 +23,30 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/login", "/css/**", "/js/**").permitAll()
-                        .anyRequest().authenticated()
+                        .requestMatchers( "/css/**", "/js/**").permitAll()
+                        .anyRequest()
+                        .authenticated()
+                )
+                .sessionManagement(session ->  session
+                        .maximumSessions(1)
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
+                        .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/home", true)
                         .permitAll()
+                )
+                .rememberMe(remember -> remember
+                        .tokenValiditySeconds(86400)
+                        .rememberMeParameter("remember-me-change")
+                        .userDetailsService(usuarioService)
+                        .key("secret")
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
+                        .deleteCookies("JSESSIONID", "remember-me")
                 );
 
         return http.build();

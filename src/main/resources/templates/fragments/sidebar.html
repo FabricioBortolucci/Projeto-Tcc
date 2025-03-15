@@ -6,15 +6,52 @@
     <title></title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+
 </head>
 <body>
-<section th:fragment="sidebar" class="container">
+<main th:fragment="sidebar" class="d-flex flex-nowrap vh-100">
+    <div class="d-flex flex-column flex-shrink-0 p-3 text-bg-dark" style="width: 280px;">
+        <a th:href="@{home}" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
+            <span class="fs-4">??????</span>
+        </a>
+        <hr class="text-white">
+        <ul class="nav flex-column mb-auto">
+            <li>
+                <a class="nav-link text-white">
+                    Link with href
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/usuario}" class="nav-link text-white">
+                    Usuários
+                </a>
+            </li>
+            <li>
+                <a th:href="@{/pessoa}" class="nav-link text-white">
+                    Pessoas
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link text-white">
+                    Produto
+                </a>
+            </li>
+            <li>
+                <a href="#" class="nav-link text-white">
+                    Customers
+                </a>
+            </li>
+        </ul>
 
-
-    <form th:action="@{/logout}" method="post">
-        <button type="submit">Logout</button>
-    </form>
-</section>
+        <form th:action="@{/logout}" method="post">
+            <p class="text-white" th:text="${'Logado como ' + #authentication.name}"></p>
+            <button class="btn w-100 text-white"
+                    type="submit"
+                    style="background-color: #3A4750;">Desconectar
+            </button>
+        </form>
+    </div>
+</main>
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 </body>
 </html>

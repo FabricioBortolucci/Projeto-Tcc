@@ -1,40 +1,39 @@
 package com.produto.oficina.model;
 
-import com.produto.oficina.model.enums.TipoTelefone;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Objects;
 
+@Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-@Entity
-public class Telefone {
+public class Caixa {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "caixa_id")
     private Long id;
 
-    @Column(name = "tel_numero")
-    private String telNumero;
+    @Column(name = "caixa_data_cadastro")
+    private LocalDate dataCadastro;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "tel_tipo")
-    private TipoTelefone tipo;
+    @Column(name = "caixa_data_fechamento")
+    private LocalDate dataFechamento;
 
-    @Column(name = "tel_ddd")
-    private String ddd;
+    @Column(name = "caixa_quem_criou")
+    private String criouCaixa;
 
-    @Column(name = "tel_principal")
-    private boolean telPrincipal;
-
-    @ManyToOne
-    @JoinColumn(name = "pessoa_id")
-    private Pessoa pessoa;
+    @Column(name = "caixa_valor")
+    private BigDecimal valor;
 
     @Override
     public final boolean equals(Object o) {
@@ -43,8 +42,8 @@ public class Telefone {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        Telefone telefone = (Telefone) o;
-        return getId() != null && Objects.equals(getId(), telefone.getId());
+        Caixa caixa = (Caixa) o;
+        return getId() != null && Objects.equals(getId(), caixa.getId());
     }
 
     @Override

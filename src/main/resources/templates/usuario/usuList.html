@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Home - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
+        <h1 class="h3">Lista de Usuários</h1>
+
+        <table class="table table-dark table-bordered table-hover table-striped table-responsive">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nome</th>
+                <th>Permissão</th>
+                <th>Funcionário</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="users : ${usuarios_lista}">
+                <td th:text="${users.getId()}"></td>
+                <td th:text="${users.getUsuNome()}"></td>
+                <td th:text="${users.getRole()}"></td>
+                <!--                <td th:text="${users.getPessoaRel().getPesNome()}"></td>-->
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="btn-group w-10">
+            <a class="btn btn-primary " th:href="@{/usuario/cadastro}">Novo</a>
+        </div>
+
+
+    </main>
+</div>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

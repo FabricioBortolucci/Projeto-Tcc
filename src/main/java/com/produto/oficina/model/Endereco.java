@@ -19,6 +19,9 @@ public class Endereco {
     @Column(name = "end_id")
     private Long id;
 
+    @Column(name = "end_principal")
+    private boolean endPrincipal;
+
     @Column(name = "end_numero")
     private Integer endNumero;
 

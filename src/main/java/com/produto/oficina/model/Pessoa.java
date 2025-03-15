@@ -27,6 +27,9 @@ public class Pessoa {
     @Column(name = "pes_cpfcnpj")
     private String pesCpfCnpj;
 
+    @Column(name = "pes_email")
+    private String pesEmail;
+
     @Column(name = "pes_cliente")
     private Boolean pesCliente;
 
