@@ -1,9 +1,12 @@
 package com.produto.oficina.model;
 
+import com.produto.oficina.model.enums.PesTipo;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -24,17 +27,15 @@ public class Pessoa {
     @Column(name = "pes_nome")
     private String pesNome;
 
-    @Column(name = "pes_cpfcnpj")
+    @Column(name = "pes_cpfcnpj", length = 18, unique = true)
     private String pesCpfCnpj;
 
     @Column(name = "pes_email")
     private String pesEmail;
 
-    @Column(name = "pes_cliente")
-    private Boolean pesCliente;
-
-    @Column(name = "pes_funcionario")
-    private Boolean pesFuncionario;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pes_tipo")
+    private PesTipo pesTipo;
 
     @Column(name = "pes_ativo")
     private Boolean pesAtivo;
@@ -44,7 +45,6 @@ public class Pessoa {
     private List<Endereco> enderecos;
 
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
-    @Column(name = "pes_telefone")
     @ToString.Exclude
     private List<Telefone> telefones = new ArrayList<>();
 
@@ -52,6 +52,30 @@ public class Pessoa {
     @JoinColumn(name = "usuario_id")
     @ToString.Exclude
     private Usuario usuario;
+
+    @Column(name = "pes_data_cadastro")
+    private LocalDateTime pesDataCadastro;
+
+    @Column(name = "pes_data_atualizacao")
+    private LocalDateTime pesDataAtualizacao;
+
+    @Column(name = "pes_data_nascimento")
+    private LocalDate pesDataNascimento;
+
+    @Column(name = "pes_rg", length = 20)
+    private String pesRg;
+
+    @Column(name = "pes_inscricao_estadual")
+    private String pesInscricaoEstadual;
+
+    @Column(name = "pes_genero")
+    private String pesGenero;
+
+    @Column(name = "pes_fsc_jrc")
+    private String pesFisicoJuridico;
+
+
+
 
     @Override
     public final boolean equals(Object o) {

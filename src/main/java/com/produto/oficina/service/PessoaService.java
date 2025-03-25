@@ -36,8 +36,9 @@ public class PessoaService {
                         p.getId(),
                         p.getPesNome(),
                         p.getPesCpfCnpj(),
-                        p.getPesCliente(),
-                        p.getPesAtivo()
+                        p.getPesTipo(),
+                        p.getPesAtivo(),
+                        p.getPesEmail()
                 )).toList();
     }
 

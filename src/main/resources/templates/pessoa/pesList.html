@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>Home - Oficina</title>
+    <title>Pessoas - Oficina</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
 </head>
@@ -20,6 +20,7 @@
                 <th>Id</th>
                 <th>Nome</th>
                 <th>Cpf/Cnpj</th>
+                <th>Tipo</th>
                 <th>Ativo</th>
             </tr>
             </thead>
@@ -28,9 +29,7 @@
                 <td th:text="${pes.id}"></td>
                 <td th:text="${pes.pesNome}"></td>
                 <td th:text="${pes.pesCpfCnpj}"></td>
-                <td th:text="${pes.pesCliente ? 'Cliente' : 'Funcionário'}"></td>
-                <!--                <td th:text="${pes.endPrincipal}"></td>-->
-                <!--                <td th:text="${pes.telPrincipal}"></td>-->
+                <td th:text="${pes.pesTipo.descricao}"></td>
                 <td th:text="${pes.pesAtivo ? 'Ativo' : 'Inativo'}"></td>
             </tr>
             </tbody>

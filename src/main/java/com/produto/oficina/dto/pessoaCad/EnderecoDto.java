@@ -7,10 +7,12 @@ import java.io.Serializable;
 /**
  * DTO for {@link com.produto.oficina.model.Endereco}
  */
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
 @Getter
+@ToString
 public class EnderecoDto implements Serializable {
     Long id;
     boolean endPrincipal;
