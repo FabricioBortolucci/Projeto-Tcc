@@ -32,16 +32,16 @@ public class IBGEDataService {
             estadoRepository.save(estado);
         }
 
-        for (CidadeDTO dto : ibgeApiService.obterCidades()) {
-            Cidade cidade = new Cidade();
-            cidade.setId(dto.getId());
-            cidade.setCidNome(dto.getNome());
-
-            Long estadoId = dto.getMicrorregiao().getMesorregiao().getUF().getId();
-            Estado estado = estadoRepository.findById(estadoId).orElse(null);
-            cidade.setEstado(estado);
-            cidadeRepository.save(cidade);
-        }
+//        for (CidadeDTO dto : ibgeApiService.obterCidades()) {
+//            Cidade cidade = new Cidade();
+//            cidade.setId(dto.getId());
+//            cidade.setCidNome(dto.getNome());
+//
+//            Long estadoId = dto.getMicrorregiao().getMesorregiao().getUF().getId();
+//            Estado estado = estadoRepository.findById(estadoId);
+//            cidade.setEstado(estado);
+//            cidadeRepository.save(cidade);
+//        }
 
     }
 }

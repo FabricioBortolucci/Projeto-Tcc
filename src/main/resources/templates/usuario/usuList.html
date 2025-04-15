@@ -27,8 +27,8 @@
             <tr th:each="users : ${usuarios_lista}">
                 <td th:text="${users.getId()}"></td>
                 <td th:text="${users.getUsuNome()}"></td>
-                <td th:text="${users.getRole()}"></td>
-                <!--                <td th:text="${users.getPessoaRel().getPesNome()}"></td>-->
+                <td th:text="${users.getRoleName()}"></td>
+                <td th:text="${users.getFuncionario().getPesNome()}"></td>
             </tr>
             </tbody>
         </table>

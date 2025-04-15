@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Pessoas - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<th:block th:fragment="telForm">
+
+    <form id="telefoneForm" class="form-control" th:object="${novo_telefone}" method="post">
+
+        <div class="mb-3">
+            <label class="form-label" for="inputNum">Número:</label>
+            <input class="form-control w-15 border-dark" id="inputNum" type="text"
+                   th:field="*{telNumero}" required/>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="telSelect">Tipo:</label>
+            <select id="telSelect" class="form-select w-25 border-dark" aria-label="select" th:field="*{tipo}"
+                    required>
+                <option th:each="tipo : ${lista_tel}" th:value="${tipo}" th:text="${tipo.descricao}">
+                </option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-check-label" for="inputTelPrincipal">Principal:</label>
+            <input class="form-check-input border-dark" id="inputTelPrincipal" type="checkbox"
+                   th:field="*{telPrincipal}" required/>
+        </div>
+
+
+        <button type="button"
+                class="btn btn-primary"
+                th:hx-post="@{/pessoa/cadastro/telefones/adicionar}"
+                hx-target="#tabelaTelefoneContainer"
+                hx-on::after-request="document.getElementById('telefoneForm').reset();"
+                hx-swap="outerHTML">
+            Adicionar Telefone
+        </button>
+    </form>
+
+
+</th:block>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+
+</body>
+</html>

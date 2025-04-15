@@ -14,5 +14,17 @@ import java.io.Serializable;
 public class CidadeDto implements Serializable {
     Long id;
     String cidNome;
+    Long estadoId;
     EstadoDto estado;
+
+    public CidadeDto(Long id, String cidNome) {
+        this.id = id;
+        this.cidNome = cidNome;
+    }
+
+    public CidadeDto(Long id, String cidNome, Long estadoId) {
+        this.id = id;
+        this.cidNome = cidNome;
+        this.estadoId = estadoId;
+    }
 }

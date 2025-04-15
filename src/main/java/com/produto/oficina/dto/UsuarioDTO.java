@@ -1,5 +1,6 @@
 package com.produto.oficina.dto;
 
+import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.enums.Role;
 import lombok.*;
 
@@ -17,6 +18,15 @@ public class UsuarioDTO implements Serializable {
     String usuNome;
     String usuSenha;
     Role role;
+    String roleName;
     Long idFunc;
+    Pessoa funcionario;
 
+
+    public UsuarioDTO(Long id, String usuNome, String roleName, Long idFunc) {
+        this.id = id;
+        this.usuNome = usuNome;
+        this.roleName = roleName;
+        this.idFunc = idFunc;
+    }
 }

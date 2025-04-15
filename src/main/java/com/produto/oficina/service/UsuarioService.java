@@ -9,6 +9,7 @@ import com.produto.oficina.repository.UsuarioRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,22 +28,28 @@ public class UsuarioService {
 
 
     public void cadastrarUsuario(UsuarioDTO userDTO) {
-        if (userDTO.getId() != null) {
+        if (userDTO != null) {
             Usuario usuario = new Usuario();
-            usuario.setId(userDTO.getId());
             usuario.setUsuNome(userDTO.getUsuNome());
+            usuario.setRole(userDTO.getRole());
             usuario.setUsuSenha(passwordEncoder.encode(userDTO.getUsuSenha()));
 
             Optional<Pessoa> funcionarioRel = pessoaRepository.findById(userDTO.getIdFunc());
             if (funcionarioRel.isPresent()) {
+                funcionarioRel.get().setUsuario(usuario);
                 usuario.setPessoaRel(funcionarioRel.get());
                 usuarioRepository.save(usuario);
             }
         }
     }
 
-    public List<Usuario> listarTodos() {
-        return usuarioRepository.findAll();
+    public List<UsuarioDTO> listarTodos() {
+        List<UsuarioDTO> usuarioDTOS = usuarioRepository.findUsuAndFunc();
+
+        for (UsuarioDTO usuarioDTO : usuarioDTOS) {
+            usuarioDTO.setFuncionario(pessoaRepository.findFuncionarioById(usuarioDTO.getIdFunc()));
+        }
+        return usuarioDTOS;
     }
 }
 

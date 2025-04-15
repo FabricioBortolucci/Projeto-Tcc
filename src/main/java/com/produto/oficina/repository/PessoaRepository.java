@@ -11,14 +11,17 @@ import java.util.List;
 @Repository
 public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
-    String findFuncByUserNull = " select p.pes_id," +
+
+    @Query(value = " select p.pes_id," +
             "       p.pes_nome" +
             " from pessoa p" +
-            " where p.pes_funcionario = true" +
+            " where " +
+            "  p.pes_tipo = 'FUNCIONARIO' " +
             "  and p.usuario_id is null" +
             "  and p.pes_ativo = true" +
-            " order by pes_nome";
-
-    @Query(value = findFuncByUserNull, nativeQuery = true)
+            " order by pes_nome", nativeQuery = true)
     List<FuncionarioDTO> findFuncs();
+
+    Pessoa findFuncionarioById(Long id);
+
 }

@@ -16,6 +16,7 @@ public class Cidade {
 
     @Id
     @Column(name = "cid_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "cid_nome")

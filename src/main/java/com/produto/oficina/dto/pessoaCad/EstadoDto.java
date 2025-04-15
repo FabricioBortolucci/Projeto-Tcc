@@ -15,4 +15,5 @@ public class EstadoDto implements Serializable {
     Long id;
     String estNome;
     String sigla;
+
 }

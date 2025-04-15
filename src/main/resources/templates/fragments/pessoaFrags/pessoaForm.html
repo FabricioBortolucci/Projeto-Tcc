@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Pessoas - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<th:block th:fragment="pessoaForm">
+    <form class="form-control" th:action="@{/pessoa/cadastrar}" method="post"
+          th:object="${novo_pessoa}">
+
+        <div class="form-check form-check-inline mb-3">
+            <input class="form-check-input border-dark" type="radio" th:field="*{pesTipo}"
+                   th:value="${T(com.produto.oficina.model.enums.PesTipo).FUNCIONARIO}"
+                   id="funcCheck" onchange="mostrarCampoIncsEst()">
+            <label class="form-check-label" for="funcCheck">Funcionário</label>
+        </div>
+
+        <div class="form-check form-check-inline mb-3">
+            <input class="form-check-input border-dark" type="radio" th:field="*{pesTipo}"
+                   th:value="${T(com.produto.oficina.model.enums.PesTipo).CLIENTE}"
+                   id="clienteCheck" onchange="mostrarCampoIncsEst()"/>
+            <label class="form-check-label" for="clienteCheck">Cliente</label>
+        </div>
+
+        <div class="form-check form-check-inline mb-3">
+            <input class="form-check-input border-dark" type="radio" th:field="*{pesTipo}"
+                   th:value="${T(com.produto.oficina.model.enums.PesTipo).FORNECEDOR}"
+                   id="fornecedorCheck" onchange="mostrarCampoIncsEst()"/>
+            <label class="form-check-label" for="fornecedorCheck">Fornecedor</label>
+        </div>
+
+        <hr>
+
+        <p class="form-label text-capitalize">tipo de pessoa:</p>
+        <div class="form-check form-check-inline mb-3">
+            <input class="form-check-input border-dark" type="radio" th:field="*{pesFisicoJuridico}"
+                   value="Jurídica"
+                   id="juriCheck"
+                   hx-on:change="document.getElementById('cpfCnpjLabel').innerText = 'CNPJ:'">
+            <label class="form-check-label" for="juriCheck">Jurídica</label>
+        </div>
+
+        <div class="form-check form-check-inline mb-3">
+            <input class="form-check-input border-dark" type="radio" th:field="*{pesFisicoJuridico}"
+                   value="Fisíca"
+                   id="fisCheck" hx-on:change="document.getElementById('cpfCnpjLabel').innerText = 'CPF:'"/>
+            <label class="form-check-label" for="fisCheck">Física</label>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="nomeUser">Nome Completo:</label>
+            <input class="form-control w-15 border-dark" id="nomeUser" type="text"
+                   th:field="*{pesNome}" required/>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="emailUser">Email:</label>
+            <input class="form-control w-25 border-dark" id="emailUser" type="email"
+                   th:field="*{pesEmail}" required/>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="docUser" id="cpfCnpjLabel">CPF / CNPJ:</label>
+            <input class="form-control w-15 border-dark" id="docUser" type="text"
+                   th:field="*{pesCpfCnpj}" required/>
+        </div>
+
+        <div id="inscEstadual" class="mb-3">
+            <label class="form-label" for="inscEst">Inscrição Estadual:</label>
+            <input class="form-control w-15 border-dark" id="inscEst" type="text"
+                   th:field="*{pesInscricaoEstadual}"/>
+        </div>
+
+        <p class="form-label text-capitalize">Gênero:</p>
+        <div class="form-check form-check-inline mb-3">
+            <input class="form-check-input border-dark" id="pesGenM" type="radio"
+                   th:field="*{pesGenero}" value="Masculino" required/>
+            <label class="form-check-label" for="pesGenM">Masculino</label>
+        </div>
+
+        <div class="form-check form-check-inline mb-3">
+            <input class="form-check-input border-dark" id="pesGenF" type="radio"
+                   th:field="*{pesGenero}" value="Feminino" required/>
+            <label class="form-check-label" for="pesGenF">Feminino</label>
+        </div>
+
+        <div id="dataNasc" class="mb-3">
+            <label class="form-label" for="dataN">Data de nascimento:</label>
+            <input class="form-control w-15 border-dark" id="dataN" type="date"
+                   th:field="*{pesDataNascimento}" required/>
+        </div>
+
+        <div class="mt-5">
+            <button class="btn btn-success" style="width: 7%;" type="submit">Salvar</button>
+            <a class="btn btn-danger" style="width: 7%;" th:href="@{/pessoa}">Cancelar</a>
+        </div>
+    </form>
+</th:block>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

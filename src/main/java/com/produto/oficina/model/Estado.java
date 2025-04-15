@@ -16,6 +16,7 @@ public class Estado {
 
     @Id
     @Column(name = "est_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "est_nome")
@@ -23,9 +24,6 @@ public class Estado {
 
     @Column(name = "est_sigla")
     private String sigla;
-
-    @Version
-    private int version;
 
     @Override
     public final boolean equals(Object o) {

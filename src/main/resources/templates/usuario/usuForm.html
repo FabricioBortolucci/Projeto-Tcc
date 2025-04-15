@@ -42,6 +42,7 @@
                 <label class="form-label" for="funcRelUser">Funcionário Relacionado:</label>
                 <select id="funcRelUser" class="form-select w-25 border-dark" aria-label="select" th:field="*{idFunc}"
                         required>
+                    <option value="" disabled>Selecione um Funcionário</option>
                     <option th:each="func : ${func_lista}" th:value="${func.id}" th:text="${func.pesNome}">
                     </option>
                 </select>

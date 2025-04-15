@@ -26,9 +26,6 @@ public class Telefone {
     @Column(name = "tel_tipo")
     private TipoTelefone tipo;
 
-    @Column(name = "tel_ddd")
-    private String ddd;
-
     @Column(name = "tel_principal")
     private boolean telPrincipal;
 

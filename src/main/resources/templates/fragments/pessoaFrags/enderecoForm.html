@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Pessoas - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<th:block th:fragment="enderecoForm">
+        <form id="enderecoForm" class="form-control" th:object="${novo_endereco}" method="post">
+            <div class="mb-3">
+                <label for="Inputcep" class="form-label">CEP:</label>
+                <input class="form-control border-dark w-25" id="Inputcep" th:field="*{endCep}"/>
+                <p class="text-danger" th:if="${#fields.hasErrors('endCep')}" th:errors="*{endCep}"></p>
+            </div>
+
+            <div class="mb-3">
+                <label for="Inputrua" class="form-label">Rua:</label>
+                <input class="form-control border-dark w-25" id="Inputrua" th:field="*{endRua}"/>
+                <p class="text-danger" th:if="${#fields.hasErrors('endRua')}" th:errors="*{endRua}"></p>
+            </div>
+
+            <div class="mb-3">
+                <label for="Inputnumero" class="form-label">Número:</label>
+                <input class="form-control border-dark w-25" id="Inputnumero" th:field="*{endNumero}"/>
+                <p class="text-danger" th:if="${#fields.hasErrors('endNumero')}" th:errors="*{endNumero}"></p>
+            </div>
+
+            <div class="mb-3">
+                <label for="Inputbairro" class="form-label">Bairro:</label>
+                <input class="form-control border-dark w-25" id="Inputbairro" th:field="*{endBairro}"/>
+                <p class="text-danger" th:if="${#fields.hasErrors('endBairro')}" th:errors="*{endBairro}"></p>
+            </div>
+
+            <div class="mb-3">
+                <label for="Inputestado" class="form-label">Estado:</label>
+                <select id="Inputestado"
+                        class="form-select border-dark w-25"
+                        name="estado"
+                        th:hx-get="@{/pessoa/cadastro/cidades}"
+                        hx-target="#cidadeContainer"
+                        hx-swap="outerHTML">
+                    <option th:each="est : ${estados}" th:value="${est.id}" th:text="${est.estNome}"></option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="Inputcidade" class="form-label">Cidade:</label>
+                <select id="Inputcidade" class="form-select border-dark w-25" th:field="*{cidadeId}">
+                    <option id="cidadeContainer" value="">Selecione um estado primeiro</option>
+                </select>
+                <p class="text-danger" th:if="${#fields.hasErrors('cidadeId')}" th:errors="*{cidadeId}"></p>
+            </div>
+
+            <div class="form-check mb-3">
+                <input class="form-check-input border-dark" type="checkbox" th:field="*{endPrincipal}"
+                       id="endPrincipal"/>
+                <label class="form-check-label" for="endPrincipal">Endereço principal</label>
+            </div>
+
+            <button type="submit"
+                    class="btn btn-primary"
+                    th:hx-post="@{/pessoa/cadastro/enderecos/adicionar}"
+                    hx-target="#tabelaEnderecoContainer"
+                    hx-on::after-request="document.getElementById('enderecoForm').reset();"
+                    hx-swap="outerHTML">Adicionar Endereço
+            </button>
+        </form>
+</th:block>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

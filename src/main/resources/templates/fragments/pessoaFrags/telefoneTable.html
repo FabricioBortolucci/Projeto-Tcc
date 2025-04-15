@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Pessoas - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<th:block th:fragment="telTable">
+
+    <div id="tabelaTelefoneContainer" class="mb-3">
+        <table class="table table-dark table-bordered table-hover table-striped table-responsive table-sm">
+            <thead>
+            <tr>
+                <th>Número</th>
+                <th>Tipo</th>
+                <th>Principal</th>
+                <th>Opções</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="tel, iter : ${telefones}" th:id="'telefone-' + ${iter.index}">
+                <td th:text="${tel.telNumero}"></td>
+                <td th:text="${tel.tipo.descricao}"></td>
+                <td th:text="${tel.telPrincipal ? 'Sim' : 'Não'}"></td>
+                <td>
+                    <button class="btn btn-danger"
+                            th:hx-delete="@{/pessoa/cadastro/telefones/remover/{index}(index=${iter.index})}"
+                            hx-target="#tabelaTelefoneContainer"
+                            hx-swap="outerHTML">
+                        Remover
+                    </button>
+                    <button class="btn btn-primary"
+                            th:hx-get="@{/pessoa/cadastro/telefones/editar/{index}(index=${iter.index})}"
+                            hx-target="#telefoneForm"
+                            hx-swap="outerHTML">
+                        Editar
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</th:block>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

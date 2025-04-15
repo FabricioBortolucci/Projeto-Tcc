@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Home - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
+        <h1 class="h3">Lista de Produtos</h1>
+
+        <table id="prodTableMain" class="table table-dark table-bordered table-hover table-striped table-responsive">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nome</th>
+                <th>Preço Un.</th>
+                <th>Quantidade</th>
+                <th>Descrição</th>
+                <th>Opções</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="prods : ${produtos}">
+                <td th:text="${prods.id}"></td>
+                <td th:text="${prods.nome}"></td>
+                <td th:text="${prods.precoUnitario}"></td>
+                <td th:text="${prods.estoque}"></td>
+                <td th:text="${prods.descricao}"></td>
+                <td>
+                    <form th:action="@{/produto/remover/{index}(index=${prods.id})}" method="post">
+                        <button class="btn btn-danger" type="submit">
+                            Remover
+                        </button>
+                        <a class="btn btn-primary">
+                            Editar
+                        </a>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="btn-group w-10">
+            <a class="btn btn-primary" th:href="@{/produto/cadastro}">Novo</a>
+        </div>
+
+
+    </main>
+</div>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+</body>
+</html>
