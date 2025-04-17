@@ -2,9 +2,12 @@ package com.produto.oficina.service;
 
 import com.produto.oficina.model.Produto;
 import com.produto.oficina.repository.ProdutoRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ProdutoService {
@@ -16,15 +19,19 @@ public class ProdutoService {
         this.produtoRepository = produtoRepository;
     }
 
-    public List<Produto> findAll() {
-        return produtoRepository.findAll();
+    public Page<Produto> findAll(Pageable pageable) {
+        return produtoRepository.findAll(pageable);
     }
 
     public void save(Produto produto) {
-        produtoRepository.save(produto);
+        produtoRepository.saveAndFlush(produto);
     }
 
     public void deleteProd(Long produto) {
         produtoRepository.deleteById(produto);
+    }
+
+    public Optional<Produto> findById(Long index) {
+        return produtoRepository.findById(index);
     }
 }

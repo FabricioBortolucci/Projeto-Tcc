@@ -9,6 +9,8 @@ import com.produto.oficina.service.EnderecoService;
 import com.produto.oficina.service.EstadoService;
 import com.produto.oficina.service.PessoaService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -38,10 +40,14 @@ public class PessoaController {
     }
 
     @GetMapping()
-    public String pessoaList(Model model) {
+    public String pessoaList(Model model,
+                             @RequestParam(defaultValue = "0") int page,
+                             @RequestParam(defaultValue = "5") int size) {
         enderecosDtoList.clear();
         telefonesDtoList.clear();
-        model.addAttribute("pes_list", pessoaService.listarTodos());
+        Page<PessoaDto> pessoaDtoPage = pessoaService.listarTodos(PageRequest.of(page, size));
+        model.addAttribute("pes_list", pessoaDtoPage);
+        model.addAttribute("currentPage", page);
         return "pessoa/pesList";
     }
 

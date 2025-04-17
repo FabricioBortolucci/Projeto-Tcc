@@ -2,7 +2,8 @@ package com.produto.oficina.controller;
 
 import com.produto.oficina.model.Produto;
 import com.produto.oficina.service.ProdutoService;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,8 +19,12 @@ public class ProdutoController {
     }
 
     @GetMapping
-    public String produtoList(Model model) {
-        model.addAttribute("produtos", produtoService.findAll());
+    public String produtoList(Model model,
+                              @RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "5") int size) {
+        Page<Produto> produtoPage = produtoService.findAll(PageRequest.of(page, size));
+        model.addAttribute("produtoPage", produtoPage);
+        model.addAttribute("currentPage", page);
         return "produto/prodList";
     }
 
@@ -41,5 +46,10 @@ public class ProdutoController {
         return "redirect:/produto";
     }
 
+    @GetMapping("/editar/{index}")
+    public String produtoEdit(@PathVariable Long index, Model model) {
+        model.addAttribute("produto", produtoService.findById(index));
+        return "produto/prodForm";
+    }
 
 }

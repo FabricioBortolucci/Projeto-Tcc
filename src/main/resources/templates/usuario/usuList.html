@@ -24,7 +24,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="users : ${usuarios_lista}">
+            <tr th:each="users : ${usuarios_lista.content}">
                 <td th:text="${users.getId()}"></td>
                 <td th:text="${users.getUsuNome()}"></td>
                 <td th:text="${users.getRoleName()}"></td>
@@ -32,7 +32,21 @@
             </tr>
             </tbody>
         </table>
-
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                    <a class="page-link" th:href="@{/usuario(page=${currentPage - 1}, size=5)}">Anterior</a>
+                </li>
+                <li class="page-item"
+                    th:each="i : ${#numbers.sequence(0, usuarios_lista.totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{/usuario(page=${i}, size=5)}" th:text="${i + 1}">1</a>
+                </li>
+                <li th:classappend="${currentPage + 1 == usuarios_lista.totalPages} ? 'disabled'" class="page-item">
+                    <a class="page-link" th:href="@{/usuario(page=${currentPage + 1}, size=5)}">Próxima</a>
+                </li>
+            </ul>
+        </nav>
         <div class="btn-group w-10">
             <a class="btn btn-primary " th:href="@{/usuario/cadastro}">Novo</a>
         </div>

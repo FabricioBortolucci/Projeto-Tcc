@@ -6,6 +6,8 @@ import com.produto.oficina.model.Usuario;
 import com.produto.oficina.model.enums.Role;
 import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.UsuarioRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -43,12 +45,12 @@ public class UsuarioService {
         }
     }
 
-    public List<UsuarioDTO> listarTodos() {
-        List<UsuarioDTO> usuarioDTOS = usuarioRepository.findUsuAndFunc();
-
+    public Page<UsuarioDTO> listarTodos(Pageable pageable) {
+        Page<UsuarioDTO> usuarioDTOS = usuarioRepository.findUsuAndFunc(pageable);
         for (UsuarioDTO usuarioDTO : usuarioDTOS) {
             usuarioDTO.setFuncionario(pessoaRepository.findFuncionarioById(usuarioDTO.getIdFunc()));
         }
+
         return usuarioDTOS;
     }
 }

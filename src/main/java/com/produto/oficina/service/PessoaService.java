@@ -7,6 +7,8 @@ import com.produto.oficina.dto.pessoaCad.TelefoneDto;
 import com.produto.oficina.model.*;
 import com.produto.oficina.repository.PessoaRepository;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -35,9 +37,8 @@ public class PessoaService {
         return repository.findFuncs();
     }
 
-    public List<PessoaDto> listarTodos() {
-        return repository.findAll()
-                .stream()
+    public Page<PessoaDto> listarTodos(Pageable pageable) {
+        return repository.findAll(pageable)
                 .map(p -> new PessoaDto(
                         p.getId(),
                         p.getPesNome(),
@@ -45,8 +46,9 @@ public class PessoaService {
                         p.getPesTipo(),
                         p.getPesAtivo(),
                         p.getPesEmail()
-                )).toList();
+                ));
     }
+
 
     public void cadastrarPessoa(PessoaDto objDto) {
         if (objDto.getId() != null) {
@@ -70,7 +72,7 @@ public class PessoaService {
             pessoa.setPesRg(pessoaDto.getPesRg());
             pessoa.setPesInscricaoEstadual(pessoaDto.getPesInscricaoEstadual());
             pessoa.setPesDataCadastro(LocalDateTime.now());
-            
+
             pessoa.setEnderecos(new ArrayList<>());
             for (EnderecoDto endereco : enderecosDtoList) {
                 Endereco end = new Endereco();

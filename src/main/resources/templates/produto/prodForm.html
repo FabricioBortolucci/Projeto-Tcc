@@ -16,6 +16,7 @@
 
         <form class="form-control" th:action="@{/produto/cadastrar}" method="post"
               th:object="${produto}">
+            <input type="hidden" th:field="*{id}"/>
 
             <div class="mb-3">
                 <label class="form-label" for="nomeProd">Nome do produto:</label>

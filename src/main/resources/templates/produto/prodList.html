@@ -26,7 +26,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="prods : ${produtos}">
+            <tr th:each="prods : ${produtoPage.content}">
                 <td th:text="${prods.id}"></td>
                 <td th:text="${prods.nome}"></td>
                 <td th:text="${prods.precoUnitario}"></td>
@@ -37,7 +37,7 @@
                         <button class="btn btn-danger" type="submit">
                             Remover
                         </button>
-                        <a class="btn btn-primary">
+                        <a th:href="@{/produto/editar/{index}(index=${prods.id})}" class="btn btn-primary">
                             Editar
                         </a>
                     </form>
@@ -45,6 +45,21 @@
             </tr>
             </tbody>
         </table>
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                    <a class="page-link" th:href="@{/produto(page=${currentPage - 1}, size=5)}">Anterior</a>
+                </li>
+                <li class="page-item"
+                    th:each="i : ${#numbers.sequence(0, produtoPage.totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{/produto(page=${i}, size=5)}" th:text="${i + 1}">1</a>
+                </li>
+                <li th:classappend="${currentPage + 1 == produtoPage.totalPages} ? 'disabled'" class="page-item">
+                    <a class="page-link" th:href="@{/produto(page=${currentPage + 1}, size=5)}">Próxima</a>
+                </li>
+            </ul>
+        </nav>
 
         <div class="btn-group w-10">
             <a class="btn btn-primary" th:href="@{/produto/cadastro}">Novo</a>

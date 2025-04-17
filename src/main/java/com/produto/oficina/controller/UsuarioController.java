@@ -4,11 +4,14 @@ import com.produto.oficina.dto.UsuarioDTO;
 import com.produto.oficina.model.enums.Role;
 import com.produto.oficina.service.PessoaService;
 import com.produto.oficina.service.UsuarioService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class UsuarioController {
@@ -24,8 +27,12 @@ public class UsuarioController {
 
 
     @GetMapping("/usuario")
-    private String usuList(Model model) {
-        model.addAttribute("usuarios_lista", usuarioService.listarTodos());
+    private String usuList(Model model,
+                           @RequestParam(defaultValue = "0") int page,
+                           @RequestParam(defaultValue = "5") int size) {
+        Page<UsuarioDTO> usuarioDTOPage = usuarioService.listarTodos(PageRequest.of(page, size));
+        model.addAttribute("usuarios_lista", usuarioDTOPage);
+        model.addAttribute("currentPage", page);
         return "usuario/usuList";
     }
 
