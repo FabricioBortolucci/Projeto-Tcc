@@ -18,6 +18,8 @@ import java.io.Serializable;
 @ToString
 public class EnderecoDto implements Serializable {
 
+    Long id;
+
     @NotNull(message = "O número é obrigatório")
     Integer endNumero;
 
@@ -35,4 +37,15 @@ public class EnderecoDto implements Serializable {
 
     boolean endPrincipal;
     CidadeDto cidade;
+
+
+    public EnderecoDto(Long id, Integer endNumero, String endBairro, String endCep, String endRua, Long cidadeId, boolean endPrincipal) {
+        this.id = id;
+        this.endNumero = endNumero;
+        this.endBairro = endBairro;
+        this.endCep = endCep;
+        this.endRua = endRua;
+        this.cidadeId = cidadeId;
+        this.endPrincipal = endPrincipal;
+    }
 }

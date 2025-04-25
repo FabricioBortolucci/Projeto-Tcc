@@ -8,6 +8,7 @@ import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,19 +32,41 @@ public class UsuarioService {
 
     public void cadastrarUsuario(UsuarioDTO userDTO) {
         if (userDTO != null) {
-            Usuario usuario = new Usuario();
-            usuario.setUsuNome(userDTO.getUsuNome());
-            usuario.setRole(userDTO.getRole());
-            usuario.setUsuSenha(passwordEncoder.encode(userDTO.getUsuSenha()));
+            Pessoa funcionarioRel = pessoaRepository.findById(userDTO.getIdFunc()).get();
+            Usuario usuario;
 
-            Optional<Pessoa> funcionarioRel = pessoaRepository.findById(userDTO.getIdFunc());
-            if (funcionarioRel.isPresent()) {
-                funcionarioRel.get().setUsuario(usuario);
-                usuario.setPessoaRel(funcionarioRel.get());
-                usuarioRepository.save(usuario);
+            if (userDTO.getId() != null) {
+                // Já existe
+                usuario = usuarioRepository.findById(userDTO.getId()).get();
+                usuario.setUsuNome(userDTO.getUsuNome());
+                usuario.setRole(userDTO.getRole());
+                usuario.setUsuSenha(passwordEncoder.encode(userDTO.getUsuSenha()));
+                usuario.setAtivo(userDTO.isAtivo());
+                if (usuario.getPessoaRel() != funcionarioRel && usuario.isAtivo()) {
+                    Pessoa funcAntigo = pessoaRepository.findById(
+                            usuario.getPessoaRel() != null ?
+                                    usuario.getPessoaRel().getId() : userDTO.getIdFunc()).get();
+                    funcAntigo.setUsuario(null);
+                    pessoaRepository.saveAndFlush(funcAntigo);
+                    usuario.setPessoaRel(funcionarioRel);
+                    funcionarioRel.setUsuario(usuario);
+                }
+            } else {
+                // Novo
+                usuario = new Usuario();
+                usuario.setUsuNome(userDTO.getUsuNome());
+                usuario.setRole(userDTO.getRole());
+                usuario.setUsuSenha(passwordEncoder.encode(userDTO.getUsuSenha()));
+                usuario.setAtivo(userDTO.isAtivo());
+                funcionarioRel.setUsuario(usuario);
+                usuario.setPessoaRel(funcionarioRel);
             }
+
+            usuarioRepository.saveAndFlush(usuario);
+            pessoaRepository.saveAndFlush(funcionarioRel);
         }
     }
+
 
     public Page<UsuarioDTO> listarTodos(Pageable pageable) {
         Page<UsuarioDTO> usuarioDTOS = usuarioRepository.findUsuAndFunc(pageable);
@@ -52,6 +75,20 @@ public class UsuarioService {
         }
 
         return usuarioDTOS;
+    }
+
+    public void remover(Long index) {
+        Usuario user = usuarioRepository.findById(index).get();
+        Pessoa pes = pessoaRepository.findFuncionarioById(user.getPessoaRel().getId());
+        pes.setUsuario(null);
+        user.setPessoaRel(null);
+        user.setAtivo(false);
+        pessoaRepository.saveAndFlush(pes);
+        usuarioRepository.saveAndFlush(user);
+    }
+
+    public UsuarioDTO buscaUsu(Long index) {
+        return usuarioRepository.findUsu(index);
     }
 }
 

@@ -11,5 +11,8 @@ public enum PesTipo {
         this.descricao = descricao;
     }
 
+    public static PesTipo fromString(String value) {
+        return valueOf(value.toUpperCase());
+    }
 
 }

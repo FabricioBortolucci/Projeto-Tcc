@@ -4,6 +4,7 @@ import com.produto.oficina.dto.pessoaCad.CidadeDto;
 import com.produto.oficina.dto.pessoaCad.EstadoDto;
 import com.produto.oficina.model.Cidade;
 import com.produto.oficina.repository.CidadeRepository;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -30,9 +31,18 @@ public class CidadeService {
         return cidadeRepository.findCidadesByEstadoId(id);
     }
 
+
     public CidadeDto findCidadeEestadoById(Long id) {
         CidadeDto cidadeDto = cidadeRepository.findCidadeById(id);
         cidadeDto.setEstado(estadoService.buscarPorIdDto(cidadeDto.getEstadoId()));
         return cidadeDto;
+    }
+
+    public CidadeDto findCidadeById(Long id) {
+        return cidadeRepository.findCidadeById(id);
+    }
+
+    public Cidade buscaCidadePorId( Long cidadeId) {
+        return cidadeRepository.findById(cidadeId).get();
     }
 }

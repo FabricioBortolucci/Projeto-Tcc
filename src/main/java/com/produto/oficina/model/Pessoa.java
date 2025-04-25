@@ -42,13 +42,13 @@ public class Pessoa {
 
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @ToString.Exclude
-    private List<Endereco> enderecos;
+    private List<Endereco> enderecos = new ArrayList<>();
 
     @OneToMany(mappedBy = "pessoa", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @ToString.Exclude
     private List<Telefone> telefones = new ArrayList<>();
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id")
     @ToString.Exclude
     private Usuario usuario;
@@ -74,8 +74,18 @@ public class Pessoa {
     @Column(name = "pes_fsc_jrc")
     private String pesFisicoJuridico;
 
+    @ManyToMany(mappedBy = "fornecedores")
+    @ToString.Exclude
+    private List<Produto> produtosFornecidos;
+
+    @Column(name = "data_ultimo_fornecimento")
+    private LocalDateTime dataUltimoFornecimento;
 
 
+    public String getTelefonePrincipal() {
+        return telefones != null && !telefones.isEmpty() ? Objects.requireNonNull(telefones.stream().filter(Telefone::isTelPrincipal)
+                .findFirst().orElse(null)).getTelNumero() : "Sem telefone principal cadastrado.";
+    }
 
     @Override
     public final boolean equals(Object o) {

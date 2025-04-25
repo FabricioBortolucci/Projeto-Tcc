@@ -13,46 +13,34 @@
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
         <h1 class="h3">Cadastro de Produto</h1>
-
-        <form class="form-control" th:action="@{/produto/cadastrar}" method="post"
-              th:object="${produto}">
-            <input type="hidden" th:field="*{id}"/>
-
-            <div class="mb-3">
-                <label class="form-label" for="nomeProd">Nome do produto:</label>
-                <input class="form-control w-15 border-dark" id="nomeProd" type="text"
-                       th:field="*{nome}" required/>
+        <ul class="nav nav-pills mb-3 mt-3" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="produtoTab-tab" data-bs-toggle="tab" data-bs-target="#produtoTab"
+                        type="button"
+                        role="tab" aria-controls="produtoTab" aria-selected="true">Produto
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="fornecedorTab-tab" data-bs-toggle="tab" data-bs-target="#fornecedorTab"
+                        type="button"
+                        role="tab" aria-controls="fornecedorTab" aria-selected="false">Fornecedor
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="produtoTab" role="tabpanel" aria-labelledby="produtoTab">
+               <div th:insert="~{fragments/produtoFrags/produtoForm :: produtoForm}"></div>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label" for="precoProd">Preço Unitário:</label>
-                <input class="form-control w-15 border-dark" id="precoProd" type="number"
-                       th:field="*{precoUnitario}" required/>
+            <div class="tab-pane fade show" id="fornecedorTab" role="tabpanel" aria-labelledby="fornecedorTab">
+                <div th:insert="~{fragments/produtoFrags/fornecedorForm :: fornecedorForm}"></div>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="quantProd">Quantidade:</label>
-                <input class="form-control w-15 border-dark" id="quantProd" type="number"
-                       th:field="*{estoque}" required/>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="descProd">Descrição:</label>
-                <textarea class="form-control w-25 border-dark" style="resize: none" id="descProd" rows="3"
-                          th:field="*{descricao}"></textarea>
-            </div>
-
-
-            <div class="mt-5">
-                <button class="btn btn-success" style="width: 7%;" type="submit">Salvar</button>
-                <a class="btn btn-danger" style="width: 7%;" th:href="@{/produto}">Cancelar</a>
-            </div>
-        </form>
-
+        </div>
     </main>
 </div>
 
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/htmx/htmx.min.js}"></script>
 </body>
 </html>

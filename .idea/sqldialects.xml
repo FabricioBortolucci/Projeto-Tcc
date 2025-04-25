@@ -4,6 +4,8 @@
     <file url="file://$PROJECT_DIR$/src/main/java/com/produto/oficina/repository/CidadeRepository.java" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/produto/oficina/repository/EstadoRepository.java" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/produto/oficina/repository/PessoaRepository.java" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/src/main/java/com/produto/oficina/repository/TelefoneRepository.java" dialect="GenericSQL" />
     <file url="file://$PROJECT_DIR$/src/main/java/com/produto/oficina/repository/UsuarioRepository.java" dialect="PostgreSQL" />
+    <file url="PROJECT" dialect="PostgreSQL" />
   </component>
 </project>

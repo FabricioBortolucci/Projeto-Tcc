@@ -12,6 +12,7 @@
 <th:block th:fragment="telForm">
 
     <form id="telefoneForm" class="form-control" th:object="${novo_telefone}" method="post">
+        <input type="hidden" th:field="*{id}"/>
 
         <div class="mb-3">
             <label class="form-label" for="inputNum">Número:</label>

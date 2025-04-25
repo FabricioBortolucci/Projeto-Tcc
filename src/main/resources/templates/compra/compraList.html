@@ -12,36 +12,32 @@
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <h1 class="h3">Lista de Produtos</h1>
+        <h1 class="h3">Lista de Compras</h1>
 
         <table id="prodTableMain" class="table table-dark table-bordered table-hover table-striped table-responsive">
             <thead>
             <tr>
                 <th>Id</th>
-                <th>Nome</th>
-                <th>Preço Venda</th>
-                <th>Preço Custo</th>
-                <th>Quantidade</th>
-                <th>Descrição</th>
-                <th>Ativo</th>
+                <th>Fornecedor</th>
+                <th>Data da compra</th>
+                <th>Valor Total</th>
+                <th>Observação</th>
                 <th>Opções</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="prods : ${produtoPage.content}">
-                <td th:text="${prods.id}"></td>
-                <td th:text="${prods.nome}"></td>
-                <td th:text="${prods.precoUnitario}"></td>
-                <td th:text="${prods.precoCusto}"></td>
-                <td th:text="${prods.estoque}"></td>
-                <td th:text="${prods.descricao}"></td>
-                <td th:text="${prods.ativo == true ? 'Sim' : 'Não'}"></td>
+            <tr th:each="comp : ${compraPage.getContent()}">
+                <td th:text="${comp.id}"></td>
+                <td th:text="${comp.fornecedor}"></td>
+                <td th:text="${comp.dataCompra}"></td>
+                <td th:text="${comp.valorTotal}"></td>
+                <td th:text="${comp.observacao}"></td>
                 <td>
-                    <form th:action="@{/produto/remover/{index}(index=${prods.id})}" method="post">
+                    <form th:action="@{/compra/remover/{index}(index=${comp.id})}" method="post">
                         <button class="btn btn-danger" type="submit">
-                            Desativar
+                            Remover
                         </button>
-                        <a th:href="@{/produto/editar/{index}(index=${prods.id})}" class="btn btn-primary">
+                        <a th:href="@{/compra/editar/{index}(index=${comp.id})}" class="btn btn-primary">
                             Editar
                         </a>
                     </form>
@@ -52,21 +48,21 @@
         <nav>
             <ul class="pagination justify-content-center">
                 <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/produto(page=${currentPage - 1}, size=5)}">Anterior</a>
+                    <a class="page-link" th:href="@{/compra(page=${currentPage - 1}, size=5)}">Anterior</a>
                 </li>
                 <li class="page-item"
-                    th:each="i : ${#numbers.sequence(0, produtoPage.totalPages - 1)}"
+                    th:each="i : ${#numbers.sequence(0, compraPage.totalPages - 1)}"
                     th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{/produto(page=${i}, size=5)}" th:text="${i + 1}">1</a>
+                    <a class="page-link" th:href="@{/compra(page=${i}, size=5)}" th:text="${i + 1}">1</a>
                 </li>
-                <li th:classappend="${currentPage + 1 == produtoPage.totalPages} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/produto(page=${currentPage + 1}, size=5)}">Próxima</a>
+                <li th:classappend="${currentPage + 1 == compraPage.totalPages} ? 'disabled'" class="page-item">
+                    <a class="page-link" th:href="@{/compra(page=${currentPage + 1}, size=5)}">Próxima</a>
                 </li>
             </ul>
         </nav>
 
         <div class="btn-group w-10">
-            <a class="btn btn-primary" th:href="@{/produto/cadastro}">Novo</a>
+            <a class="btn btn-primary" th:href="@{/compra/cadastro}">Novo</a>
         </div>
 
 

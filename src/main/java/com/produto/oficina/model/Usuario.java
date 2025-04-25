@@ -29,11 +29,14 @@ public class Usuario implements UserDetails, Serializable {
     @Column(name = "usu_senha")
     private String usuSenha;
 
+    @Column(name = "usu_ativo")
+    private boolean ativo = true;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "usu_role", nullable = false)
     private Role role;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinColumn(name = "pes_id")
     @ToString.Exclude
     private Pessoa pessoaRel;

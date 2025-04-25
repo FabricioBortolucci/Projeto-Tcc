@@ -21,6 +21,8 @@
                 <th>Nome</th>
                 <th>Permissão</th>
                 <th>Funcionário</th>
+                <th>Ativo</th>
+                <th>Opções</th>
             </tr>
             </thead>
             <tbody>
@@ -28,7 +30,18 @@
                 <td th:text="${users.getId()}"></td>
                 <td th:text="${users.getUsuNome()}"></td>
                 <td th:text="${users.getRoleName()}"></td>
-                <td th:text="${users.getFuncionario().getPesNome()}"></td>
+                <td th:text="${users.getFuncionario() == null ? 'Desativado' : users.getFuncionario().getPesNome()}"></td>
+                <td th:text="${users.ativo ? 'Sim' : 'Não'}"></td>
+                <td>
+                    <form th:action="@{/usuario/remover/{index}(index=${users.id})}" method="post">
+                        <button th:classappend="${!users.ativo} ? 'disabled'" class="btn btn-danger" type="submit">
+                            Desativar
+                        </button>
+                        <a th:href="@{/usuario/editar/{index}(index=${users.id})}" class="btn btn-primary">
+                            Editar
+                        </a>
+                    </form>
+                </td>
             </tr>
             </tbody>
         </table>

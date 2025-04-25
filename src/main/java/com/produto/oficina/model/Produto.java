@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,6 +30,9 @@ public class Produto {
     @Column(name = "prod_preco")
     private BigDecimal precoUnitario;
 
+    @Column(name = "prod_preco_custo")
+    private BigDecimal precoCusto;
+
     @Column(name = "prod_desc")
     private String descricao;
 
@@ -37,6 +42,23 @@ public class Produto {
     @OneToMany(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<ConsumoMateriaPrima> consumoMateriaPrima;
+
+    @ManyToMany
+    @JoinTable(
+            name = "produto_fornecedor",
+            joinColumns = @JoinColumn(name = "produto_id"),
+            inverseJoinColumns = @JoinColumn(name = "fornecedor_id")
+    )
+    @ToString.Exclude
+    private List<Pessoa> fornecedores = new ArrayList<>();
+
+
+    @Column(name = "prod_ativo")
+    private Boolean ativo = true;
+
+    @Transient
+    private Long fornecedorId;
+
 
     @Override
     public final boolean equals(Object o) {

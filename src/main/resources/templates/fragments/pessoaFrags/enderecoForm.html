@@ -11,6 +11,8 @@
 <body>
 <th:block th:fragment="enderecoForm">
         <form id="enderecoForm" class="form-control" th:object="${novo_endereco}" method="post">
+            <input type="hidden" th:field="*{id}"/>
+
             <div class="mb-3">
                 <label for="Inputcep" class="form-label">CEP:</label>
                 <input class="form-control border-dark w-25" id="Inputcep" th:field="*{endCep}"/>
@@ -57,8 +59,8 @@
 
             <div class="form-check mb-3">
                 <input class="form-check-input border-dark" type="checkbox" th:field="*{endPrincipal}"
-                       id="endPrincipal"/>
-                <label class="form-check-label" for="endPrincipal">Endereço principal</label>
+                       id="endPrincipalA"/>
+                <label class="form-check-label" for="endPrincipalA">Endereço principal</label>
             </div>
 
             <button type="submit"

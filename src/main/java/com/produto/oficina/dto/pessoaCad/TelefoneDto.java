@@ -24,4 +24,11 @@ public class TelefoneDto implements Serializable {
     TipoTelefone tipo;
     String ddd;
     boolean telPrincipal;
+
+    public TelefoneDto(Long id, String telNumero, String tipo,  boolean telPrincipal) {
+        this.id = id;
+        this.telNumero = telNumero;
+        this.tipo = TipoTelefone.fromString(tipo);
+        this.telPrincipal = telPrincipal;
+    }
 }

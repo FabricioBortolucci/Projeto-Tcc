@@ -12,6 +12,7 @@
 <th:block th:fragment="pessoaForm">
     <form class="form-control" th:action="@{/pessoa/cadastrar}" method="post"
           th:object="${novo_pessoa}">
+        <input type="hidden" th:field="*{id}"/>
 
         <div class="form-check form-check-inline mb-3">
             <input class="form-check-input border-dark" type="radio" th:field="*{pesTipo}"
@@ -93,6 +94,12 @@
             <label class="form-label" for="dataN">Data de nascimento:</label>
             <input class="form-control w-15 border-dark" id="dataN" type="date"
                    th:field="*{pesDataNascimento}" required/>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-check-label" for="inputAtivo">Ativo:</label>
+            <input class="form-check-input border-dark" id="inputAtivo" type="checkbox"
+                   th:field="*{pesAtivo}" required/>
         </div>
 
         <div class="mt-5">

@@ -21,6 +21,9 @@ public class UsuarioDTO implements Serializable {
     String roleName;
     Long idFunc;
     Pessoa funcionario;
+    boolean ativo = true;
+
+
 
 
     public UsuarioDTO(Long id, String usuNome, String roleName, Long idFunc) {
@@ -28,5 +31,13 @@ public class UsuarioDTO implements Serializable {
         this.usuNome = usuNome;
         this.roleName = roleName;
         this.idFunc = idFunc;
+    }
+
+    public UsuarioDTO(Long id, String usuNome, String roleName, Long idFunc, boolean ativo) {
+        this.id = id;
+        this.usuNome = usuNome;
+        this.roleName = roleName;
+        this.idFunc = idFunc;
+        this.ativo = ativo;
     }
 }

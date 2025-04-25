@@ -11,4 +11,7 @@ public enum TipoTelefone {
         this.descricao = descricao;
     }
 
+    public static TipoTelefone fromString(String value) {
+        return valueOf(value.toUpperCase());
+    }
 }

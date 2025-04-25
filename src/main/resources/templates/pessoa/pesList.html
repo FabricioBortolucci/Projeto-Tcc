@@ -22,15 +22,26 @@
                 <th>Cpf/Cnpj</th>
                 <th>Tipo</th>
                 <th>Ativo</th>
+                <th>Opções</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="pes : ${pes_list.content}">
-                <td th:text="${pes.id}"></td>
-                <td th:text="${pes.pesNome}"></td>
-                <td th:text="${pes.pesCpfCnpj}"></td>
-                <td th:text="${pes.pesTipo.descricao}"></td>
+                <td th:text="${pes?.id}"></td>
+                <td th:text="${pes?.pesNome}"></td>
+                <td th:text="${pes?.pesCpfCnpj}"></td>
+                <td th:text="${pes?.pesTipo.descricao}"></td>
                 <td th:text="${pes.pesAtivo ? 'Ativo' : 'Inativo'}"></td>
+                <td>
+                    <form th:action="@{/pessoa/desativar/{index}(index=${pes.id})}" method="post">
+                        <button th:classappend="${!pes.pesAtivo} ? 'disabled'" class="btn btn-danger" type="submit">
+                            Desativar
+                        </button>
+                        <a th:href="@{/pessoa/editar/{index}(index=${pes.id})}" class="btn btn-primary">
+                            Editar
+                        </a>
+                    </form>
+                </td>
             </tr>
             </tbody>
         </table>

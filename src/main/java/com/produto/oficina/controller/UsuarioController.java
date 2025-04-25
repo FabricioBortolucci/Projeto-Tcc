@@ -8,10 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class UsuarioController {
@@ -58,7 +55,22 @@ public class UsuarioController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return "redirect:/usuario/cadastro";
+        return "redirect:/usuario";
+    }
+
+    @PostMapping("usuario/remover/{index}")
+    public String removerUsuario(@PathVariable Long index) {
+        usuarioService.remover(index);
+        return "redirect:/usuario";
+    }
+
+    @GetMapping("usuario/editar/{index}")
+    public String editarUsuario(@PathVariable Long index, Model model) {
+        UsuarioDTO usuario = usuarioService.buscaUsu(index);
+        model.addAttribute("novo_usuario", usuario);
+        model.addAttribute("func_lista", pessoaService.buscaFuncsAtual(usuario.getId()));
+        model.addAttribute("role_lista", Role.values());
+        return "usuario/usuForm";
     }
 
 }

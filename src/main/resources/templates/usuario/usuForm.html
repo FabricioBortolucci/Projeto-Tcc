@@ -16,6 +16,7 @@
 
         <form class="form-control" th:action="@{/usuario/cadastrar}" method="post"
               th:object="${novo_usuario}">
+            <input type="hidden" th:field="*{id}"/>
 
             <div class="mb-3">
                 <label class="form-label" for="nomeUser">Nome de usuário:</label>
@@ -46,6 +47,12 @@
                     <option th:each="func : ${func_lista}" th:value="${func.id}" th:text="${func.pesNome}">
                     </option>
                 </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-check-label" for="inputAtivo">Ativo:</label>
+                <input class="form-check-input border-dark" id="inputAtivo" type="checkbox"
+                       th:field="*{ativo}" required/>
             </div>
 
             <div class="mt-5">
