@@ -78,6 +78,10 @@ public class Pessoa {
     @ToString.Exclude
     private List<Produto> produtosFornecidos;
 
+    @ManyToMany(mappedBy = "fornecedoresMp")
+    @ToString.Exclude
+    private List<MateriaPrima> materiasPrimasFornecidas;
+
     @Column(name = "data_ultimo_fornecimento")
     private LocalDateTime dataUltimoFornecimento;
 

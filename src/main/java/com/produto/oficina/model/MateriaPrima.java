@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -28,8 +30,20 @@ public class MateriaPrima {
     @Column(name = "mp_preco_unitario")
     private BigDecimal precoUnitario;
 
+    @Column(name = "mp_preco_custo")
+    private BigDecimal precoCusto;
+
     @Column(name = "mp_unidade")
     private String unidade;
+
+    @ManyToMany
+    @JoinTable(
+            name = "materiaprima_fornecedor",
+            joinColumns = @JoinColumn(name = "mp_id"),
+            inverseJoinColumns = @JoinColumn(name = "fornecedor_id")
+    )
+    @ToString.Exclude
+    private List<Pessoa> fornecedoresMp = new ArrayList<>();
 
     public void reduzirEstoque(BigDecimal quantidade) {
         this.quantidadeEstoque = this.quantidadeEstoque.subtract(quantidade);

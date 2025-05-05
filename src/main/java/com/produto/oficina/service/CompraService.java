@@ -1,9 +1,7 @@
 package com.produto.oficina.service;
 
 import com.produto.oficina.model.Compra;
-import com.produto.oficina.model.Produto;
 import com.produto.oficina.repository.CompraRepository;
-import com.produto.oficina.repository.ProdutoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

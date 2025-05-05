@@ -4,6 +4,7 @@ import com.produto.oficina.dto.FornecedorDTO;
 import com.produto.oficina.dto.FuncionarioDTO;
 import com.produto.oficina.dto.pessoaCad.PessoaDto;
 import com.produto.oficina.model.Pessoa;
+import com.produto.oficina.model.enums.PesTipo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -65,4 +66,5 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
 
     Pessoa findFuncionarioById(Long id);
 
+    List<Pessoa> findAllByPesAtivoAndPesTipo(Boolean pesAtivo, PesTipo pesTipo);
 }

@@ -7,46 +7,137 @@
     <title>Home - Oficina</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/base.min.css" th:href="@{/css/base.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/choices.min.css" th:href="@{/css/choices.min.css}"/>
+    <style>
+        .choices {
+            width: 30% !important;
+        }
+    </style>
 </head>
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <h1 class="h3">Cadastro de Produto</h1>
+        <h1 class="h3">Compra</h1>
+        <ul class="nav nav-pills mb-3 mt-3" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="fornecedor-tab" data-bs-toggle="tab" data-bs-target="#fornecedorTab"
+                        type="button"
+                        role="tab" aria-controls="fornecedorTab" aria-selected="true">Fornecedor
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="prodTab-tab" data-bs-toggle="tab" data-bs-target="#prodTab"
+                        type="button"
+                        role="tab" aria-controls="prodTab" aria-selected="true">Produto
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="fechamentoTab-tab" data-bs-toggle="tab" data-bs-target="#fechamentoTab"
+                        type="button"
+                        role="tab" aria-controls="fechamentoTab" aria-selected="false">Fechamento
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="fornecedorTab" role="tabpanel" aria-labelledby="fornecedorTab">
+                <label class="form-label" for="fornecedorInput">Selecione o fornecedor:</label>
+                <div class="mb-3">
+                    <select class="form-select"
+                            id="fornecedorInput"
+                            name="fornecedorId"
+                            th:hx-get="@{/compra/buscarProdutos}"
+                            hx-target="#containerSelects"
+                            hx-include="[name='fornecedorId']"
+                            hx-trigger="change">
+                        <option value="">Selecione um fornecedor</option>
+                        <option th:each="fornecedor : ${fornecedores_compra}"
+                                th:value="${fornecedor.id}"
+                                th:text="${fornecedor.pesNome}"></option>
+                    </select>
+                </div>
 
-        <form class="form-control" th:action="@{/compra/cadastrar}" method="post"
-              th:object="${compra}">
-            <input type="hidden" th:field="*{id}"/>
+                <div id="containerSelects">
+                    <div class="mb-3">
+                        <label class="form-label" for="prodSelect">Produtos:</label>
+                        <select id="prodSelect" class="form-select w-30" name="prodId">
+                            <option value="" selected disabled>
+                                Selecione um fornecedor
+                            </option>
+                        </select>
+                    </div>
 
-            <div class="mb-3">
-                <label class="form-label" for="nomeProd">Nome do produto:</label>
-                <input class="form-control w-15 border-dark" id="nomeProd" type="text"
-                       th:field="*{fornecedor}" required/>
+                    <div id="mpDiv" class="mb-3">
+                        <label class="form-label" for="mpSelect">Matéria-Prima:</label>
+                        <select id="mpSelect" class="form-select w-30" name="mpId">
+                            <option value="" selected disabled>
+                                Selecione um fornecedor
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="valorCusto">Valor Custo:</label>
+                    <input type="number" class="form-control w-15" id="valorCusto" name="valorCusto" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="quantidade">Quantidade:</label>
+                    <input type="number" class="form-control w-15" id="quantidade" name="quantidade" min="1" value="1"
+                           placeholder="Quantidade" required>
+                </div>
+
+                <table id="prodTable"
+                       class="table table-dark table-bordered table-hover table-striped table-responsive">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Nome</th>
+                        <th>Preço Custo</th>
+                        <th>Quantidade</th>
+                        <th>Opções</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    </tbody>
+                </table>
             </div>
+            <div class="tab-pane fade show" id="fechamentoTab" role="tabpanel"
+                 aria-labelledby="fechamentoTab"></div>
 
-            <div class="mb-3">
-                <label class="form-label" for="precoProd">Preço Unitário:</label>
-                <input class="form-control w-15 border-dark" id="precoProd" type="number"
-                       th:field="*{valorTotal}" required/>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="obsProd">Observação:</label>
-                <textarea class="form-control w-25 border-dark" style="resize: none" id="obsProd" rows="3"
-                          th:field="*{observacao}"></textarea>
-            </div>
-
-
-            <div class="mt-5">
-                <button class="btn btn-success" style="width: 7%;" type="submit">Salvar</button>
-                <a class="btn btn-danger" style="width: 7%;" th:href="@{/compra}">Cancelar</a>
-            </div>
-        </form>
-
+        </div>
     </main>
 </div>
 
 
+<script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/htmx/htmx.min.js}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectF = document.getElementById('fornecedorInput');
+        const choicesF = new Choices(selectF, {
+            searchEnabled: true,
+            itemSelectText: '',
+            placeholder: true,
+            searchPlaceholderValue: 'Buscar Fornecedor...'
+        });
+        selectF.addEventListener('change', function (e) {
+            console.log(e.target.value);
+        });
+    });
+</script>
+
 </body>
 </html>

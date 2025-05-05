@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Caixa - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
+        <h1 class="h3">Caixa</h1>
+
+        <form class="form-control" th:action="@{/caixa/cadastrar}" method="post"
+              th:object="${caixa}">
+            <input type="hidden" th:field="*{id}"/>
+
+            <div class="mb-3">
+                <label class="form-label" for="caixaData">Data do cadastro:</label>
+                <input class="form-control w-15 border-dark" id="caixaData" type="date"
+                       th:field="*{dataCadastro}" disabled/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="valorCaixa">Valor do caixa:</label>
+                <input class="form-control w-15 border-dark" id="valorCaixa" type="number"
+                       th:field="*{valor}" required/>
+            </div>
+
+
+            <div class="mt-5">
+                <button class="btn btn-success" style="width: 7%;" type="submit">Salvar</button>
+                <a class="btn btn-danger" style="width: 7%;" th:href="@{/caixa}">Cancelar</a>
+            </div>
+        </form>
+
+    </main>
+</div>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

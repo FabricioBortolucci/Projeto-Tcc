@@ -12,7 +12,7 @@
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <h1 class="h3">Cadastro de Usuário</h1>
+        <h1 class="h3">Cadastro de Usuários</h1>
 
         <form class="form-control" th:action="@{/usuario/cadastrar}" method="post"
               th:object="${novo_usuario}">

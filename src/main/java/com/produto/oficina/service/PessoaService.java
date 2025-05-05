@@ -5,6 +5,7 @@ import com.produto.oficina.dto.pessoaCad.EnderecoDto;
 import com.produto.oficina.dto.pessoaCad.PessoaDto;
 import com.produto.oficina.dto.pessoaCad.TelefoneDto;
 import com.produto.oficina.model.*;
+import com.produto.oficina.model.enums.PesTipo;
 import com.produto.oficina.repository.PessoaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -145,5 +146,9 @@ public class PessoaService {
             pessoa.setPesAtivo(false);
             repository.saveAndFlush(pessoa);
         });
+    }
+
+    public List<Pessoa> buscaFornecedores() {
+       return repository.findAllByPesAtivoAndPesTipo(true, PesTipo.FORNECEDOR);
     }
 }

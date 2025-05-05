@@ -1,9 +1,7 @@
 package com.produto.oficina.controller;
 
 import com.produto.oficina.model.Compra;
-import com.produto.oficina.model.Produto;
-import com.produto.oficina.service.CompraService;
-import com.produto.oficina.service.ProdutoService;
+import com.produto.oficina.service.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
@@ -15,9 +13,17 @@ import org.springframework.web.bind.annotation.*;
 public class CompraController {
 
     private final CompraService compraService;
+    private final ProdutoService produtoService;
+    private final PessoaService pessoaService;
+    private final CaixaService caixaService;
+    private final MateriaPrimaService materiaPrimaService;
 
-    public CompraController(CompraService compraService) {
+    public CompraController(CompraService compraService, ProdutoService produtoService, PessoaService pessoaService, CaixaService caixaService, MateriaPrimaService materiaPrimaService) {
         this.compraService = compraService;
+        this.produtoService = produtoService;
+        this.pessoaService = pessoaService;
+        this.caixaService = caixaService;
+        this.materiaPrimaService = materiaPrimaService;
     }
 
     @GetMapping
@@ -32,9 +38,22 @@ public class CompraController {
 
     @GetMapping("/cadastro")
     public String compraForm(Model model) {
+       /* if (caixaService.verificaCaixaAberto()) {
+            return "redirect:/compra";
+        }*/
         model.addAttribute("compra", new Compra());
+        model.addAttribute("fornecedores_compra", pessoaService.buscaFornecedores());
         return "compra/compraForm";
     }
+
+    @GetMapping("/buscarProdutos")
+    public String buscarProdutos(@RequestParam(required = false) Long fornecedorId,
+                                 Model model) {
+        model.addAttribute("produtos", produtoService.buscarProdutosPorFornecedor(fornecedorId));
+        model.addAttribute("materias_primas", materiaPrimaService.buscarMpsPorFornecedor(fornecedorId));
+        return "fragments/compraFrags/produtosSelect :: produtoSelect";
+    }
+
 
     @PostMapping("/cadastrar")
     public String compraSave(@ModelAttribute Compra compra) {

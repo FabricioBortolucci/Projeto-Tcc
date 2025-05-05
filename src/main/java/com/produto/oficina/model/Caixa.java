@@ -6,9 +6,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -24,16 +27,24 @@ public class Caixa {
     private Long id;
 
     @Column(name = "caixa_data_cadastro")
-    private LocalDate dataCadastro;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private LocalDate dataCadastro = LocalDate.now();
 
     @Column(name = "caixa_data_fechamento")
     private LocalDate dataFechamento;
 
-    @Column(name = "caixa_quem_criou")
-    private String criouCaixa;
+    @Column(name = "caixa_data_ultima_mod")
+    private LocalDate dataUltimaModificacao;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pessoa_id", nullable = false)
+    private Pessoa criouCaixa;
 
     @Column(name = "caixa_valor")
     private BigDecimal valor;
+
+    @OneToMany(mappedBy = "caixa", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MovimentacaoCaixa> movimentacoes = new ArrayList<>();
 
     @Override
     public final boolean equals(Object o) {

@@ -7,31 +7,38 @@ import org.hibernate.proxy.HibernateProxy;
 import java.math.BigDecimal;
 import java.util.Objects;
 
+
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
 @Entity
-public class ItemVenda {
+public class OrdemServicoMP {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ost_id")
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "venda_id")
-    private Venda venda;
+    @JoinColumn(name = "ost_ordem_servico_id")
+    private OrdemServico ordemServico;
 
     @ManyToOne
-    @JoinColumn(name = "produto_id")
-    private Produto produto;
+    @JoinColumn(name = "ost_mp_id")
+    private MateriaPrima materiaPrima;
 
-    @Column(name = "iv_quantidade")
-    private Integer quantidade;
+    @Column(name = "ost_quantidade")
+    private BigDecimal quantidade;
 
-    @Column(name = "iv_subtotal")
-    private BigDecimal subtotal = BigDecimal.ZERO;
+    @Column(name = "ost_valor_unitario")
+    private BigDecimal valorUnitario;
+
+    @Column(name = "ost_valor_total")
+    private BigDecimal valorTotal;
+
+
 
     @Override
     public final boolean equals(Object o) {
@@ -40,8 +47,8 @@ public class ItemVenda {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        ItemVenda itemVenda = (ItemVenda) o;
-        return getId() != null && Objects.equals(getId(), itemVenda.getId());
+        OrdemServicoMP produto = (OrdemServicoMP) o;
+        return getId() != null && Objects.equals(getId(), produto.getId());
     }
 
     @Override

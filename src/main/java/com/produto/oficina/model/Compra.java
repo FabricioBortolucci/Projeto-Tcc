@@ -1,5 +1,7 @@
 package com.produto.oficina.model;
 
+import com.produto.oficina.model.enums.PlanoPagamento;
+import com.produto.oficina.model.enums.TipoPagamento;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -28,14 +30,21 @@ public class Compra {
     
     @Column(name = "mov_comp_valor_total")
     private BigDecimal valorTotal;
+
+    @Column(name = "comp_tipopagamento")
+    @Enumerated(EnumType.STRING)
+    private TipoPagamento tipoPagamento;
+
+    @Column(name = "comp_planopagamento")
+    @Enumerated(EnumType.STRING)
+    private PlanoPagamento planoPagamento;
     
     @Column(name = "mov_comp_observacao")
     private String observacao;
     
-    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL)
     private List<ItemCompra> itens = new ArrayList<>();
-    
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "conta_pagar_id")
-    private ContaPagar contaPagar;
+
+    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL)
+    private List<ContaPagar> contaPagars = new ArrayList<>();
 }

@@ -5,9 +5,9 @@ import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Objects;
+
 
 @Getter
 @Setter
@@ -15,36 +15,31 @@ import java.util.Objects;
 @AllArgsConstructor
 @ToString
 @Entity
-public class Venda {
+public class OrdemServicoItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ost_id")
     private Long id;
 
-    @Column(name = "ven_data")
-    private LocalDate data;
+    @ManyToOne
+    @JoinColumn(name = "ost_ordem_servico_id")
+    private OrdemServico ordemServico;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "ven_cliente_id")
-    @ToString.Exclude
-    private Pessoa cliente;
+    @ManyToOne
+    @JoinColumn(name = "ost_servico_id")
+    private Servico servico;
 
-    @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
-    @ToString.Exclude
-    private List<ItemVenda> itens;
+    @Column(name = "ost_quantidade")
+    private Integer quantidade;
 
-    @Column(name = "ven_total")
-    private BigDecimal total;
+    @Column(name = "ost_valor_unitario")
+    private BigDecimal valorUnitario;
 
-    @Column(name = "ven_desconto_geral")
-    private BigDecimal descontoGeral;
+    @Column(name = "ost_valor_total")
+    private BigDecimal valorTotal;
 
-    public void calcularTotal() {
-        BigDecimal totalItens = itens.stream()
-                .map(ItemVenda::getSubtotal)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-        this.total = totalItens.subtract(descontoGeral);
-    }
+
 
     @Override
     public final boolean equals(Object o) {
@@ -53,8 +48,8 @@ public class Venda {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        Venda venda = (Venda) o;
-        return getId() != null && Objects.equals(getId(), venda.getId());
+        OrdemServicoItem produto = (OrdemServicoItem) o;
+        return getId() != null && Objects.equals(getId(), produto.getId());
     }
 
     @Override

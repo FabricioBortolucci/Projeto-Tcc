@@ -1,7 +1,6 @@
 package com.produto.oficina.service;
 
 import com.produto.oficina.dto.FornecedorDTO;
-import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.Produto;
 import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.ProdutoRepository;
@@ -11,7 +10,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +22,10 @@ public class ProdutoService {
 
     public Page<Produto> findAll(Pageable pageable) {
         return produtoRepository.findAll(pageable);
+    }
+
+    public List<Produto> findAll() {
+        return produtoRepository.findAll();
     }
 
     public void save(Produto produto) {
@@ -49,4 +51,12 @@ public class ProdutoService {
         return pessoaRepository.findFornecedores();
     }
 
+    public List<Produto> buscarPorNome(String query) {
+        return produtoRepository.findByNomeContainingIgnoreCase(query);
+    }
+
+
+    public List<Produto> buscarProdutosPorFornecedor(Long fornecedorId) {
+        return produtoRepository.buscaPorFornecedor(fornecedorId);
+    }
 }

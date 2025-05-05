@@ -5,40 +5,30 @@ import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+
 
 @Getter
 @Setter
-@ToString
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@ToString
 @Entity
-public class ConsumoMateriaPrima {
+public class Servico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "serv_id")
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "cmp_produto_id")
-    private Produto produto;
+    @Column(name = "serv_preco")
+    private BigDecimal precoTotal;
 
-    @ManyToOne
-    @JoinColumn(name = "cmp_materia_prima_id")
-    private MateriaPrima materiaPrima;
+    @Column(name = "serv_desc")
+    private String descricao;
 
-    @Column(name = "cmp_quant_necessaria")
-    private BigDecimal quantidadeNecessaria; // 🔹 Quantidade por unidade do produto
-
-    @Column(name = "cmp_quant_real_usada")
-    private BigDecimal quantidadeRealUsada; // 🔹 Quantidade efetivamente usada
-
-    @Column(name = "cmp_desperdicio")
-    private BigDecimal desperdicio; // 🔹 Diferença entre o previsto e o real
-
-    public void calcularDesperdicio() {
-        this.desperdicio = quantidadeRealUsada.subtract(quantidadeNecessaria);
-    }
 
     @Override
     public final boolean equals(Object o) {
@@ -47,8 +37,8 @@ public class ConsumoMateriaPrima {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        ConsumoMateriaPrima that = (ConsumoMateriaPrima) o;
-        return getId() != null && Objects.equals(getId(), that.getId());
+        Servico produto = (Servico) o;
+        return getId() != null && Objects.equals(getId(), produto.getId());
     }
 
     @Override

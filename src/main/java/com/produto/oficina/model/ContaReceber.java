@@ -3,7 +3,11 @@ package com.produto.oficina.model;
 import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoPagamento;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -13,21 +17,21 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class ContaPagar {
+public class ContaReceber {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "conta_pagar_id")
+    @Column(name = "conta_receber_id")
     private Long id;
 
-    @Column(name = "conta_pagar_valor")
+    @Column(name = "conta_receber_valor")
     private BigDecimal valor;
 
-    @Column(name = "conta_pagar_data_vencimento")
+    @Column(name = "conta_receber_data_vencimento")
     private LocalDate dataVencimento;
 
-    @Column(name = "conta_pagar_data_pagamento")
-    private LocalDate dataPagamento;
+    @Column(name = "conta_receber_data_recebimento")
+    private LocalDate dataRecebimento;
 
     @Column(name = "numero_parcela")
     private Integer numeroParcela;
@@ -38,21 +42,21 @@ public class ContaPagar {
     @Column(name = "valor_total_original")
     private BigDecimal valorTotalOriginal;
 
-    @Column(name = "tipo_contapagar")
-    private TipoPagamento tipoPagamento;
-
-    @Column(name = "conta_pagar_status")
+    @Column(name = "conta_receber_status")
     @Enumerated(EnumType.STRING)
     private StatusConta status;
 
-    @ManyToOne
-    @JoinColumn(name = "fornecedor_id")
-    private Pessoa fornecedor;
+    @Column(name = "tipo_contapagar")
+    private TipoPagamento tipoPagamento;
 
     @ManyToOne
-    @JoinColumn(name = "compra_id")
-    private Compra compra;
+    @JoinColumn(name = "cliente_id")
+    private Pessoa cliente;
 
-    @OneToMany(mappedBy = "contaPagar")
+    @ManyToOne
+    @JoinColumn(name = "ordem_servico_id")
+    private OrdemServico ordemServico;
+
+    @OneToMany(mappedBy = "contaReceber")
     private List<MovimentacaoCaixa> movimentacoes;
 }

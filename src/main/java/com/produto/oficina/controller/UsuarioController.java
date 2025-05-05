@@ -49,12 +49,7 @@ public class UsuarioController {
 
     @PostMapping("usuario/cadastrar")
     private String salvarUsuario(@ModelAttribute UsuarioDTO usuario) {
-        try {
-            usuarioService.cadastrarUsuario(usuario);
-            return "redirect:/usuario";
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        usuarioService.cadastrarUsuario(usuario);
         return "redirect:/usuario";
     }
 
