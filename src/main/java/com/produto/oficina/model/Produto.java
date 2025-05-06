@@ -27,17 +27,17 @@ public class Produto {
     @Column(name = "prod_nome")
     private String nome;
 
-    @Column(name = "prod_preco")
+    @Column(name = "prod_preco", precision = 10, scale = 2)
     private BigDecimal precoUnitario;
 
-    @Column(name = "prod_preco_custo")
+    @Column(name = "prod_preco_custo", precision = 10, scale = 2)
     private BigDecimal precoCusto;
 
     @Column(name = "prod_desc")
     private String descricao;
 
-    @Column(name = "mp_unidade")
-    private String unidade;
+    @Column(name = "prod_tamanho_metros", precision = 4, scale = 2)
+    private BigDecimal tamanhoMetros;
 
     @Column(name = "prod_estoque")
     private Integer estoque;

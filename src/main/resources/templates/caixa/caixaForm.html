@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -20,19 +20,22 @@
 
             <div class="mb-3">
                 <label class="form-label" for="caixaData">Data do cadastro:</label>
-                <input class="form-control w-15 border-dark" id="caixaData" type="date"
+                <input class="form-control w-15 border-dark" id="caixaData" type="datetime-local"
                        th:field="*{dataCadastro}" disabled/>
             </div>
 
             <div class="mb-3">
                 <label class="form-label" for="valorCaixa">Valor do caixa:</label>
-                <input class="form-control w-15 border-dark" id="valorCaixa" type="number"
+                <input class="form-control w-15 border-dark" id="valorCaixa" type="text"
                        th:field="*{valor}" required/>
             </div>
 
 
             <div class="mt-5">
-                <button class="btn btn-success" style="width: 7%;" type="submit">Salvar</button>
+                <button class="btn btn-success" style="width: 7%;"
+                        onclick="formatarValorParaDecimal(document.getElementById('valorCaixa'));"
+                        type="submit">Salvar
+                </button>
                 <a class="btn btn-danger" style="width: 7%;" th:href="@{/caixa}">Cancelar</a>
             </div>
         </form>
@@ -42,5 +45,27 @@
 
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const valorCaixaInput = document.getElementById('valorCaixa');
+        VMasker(valorCaixaInput).maskMoney({
+            unit: 'R$',
+            suffix: '',
+            thousands: '.',
+            decimal: ',',
+            separator: ',',
+            delimiter: '.',
+            affixesStay: false,
+            allowZero: true,
+            allowNegative: true,
+            precision: 2
+        });
+    });
+
+    function formatarValorParaDecimal(input) {
+        input.value = input.value.replace(/[^\d,]/g, '').replace(',', '.');
+    }
+</script>
 </body>
 </html>

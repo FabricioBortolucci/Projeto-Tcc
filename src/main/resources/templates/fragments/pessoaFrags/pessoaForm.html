@@ -17,21 +17,21 @@
         <div class="form-check form-check-inline mb-3">
             <input class="form-check-input border-dark" type="radio" th:field="*{pesTipo}"
                    th:value="${T(com.produto.oficina.model.enums.PesTipo).FUNCIONARIO}"
-                   id="funcCheck" onchange="mostrarCampoIncsEst()">
+                   id="funcCheck">
             <label class="form-check-label" for="funcCheck">Funcionário</label>
         </div>
 
         <div class="form-check form-check-inline mb-3">
             <input class="form-check-input border-dark" type="radio" th:field="*{pesTipo}"
                    th:value="${T(com.produto.oficina.model.enums.PesTipo).CLIENTE}"
-                   id="clienteCheck" onchange="mostrarCampoIncsEst()"/>
+                   id="clienteCheck" />
             <label class="form-check-label" for="clienteCheck">Cliente</label>
         </div>
 
         <div class="form-check form-check-inline mb-3">
             <input class="form-check-input border-dark" type="radio" th:field="*{pesTipo}"
                    th:value="${T(com.produto.oficina.model.enums.PesTipo).FORNECEDOR}"
-                   id="fornecedorCheck" onchange="mostrarCampoIncsEst()"/>
+                   id="fornecedorCheck" />
             <label class="form-check-label" for="fornecedorCheck">Fornecedor</label>
         </div>
 
@@ -69,12 +69,6 @@
             <label class="form-label" for="docUser" id="cpfCnpjLabel">CPF / CNPJ:</label>
             <input class="form-control w-15 border-dark" id="docUser" type="text"
                    th:field="*{pesCpfCnpj}" required/>
-        </div>
-
-        <div id="inscEstadual" class="mb-3">
-            <label class="form-label" for="inscEst">Inscrição Estadual:</label>
-            <input class="form-control w-15 border-dark" id="inscEst" type="text"
-                   th:field="*{pesInscricaoEstadual}"/>
         </div>
 
         <p class="form-label text-capitalize">Gênero:</p>

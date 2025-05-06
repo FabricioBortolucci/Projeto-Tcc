@@ -68,4 +68,10 @@ public class UsuarioController {
         return "usuario/usuForm";
     }
 
+    @GetMapping("usuario/visualizar/{index}")
+    public String visualizarUsuario(@PathVariable Long index, Model model) {
+        model.addAttribute("usuario", usuarioService.buscaUsuView(index));
+        return "usuario/usuVisu";
+    }
+
 }

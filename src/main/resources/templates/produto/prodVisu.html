@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Caixa - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
+        <form class="form form-control" th:object="${produto}">
+            <h1 class="h3 mb-3" th:text="'Produto ' + *{id}"></h1>
+
+            <p>Nome:</p>
+            <p th:text="*{nome}"/>
+
+            <p>Valor Unitário:</p>
+            <p th:text="*{#numbers.formatCurrency(precoUnitario)}"/>
+
+            <p>Valor Custo:</p>
+            <p th:text="*{#numbers.formatCurrency(precoCusto)}"/>
+
+            <p>Estoque:</p>
+            <p th:text="*{estoque}"/>
+
+            <p>Descrição:</p><p th:text="*{descricao}"/>
+
+            <p>Tipo de produto:</p>
+            <p th:text="*{produtoTipo.descricao}"/>
+
+            <h1 class="h3 mb-3">Fornecedores</h1>
+            <table id="prodTableMain"
+                   class="table table-dark table-bordered table-hover table-striped table-responsive">
+                <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nome</th>
+                    <th>Último fornecimento</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="f : ${produto.getFornecedores()}">
+                    <td th:text="${f.id}"></td>
+                    <td th:text="${f.pesNome}"></td>
+                    <td th:text="${f.dataUltimoFornecimento != null ? f.dataUltimoFornecimento : 'N/A'}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <a class="btn btn-primary" style="width: 7%;" th:href="@{/produto}">Fechar</a>
+        </form>
+    </main>
+</div>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+
+</body>
+</html>

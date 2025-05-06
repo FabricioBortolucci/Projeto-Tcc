@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Caixa - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
+        <form class="form form-control" th:object="${caixa}">
+            <h1 class="h3 mb-3" th:text="'Caixa ' + *{id}"></h1>
+
+            <p>Data do cadastro:</p>
+            <p th:text="*{#temporals.format(dataCadastro, 'dd/MM/yyyy HH:mm:ss')}"/>
+
+            <p>Valor do caixa:</p>
+            <p th:text="*{#numbers.formatCurrency(valor)}"/>
+
+            <p>Quem criou o caixa:</p>
+            <p th:text="*{criouCaixa.pesNome}"/>
+
+            <p>Data fechamento:</p>
+            <p th:text="*{#temporals.format(dataFechamento, 'dd/MM/yyyy HH:mm:ss')}"/>
+
+            <h1 class="h3 mb-3">Movimentações do caixa</h1>
+            <table id="prodTableMain"
+                   class="table table-dark table-bordered table-hover table-striped table-responsive">
+                <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Data da movimentação</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Conta Pagar Id</th>
+                    <th>Conta Receber Id</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="mvs : ${mvsCaixa}">
+                    <td th:text="${mvs.id}"></td>
+                    <td th:text="${mvs.dataMovimentacao}"></td>
+                    <td th:text="${mvs.tipo.descricao}"></td>
+                    <td th:text="${#numbers.formatCurrency(mvs.valor)}"></td>
+                    <td th:text="${mvs.contaPagar.id}"></td>
+                    <td th:text="${mvs.contaReceber.id}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </form>
+    </main>
+</div>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+
+</body>
+</html>

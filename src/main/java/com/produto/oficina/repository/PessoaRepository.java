@@ -4,6 +4,7 @@ import com.produto.oficina.dto.FornecedorDTO;
 import com.produto.oficina.dto.FuncionarioDTO;
 import com.produto.oficina.dto.pessoaCad.PessoaDto;
 import com.produto.oficina.model.Pessoa;
+import com.produto.oficina.model.Usuario;
 import com.produto.oficina.model.enums.PesTipo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -53,7 +54,6 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
             "       p.pes_tipo," +
             "       p.pes_ativo," +
             "       CAST(p.pes_data_nascimento AS date) as pes_data_nascimento," +
-            "       p.pes_inscricao_estadual," +
             "       p.pes_rg," +
             "       p.pes_genero," +
             "       p.pes_email," +
@@ -65,6 +65,8 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     PessoaDto findPessoaById(@Param("id") Long id);
 
     Pessoa findFuncionarioById(Long id);
+
+    Pessoa findPessoaByUsuario(Usuario usuario);
 
     List<Pessoa> findAllByPesAtivoAndPesTipo(Boolean pesAtivo, PesTipo pesTipo);
 }

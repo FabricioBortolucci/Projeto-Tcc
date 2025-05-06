@@ -1,5 +1,6 @@
 package com.produto.oficina.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.produto.oficina.model.enums.PesTipo;
 import jakarta.persistence.*;
 import lombok.*;
@@ -57,6 +58,7 @@ public class Pessoa {
     private LocalDateTime pesDataCadastro;
 
     @Column(name = "pes_data_atualizacao")
+    @Temporal(TemporalType.TIMESTAMP)
     private LocalDateTime pesDataAtualizacao;
 
     @Column(name = "pes_data_nascimento")
@@ -64,9 +66,6 @@ public class Pessoa {
 
     @Column(name = "pes_rg", length = 20)
     private String pesRg;
-
-    @Column(name = "pes_inscricao_estadual")
-    private String pesInscricaoEstadual;
 
     @Column(name = "pes_genero")
     private String pesGenero;

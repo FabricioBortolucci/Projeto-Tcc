@@ -1,6 +1,7 @@
 package com.produto.oficina.service;
 
 import com.produto.oficina.dto.FornecedorDTO;
+import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.Produto;
 import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.ProdutoRepository;
@@ -29,7 +30,6 @@ public class ProdutoService {
     }
 
     public void save(Produto produto) {
-        produto.setAtivo(true);
         produtoRepository.saveAndFlush(produto);
     }
 
@@ -45,6 +45,10 @@ public class ProdutoService {
             return produtoRepository.findById(index).get();
         }
         return null;
+    }
+
+    public Produto findByIdView(Long index) {
+        return produtoRepository.findById(index).get();
     }
 
     public List<FornecedorDTO> buscaFornecedores() {

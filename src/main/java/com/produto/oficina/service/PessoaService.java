@@ -87,6 +87,7 @@ public class PessoaService {
         Pessoa pessoa;
         if (pessoaDto.getId() != null) {
             pessoa = repository.findById(pessoaDto.getId()).get();
+            pessoa.setPesDataAtualizacao(LocalDateTime.now());
         } else {
             pessoa = new Pessoa();
             pessoa.setPesDataCadastro(LocalDateTime.now());
@@ -100,7 +101,7 @@ public class PessoaService {
         pessoa.setPesGenero(pessoaDto.getPesGenero());
         pessoa.setPesFisicoJuridico(pessoaDto.getPesFisicoJuridico());
         pessoa.setPesRg(pessoaDto.getPesRg());
-        pessoa.setPesInscricaoEstadual(pessoaDto.getPesInscricaoEstadual());
+
 
         return pessoa;
     }

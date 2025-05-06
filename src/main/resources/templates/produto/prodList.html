@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>Peças - Oficina</title>
+    <title>Produtos - Oficina</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
 </head>
@@ -12,7 +12,11 @@
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <h1 class="h3">Lista de Peças</h1>
+        <h1 class="h3">Lista de Produtos</h1>
+
+        <div th:if="${produto_cadastrado}" class="alert alert-success" role="alert">
+            Salvo com sucesso!
+        </div>
 
         <table id="prodTableMain" class="table table-dark table-bordered table-hover table-striped table-responsive">
             <thead>
@@ -23,6 +27,7 @@
                 <th>Preço Custo</th>
                 <th>Quantidade</th>
                 <th>Descrição</th>
+                <th>Tipo</th>
                 <th>Ativo</th>
                 <th>Opções</th>
             </tr>
@@ -31,9 +36,10 @@
             <tr th:each="prods : ${produtoPage.content}">
                 <td th:text="${prods.id}"></td>
                 <td th:text="${prods.nome}"></td>
-                <td th:text="${prods.precoUnitario}"></td>
-                <td th:text="${prods.precoCusto}"></td>
+                <td th:text="${#numbers.formatCurrency(prods.precoUnitario)}"></td>
+                <td th:text="${#numbers.formatCurrency(prods.precoCusto)}"></td>
                 <td th:text="${prods.estoque}"></td>
+                <td th:text="${prods.produtoTipo.descricao}"></td>
                 <td th:text="${prods.descricao}"></td>
                 <td th:text="${prods.ativo == true ? 'Sim' : 'Não'}"></td>
                 <td>
@@ -43,6 +49,9 @@
                         </button>
                         <a th:href="@{/produto/editar/{index}(index=${prods.id})}" class="btn btn-primary">
                             Editar
+                        </a>
+                        <a th:href="@{/produto/visualizar/{index}(index=${prods.id})}" class="btn btn-primary">
+                            Visualizar
                         </a>
                     </form>
                 </td>

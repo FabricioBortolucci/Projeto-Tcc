@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Caixa - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
+        <form class="form form-control" th:object="${usuario}">
+            <h1 class="h3 mb-3" th:text="'Usuário ' + *{id}"></h1>
+
+            <p>Nome:</p>
+            <p th:text="*{usuNome}"/>
+
+            <p>Nível:</p>
+            <p th:text="*{role.descricao}"/>
+
+            <p>Ativo:</p>
+            <p th:text="*{ativo}"/>
+
+            <p>Funcionário:</p>
+            <p th:text="*{pessoaRel.pesNome}"/>
+
+            <a class="btn btn-primary" style="width: 7%;" th:href="@{/usuario}">Fechar</a>
+        </form>
+    </main>
+</div>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+
+</body>
+</html>

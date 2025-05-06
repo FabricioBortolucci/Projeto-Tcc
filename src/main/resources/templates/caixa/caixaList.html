@@ -14,20 +14,37 @@
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
         <h1 class="h3">Lista de Caixas</h1>
 
+        <div th:if="${alert}" th:text="${mensagem}" class="alert alert-success" role="alert">
+        </div>
+
         <table id="prodTableMain" class="table table-dark table-bordered table-hover table-striped table-responsive">
             <thead>
             <tr>
                 <th>Id</th>
+                <th>Valor</th>
+                <th>Data de cadastro</th>
+                <th>Data de fechamento</th>
                 <th>Opções</th>
             </tr>
             </thead>
             <tbody>
             <tr th:each="caixa : ${caixaPage.getContent()}">
                 <td th:text="${caixa.id}"></td>
+                <td th:text="${#numbers.formatCurrency(caixa.valor)}"></td>
+                <td th:text="${#temporals.format(caixa.dataCadastro, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${#temporals.format(caixa.dataFechamento, 'dd/MM/yyyy HH:mm')}"></td>
                 <td>
-                    <a th:href="@{/caixa/editar/{index}(index=${caixa.id})}" class="btn btn-primary">
-                        Editar
-                    </a>
+                    <form th:action="@{/caixa/fechar/{index}(index=${caixa.id})}" method="post">
+                        <button th:classappend="${caixa.fechado} ? 'disabled'" class="btn btn-danger" type="submit">
+                            Fechar Caixa
+                        </button>
+                        <a th:classappend="${caixa.fechado} ? 'disabled'" th:href="@{/caixa/editar/{index}(index=${caixa.id})}" class="btn btn-primary">
+                            Editar
+                        </a>
+                        <a  th:href="@{/caixa/visualizar/{index}(index=${caixa.id})}" class="btn btn-primary">
+                            Visualizar
+                        </a>
+                    </form>
                 </td>
             </tr>
             </tbody>
@@ -52,6 +69,26 @@
             <a class="btn btn-primary" th:href="@{/caixa/cadastro}">Novo</a>
         </div>
 
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+             tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Caixa</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Já existe um caixa aberto.
+                        <br>
+                        Edite o caixa aberto ou feche o caixa para abrir um novo.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     </main>
 </div>
@@ -59,5 +96,11 @@
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+<script th:if="${mostrarModal}" th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = new bootstrap.Modal(document.getElementById('staticBackdrop'));
+        modal.show();
+    });
+</script>
 </body>
 </html>

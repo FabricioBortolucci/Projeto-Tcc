@@ -5,10 +5,18 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Repository
 public interface CaixaRepository extends JpaRepository<Caixa, Long> {
 
-    Caixa findCaixaByDataCadastro(LocalDate dataCadastro);
 
+    Caixa findCaixaByFechadoAndDataCadastro(boolean b, LocalDateTime dataCadastro);
+
+    Caixa findCaixaByFechadoAndDataCadastroBetween(boolean fechado, LocalDateTime dataCadastroAfter, LocalDateTime dataCadastroBefore);
+
+    Caixa findFirstByFechadoTrueOrderByDataCadastroDesc();
+
+    List<Caixa> findCaixaById(Long id);
 }

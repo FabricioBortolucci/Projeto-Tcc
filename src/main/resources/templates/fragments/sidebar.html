@@ -17,28 +17,39 @@
         <hr class="text-white">
         <ul class="nav flex-column mb-auto">
             <li>
+                <a th:href="@{/caixa}" class="nav-link text-white">
+                    Caixa
+                </a>
+            </li>
+            <li>
                 <a th:href="@{/produto}" class="nav-link text-white">
-                    Produtos
+                    Produto
+                </a>
+            </li>
+            <li>
+                <a href="@{/servico}" class="nav-link text-white">
+                    Serviço
                 </a>
             </li>
             <li>
                 <a th:href="@{/usuario}" class="nav-link text-white">
-                    Usuários
+                    Usuário
                 </a>
             </li>
             <li>
                 <a th:href="@{/pessoa}" class="nav-link text-white">
-                    Pessoas
+                    Pessoa
                 </a>
             </li>
+            <hr class="text-white">
             <li>
                 <a th:href="@{/compra}" class="nav-link text-white">
                     Compra
                 </a>
             </li>
             <li>
-                <a th:href="@{/caixa}" class="nav-link text-white">
-                    Caixa
+                <a href="@{/compra}" class="nav-link text-white">
+                    Ordem de Serviço
                 </a>
             </li>
             <li>
@@ -46,6 +57,12 @@
                     Contas a pagar
                 </a>
             </li>
+            <li>
+                <a href="" class="nav-link text-white">
+                    Contas a receber
+                </a>
+            </li>
+            <hr class="text-white">
         </ul>
 
         <form th:action="@{/logout}" method="post">

@@ -15,6 +15,13 @@
           th:object="${produto}">
         <input type="hidden" th:field="*{id}"/>
 
+        <div class="mb-3">
+            <label class="form-label" for="tipoProd">Tipo de produto</label>
+            <select id="tipoProd" class="form-select w-15 border-dark"
+                    aria-label="select" th:field="*{produtoTipo}">
+                <option th:each="tipo : ${tipo_lista}" th:value="${tipo}" th:text="${tipo.descricao}">
+            </select>
+        </div>
 
         <div class="mb-3">
             <label class="form-label" for="nomeProd">Nome do produto:</label>
@@ -24,14 +31,21 @@
 
         <div class="mb-3">
             <label class="form-label" for="precoCustoProd">Preço Custo:</label>
-            <input class="form-control w-15 border-dark" id="precoCustoProd" type="number"
+            <input class="form-control w-15 border-dark" id="precoCustoProd" type="text"
                    th:field="*{precoCusto}" required/>
         </div>
 
         <div class="mb-3">
             <label class="form-label" for="precoProd">Preço Venda:</label>
-            <input class="form-control w-15 border-dark" id="precoProd" type="number"
+            <input class="form-control w-15 border-dark" id="precoProd" type="text"
                    th:field="*{precoUnitario}" required/>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label" for="tmProd">Tamanho:</label>
+            <input class="form-control w-15 border-dark" id="tmProd" type="number"
+                   step="0.01"
+                   th:field="*{tamanhoMetros}" required/>
         </div>
 
         <div class="mb-3">
@@ -53,7 +67,10 @@
         </div>
 
         <div class="mt-5">
-            <button class="btn btn-success" style="width: 7%;" type="submit">Salvar</button>
+            <button class="btn btn-success"
+                    style="width: 7%;"
+                    onclick="formatarValorParaDecimal(document.getElementById('precoProd'), document.getElementById('precoCustoProd'));"
+                    type="submit">Salvar</button>
             <a class="btn btn-danger" style="width: 7%;" th:href="@{/produto}">Cancelar</a>
         </div>
     </form>
@@ -63,5 +80,6 @@
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/js/htmx/htmx.min.js}"></script>
+
 </body>
 </html>

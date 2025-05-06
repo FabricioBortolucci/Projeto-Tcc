@@ -13,6 +13,9 @@
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
         <h1 class="h3">Lista de Compras</h1>
+        <div th:if="${compra_cadastrada}" class="alert alert-success" role="alert">
+            Salvo com sucesso!
+        </div>
 
         <table id="prodTableMain" class="table table-dark table-bordered table-hover table-striped table-responsive">
             <thead>
@@ -40,6 +43,9 @@
                         <a th:href="@{/compra/editar/{index}(index=${comp.id})}" class="btn btn-primary">
                             Editar
                         </a>
+                        <a th:href="@{/compra/visualizar/{index}(index=${comp.id})}" class="btn btn-primary">
+                            Visualizar
+                        </a>
                     </form>
                 </td>
             </tr>
@@ -65,12 +71,36 @@
             <a class="btn btn-primary" th:href="@{/compra/cadastro}">Novo</a>
         </div>
 
-
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+             tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Nenhum caixa aberto</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Abra um caixa para realizar uma compra.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        <a class="btn btn-primary" th:href="@{/caixa/cadastro}">Novo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+<script th:if="${mostrarModal}" th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = new bootstrap.Modal(document.getElementById('staticBackdrop'));
+        modal.show();
+    });
+</script>
 </body>
 </html>

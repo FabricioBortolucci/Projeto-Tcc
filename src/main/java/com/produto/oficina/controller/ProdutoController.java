@@ -2,13 +2,16 @@ package com.produto.oficina.controller;
 
 import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.Produto;
+import com.produto.oficina.model.enums.ProdutoTipo;
 import com.produto.oficina.service.PessoaService;
 import com.produto.oficina.service.ProdutoService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +34,7 @@ public class ProdutoController {
     public String produtoList(Model model,
                               @RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "5") int size) {
-        Page<Produto> produtoPage = produtoService.findAll(PageRequest.of(page, size));
+        Page<Produto> produtoPage = produtoService.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
         model.addAttribute("produtoPage", produtoPage);
         model.addAttribute("currentPage", page);
         return "produto/prodList";
@@ -42,14 +45,16 @@ public class ProdutoController {
         fornecedores.clear();
         model.addAttribute("produto", new Produto());
         model.addAttribute("fornecedores", fornecedores);
+        model.addAttribute("tipo_lista", ProdutoTipo.values());
         model.addAttribute("forn_list", produtoService.buscaFornecedores());
         return "produto/prodForm";
     }
 
     @PostMapping("/cadastrar")
-    public String produtoSave(@ModelAttribute Produto produto) {
+    public String produtoSave(@ModelAttribute Produto produto, RedirectAttributes redirectAttributes) {
         produto.getFornecedores().addAll(fornecedores);
         produtoService.save(produto);
+        redirectAttributes.addFlashAttribute("produto_cadastrado", true);
         return "redirect:/produto";
     }
 
@@ -67,6 +72,7 @@ public class ProdutoController {
 
         model.addAttribute("produto", prod);
         model.addAttribute("fornecedores", fornecedores);
+        model.addAttribute("tipo_lista", ProdutoTipo.values());
         model.addAttribute("forn_list", produtoService.buscaFornecedores());
         return "produto/prodForm";
     }
@@ -94,4 +100,9 @@ public class ProdutoController {
         return "fragments/produtoFrags/fornecedorForm :: fornecedorTable";
     }
 
+    @GetMapping("/visualizar/{index}")
+    public String visualizarProduto(@PathVariable Long index, Model model) {
+        model.addAttribute("produto", produtoService.findById(index));
+        return "produto/prodVisu";
+    }
 }

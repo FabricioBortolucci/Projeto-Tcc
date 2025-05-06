@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -27,20 +28,23 @@ public class Caixa {
     private Long id;
 
     @Column(name = "caixa_data_cadastro")
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
-    private LocalDate dataCadastro = LocalDate.now();
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime dataCadastro = LocalDateTime.now();
 
     @Column(name = "caixa_data_fechamento")
-    private LocalDate dataFechamento;
-
-    @Column(name = "caixa_data_ultima_mod")
-    private LocalDate dataUltimaModificacao;
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @Temporal(TemporalType.TIMESTAMP)
+    private LocalDateTime dataFechamento;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pessoa_id", nullable = false)
     private Pessoa criouCaixa;
 
-    @Column(name = "caixa_valor")
+    @Column(name = "caixa_fechado")
+    private boolean fechado;
+
+    @Column(name = "caixa_valor", precision = 10, scale = 2)
     private BigDecimal valor;
 
     @OneToMany(mappedBy = "caixa", cascade = CascadeType.ALL, orphanRemoval = true)

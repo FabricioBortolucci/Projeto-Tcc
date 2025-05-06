@@ -12,10 +12,12 @@ import com.produto.oficina.service.PessoaService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +49,7 @@ public class PessoaController {
                              @RequestParam(defaultValue = "5") int size) {
         enderecosDtoList.clear();
         telefonesDtoList.clear();
-        Page<PessoaDto> pessoaDtoPage = pessoaService.listarTodos(PageRequest.of(page, size));
+        Page<PessoaDto> pessoaDtoPage = pessoaService.listarTodos(PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "id")));
         model.addAttribute("pes_list", pessoaDtoPage);
         model.addAttribute("currentPage", page);
         return "pessoa/pesList";
@@ -66,6 +68,7 @@ public class PessoaController {
     @PostMapping("/cadastrar")
     public String pessoaCadastrar(@Valid @ModelAttribute PessoaDto pessoaDto,
                                   BindingResult bindingResult,
+                                  RedirectAttributes redirectAttributes,
                                   Model model) {
         if (bindingResult.hasErrors()) {
             model.addAttribute("novo_pessoa", new PessoaDto());
@@ -75,7 +78,7 @@ public class PessoaController {
             return "pessoa/pesForm";
         }
         pessoaService.salvarPessoa(pessoaDto, enderecosDtoList, telefonesDtoList);
-
+        redirectAttributes.addFlashAttribute("pessoa_cadastrada", true);
         return "redirect:/pessoa";
     }
 

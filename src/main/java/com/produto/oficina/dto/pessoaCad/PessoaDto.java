@@ -1,7 +1,6 @@
 package com.produto.oficina.dto.pessoaCad;
 
 import com.produto.oficina.model.enums.PesTipo;
-import jakarta.persistence.Temporal;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -33,7 +32,6 @@ public class PessoaDto implements Serializable {
     @NotNull(message = "A Data é obrigatório")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     LocalDate pesDataNascimento;
-    String pesInscricaoEstadual;
     String pesRg;
     @NotNull(message = "O Genero é obrigatório")
     String pesGenero;
@@ -46,20 +44,19 @@ public class PessoaDto implements Serializable {
     public PessoaDto(Long id, String pesNome, String pesCpfCnpj, String pesTipo, boolean pesAtivo, String pesEmail) {
         this.id = id;
         this.pesNome = pesNome;
-        this.pesCpfCnpj = pesCpfCnpj;
+        this.pesCpfCnpj = formatCpf(pesCpfCnpj);
         this.pesTipo = PesTipo.fromString(pesTipo);
         this.pesAtivo = pesAtivo;
         this.pesEmail = pesEmail;
     }
 
-    public PessoaDto(Long id, String pesNome, String pesCpfCnpj, String pesTipo, boolean pesAtivo, java.sql.Date pesDataNascimento, String pesInscricaoEstadual, String pesRg, String pesGenero, String pesEmail, String pesFisicoJuridico) {
+    public PessoaDto(Long id, String pesNome, String pesCpfCnpj, String pesTipo, boolean pesAtivo, java.sql.Date pesDataNascimento, String pesRg, String pesGenero, String pesEmail, String pesFisicoJuridico) {
         this.id = id;
         this.pesNome = pesNome;
         this.pesCpfCnpj = pesCpfCnpj;
         this.pesTipo = PesTipo.fromString(pesTipo);
         this.pesAtivo = pesAtivo;
         this.pesDataNascimento = pesDataNascimento != null ? pesDataNascimento.toLocalDate() : null;
-        this.pesInscricaoEstadual = pesInscricaoEstadual;
         this.pesRg = pesRg;
         this.pesGenero = pesGenero;
         this.pesEmail = pesEmail;
@@ -70,4 +67,10 @@ public class PessoaDto implements Serializable {
         return this.pesDataNascimento != null ? this.pesDataNascimento.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : null;
     }
 
+    public static String formatCpf(String cpfCnpj) {
+        if (cpfCnpj.length() != 11) {
+            return cpfCnpj.substring(0, 2) + "." + cpfCnpj.substring(2, 5) + "." + cpfCnpj.substring(5, 8) + "/" + cpfCnpj.substring(8, 12) + "-" + cpfCnpj.substring(12, 14);
+        }
+        return cpfCnpj.substring(0, 3) + "." + cpfCnpj.substring(3, 6) + "." + cpfCnpj.substring(6, 9) + "-" + cpfCnpj.substring(9, 11);
+    }
 }

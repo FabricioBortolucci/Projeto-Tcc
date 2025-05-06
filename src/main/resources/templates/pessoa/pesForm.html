@@ -127,24 +127,5 @@
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
-<script>
-
-    function mostrarCampoIncsEst() {
-        let inscricao = document.getElementById("inscEstadual");
-        let clienteCheck = document.getElementById("clienteCheck");
-        let funcCheck = document.getElementById("funcCheck");
-
-        if (funcCheck.checked) {
-            inscricao.style.display = "none";
-        } else if (clienteCheck.checked) {
-            inscricao.style.display = "block";
-        }
-    }
-
-    onload = ev => {
-        document.getElementById("funcCheck").checked = true;
-        mostrarCampoIncsEst()
-    }
-</script>
 </body>
 </html>

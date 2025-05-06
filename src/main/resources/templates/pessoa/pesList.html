@@ -14,6 +14,10 @@
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
         <h1 class="h3">Lista de Pessoas</h1>
 
+        <div th:if="${pessoa_cadastrada}" class="alert alert-success" role="alert">
+            Salvo com sucesso!
+        </div>
+
         <table class="table table-dark table-bordered table-hover table-striped table-responsive">
             <thead>
             <tr>
@@ -39,6 +43,9 @@
                         </button>
                         <a th:href="@{/pessoa/editar/{index}(index=${pes.id})}" class="btn btn-primary">
                             Editar
+                        </a>
+                        <a th:href="@{/pessoa/visualizar/{index}(index=${pes.id})}" class="btn btn-primary">
+                            Visualizar
                         </a>
                     </form>
                 </td>

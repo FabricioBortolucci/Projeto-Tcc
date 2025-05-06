@@ -45,6 +45,9 @@
                         th:hx-get="@{/pessoa/cadastro/cidades}"
                         hx-target="#cidadeContainer"
                         hx-swap="outerHTML">
+                    <option value="" selected disabled>
+                        Selecione um Estado
+                    </option>
                     <option th:each="est : ${estados}" th:value="${est.id}" th:text="${est.estNome}"></option>
                 </select>
             </div>

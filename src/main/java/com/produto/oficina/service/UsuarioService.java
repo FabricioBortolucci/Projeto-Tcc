@@ -91,6 +91,10 @@ public class UsuarioService {
         return usuarioRepository.findUsu(index);
     }
 
+    public Usuario buscaUsuView(Long index) {
+        return usuarioRepository.findById(index).get();
+    }
+
     public void cadastrarUsuario(String admin, String number, Role role) {
         Usuario usuario = new Usuario();
         usuario.setUsuNome(admin);

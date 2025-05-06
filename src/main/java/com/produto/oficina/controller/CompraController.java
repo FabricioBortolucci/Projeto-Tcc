@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/compra")
@@ -35,10 +36,11 @@ public class CompraController {
     }
 
     @GetMapping("/cadastro")
-    public String compraForm(Model model) {
-       /* if (caixaService.verificaCaixaAberto()) {
+    public String compraForm(RedirectAttributes redirectAttributes, Model model) {
+        if (caixaService.verificaCaixaAberto()) {
+            redirectAttributes.addFlashAttribute("mostrarModal", true);
             return "redirect:/compra";
-        }*/
+        }
         model.addAttribute("compra", new Compra());
         model.addAttribute("fornecedores_compra", pessoaService.buscaFornecedores());
         return "compra/compraForm";
@@ -53,8 +55,9 @@ public class CompraController {
 
 
     @PostMapping("/cadastrar")
-    public String compraSave(@ModelAttribute Compra compra) {
+    public String compraSave(@ModelAttribute Compra compra, RedirectAttributes redirectAttributes) {
         compraService.save(compra);
+        redirectAttributes.addFlashAttribute("compra_cadastrada", true);
         return "redirect:/compra";
     }
 

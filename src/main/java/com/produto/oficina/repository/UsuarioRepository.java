@@ -24,4 +24,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
             " left join pessoa p on u.usu_id = p.usuario_id " +
             " where u.usu_id = :index")
     UsuarioDTO findUsu(@Param("index") Long index);
+
+    Usuario findUsuarioByUsuNome(String usuNome);
 }

@@ -23,7 +23,6 @@ public class CompraService {
     }
 
     public void save(Compra compra) {
-
         compraRepository.saveAndFlush(compra);
     }
 
