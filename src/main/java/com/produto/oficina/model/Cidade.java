@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -16,7 +18,6 @@ public class Cidade {
 
     @Id
     @Column(name = "cid_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "cid_nome")
@@ -26,6 +27,10 @@ public class Cidade {
     @JoinColumn(name = "estado_id")
     @ToString.Exclude
     private Estado estado;
+
+    @OneToMany(mappedBy = "cidade", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    private List<Endereco> enderecos = new ArrayList<>();
 
     @Override
     public final boolean equals(Object o) {

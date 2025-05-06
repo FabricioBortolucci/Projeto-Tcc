@@ -74,13 +74,9 @@ public class Pessoa {
     @Column(name = "pes_fsc_jrc")
     private String pesFisicoJuridico;
 
-    @ManyToMany(mappedBy = "fornecedores")
+    @ManyToMany(mappedBy = "fornecedores", fetch = FetchType.LAZY)
     @ToString.Exclude
     private List<Produto> produtosFornecidos;
-
-    @ManyToMany(mappedBy = "fornecedoresMp")
-    @ToString.Exclude
-    private List<MateriaPrima> materiasPrimasFornecidas;
 
     @Column(name = "data_ultimo_fornecimento")
     private LocalDateTime dataUltimoFornecimento;

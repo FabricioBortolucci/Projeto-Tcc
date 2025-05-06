@@ -16,7 +16,6 @@ public class Estado {
 
     @Id
     @Column(name = "est_id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "est_nome")

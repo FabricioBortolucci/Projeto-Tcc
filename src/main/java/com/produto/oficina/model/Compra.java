@@ -41,7 +41,10 @@ public class Compra {
     
     @Column(name = "mov_comp_observacao")
     private String observacao;
-    
+
+    @Column(name = "total_parcelas")
+    private Integer totalParcelas;
+
     @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL)
     private List<ItemCompra> itens = new ArrayList<>();
 

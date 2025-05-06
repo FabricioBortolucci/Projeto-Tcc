@@ -61,10 +61,6 @@ public class OrdemServico {
 
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<OrdemServicoMP> mpUsadas;
-
-    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL)
-    @ToString.Exclude
     private List<ContaReceber> contaRecebers;
 
     @Column(name = "os_status")
@@ -75,8 +71,6 @@ public class OrdemServico {
 
     @Column(name = "os_mp_desperdicio")
     private BigDecimal desperdicio;
-
-
 
 
     @Override

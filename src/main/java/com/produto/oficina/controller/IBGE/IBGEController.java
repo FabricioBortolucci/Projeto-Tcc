@@ -1,6 +1,7 @@
 package com.produto.oficina.controller.IBGE;
 
 import com.produto.oficina.service.IBGE.IBGEDataService;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,7 +16,7 @@ public class IBGEController {
         this.ibgeDataService = ibgeDataService;
     }
 
-    @PostMapping("/importar")
+    @GetMapping("/importar")
     public String importar() {
         ibgeDataService.inserirdados();
         return "importação concluida";

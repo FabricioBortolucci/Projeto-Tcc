@@ -7,10 +7,9 @@ import java.io.Serializable;
 
 
 @Value
-public class CidadeDTO implements Serializable {
+public class RegiaoImediataDTO implements Serializable {
     Long id;
     String nome;
-    MicrorregiaoDTO microrregiao;
-    @JsonProperty("regiao-imediata")
-    RegiaoImediataDTO regiaoImediata;
+    @JsonProperty("regiao-intermediaria")
+    RegiaoIntermediariaDTO regiaoIntermediaria;
 }

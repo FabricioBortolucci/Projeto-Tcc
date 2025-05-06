@@ -1,12 +1,12 @@
 package com.produto.oficina.model.enums;
 
-public enum TipoMovimentacao {
-    ENTRADA("Entrada"),
-    SAIDA("Saída");
+public enum ProdutoTipo {
+    MATERIA_PRIMA("Matéria-Prima"),
+    PECA("Peça");
 
     public final String descricao;
 
-    TipoMovimentacao(String descricao) {
+    ProdutoTipo(String descricao) {
         this.descricao = descricao;
     }
 }

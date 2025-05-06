@@ -16,14 +16,12 @@ public class CompraController {
     private final ProdutoService produtoService;
     private final PessoaService pessoaService;
     private final CaixaService caixaService;
-    private final MateriaPrimaService materiaPrimaService;
 
-    public CompraController(CompraService compraService, ProdutoService produtoService, PessoaService pessoaService, CaixaService caixaService, MateriaPrimaService materiaPrimaService) {
+    public CompraController(CompraService compraService, ProdutoService produtoService, PessoaService pessoaService, CaixaService caixaService) {
         this.compraService = compraService;
         this.produtoService = produtoService;
         this.pessoaService = pessoaService;
         this.caixaService = caixaService;
-        this.materiaPrimaService = materiaPrimaService;
     }
 
     @GetMapping
@@ -50,7 +48,6 @@ public class CompraController {
     public String buscarProdutos(@RequestParam(required = false) Long fornecedorId,
                                  Model model) {
         model.addAttribute("produtos", produtoService.buscarProdutosPorFornecedor(fornecedorId));
-        model.addAttribute("materias_primas", materiaPrimaService.buscarMpsPorFornecedor(fornecedorId));
         return "fragments/compraFrags/produtosSelect :: produtoSelect";
     }
 

@@ -34,7 +34,7 @@ public class Endereco {
     @Column(name = "end_rua")
     private String endRua;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     @JoinColumn(name = "cidade_id", nullable = false)
     @ToString.Exclude
     private Cidade cidade;

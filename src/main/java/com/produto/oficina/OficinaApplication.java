@@ -13,9 +13,9 @@ public class OficinaApplication {
         SpringApplication.run(OficinaApplication.class, args);
 //        ApplicationContext context = SpringApplication.run(OficinaApplication.class, args);
 
-      /*  // Criar usuário ADMIN manualmente na inicialização
-        UsuarioService cadastroUsuarioService = context.getBean(UsuarioService.class);
-        cadastroUsuarioService.cadastrarUsuario("admin", "1234", Role.ADMIN);
+        // Criar usuário ADMIN manualmente na inicialização
+      /*  UsuarioService cadastroUsuarioService = context.getBean(UsuarioService.class);
+        cadastroUsuarioService.cadastrarUsuario("Fabricio", "1234", Role.ADMIN);
 
         System.out.println("Usuário ADMIN cadastrado!");*/
 

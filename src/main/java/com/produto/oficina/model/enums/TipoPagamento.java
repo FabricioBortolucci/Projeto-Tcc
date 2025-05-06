@@ -2,7 +2,7 @@ package com.produto.oficina.model.enums;
 
 public enum TipoPagamento {
     DINHEIRO("Dinheiro"),
-    PARCELADO("Parcelado"),
+    PARCELADO("Parcelado - Boleto"),
     PIX("Pix"),
     CHEQUE("Cheque");
 

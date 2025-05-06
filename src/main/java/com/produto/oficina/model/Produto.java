@@ -1,5 +1,6 @@
 package com.produto.oficina.model;
 
+import com.produto.oficina.model.enums.ProdutoTipo;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
@@ -35,8 +36,15 @@ public class Produto {
     @Column(name = "prod_desc")
     private String descricao;
 
+    @Column(name = "mp_unidade")
+    private String unidade;
+
     @Column(name = "prod_estoque")
     private Integer estoque;
+
+    @Column(name = "prod_tipo")
+    @Enumerated(EnumType.STRING)
+    private ProdutoTipo produtoTipo;
 
     @ManyToMany
     @JoinTable(
@@ -47,13 +55,8 @@ public class Produto {
     @ToString.Exclude
     private List<Pessoa> fornecedores = new ArrayList<>();
 
-
-
     @Column(name = "prod_ativo")
     private Boolean ativo = true;
-
-    @Transient
-    private Long fornecedorId;
 
 
     @Override

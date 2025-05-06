@@ -23,10 +23,6 @@ public class ItemCompra {
     @ManyToOne
     @JoinColumn(name = "produto_id")
     private Produto produto;
-
-    @ManyToOne
-    @JoinColumn(name = "materiaprima_id")
-    private MateriaPrima materiaPrima;
     
     @Column(name = "item_comp_quantidade")
     private Integer quantidade;

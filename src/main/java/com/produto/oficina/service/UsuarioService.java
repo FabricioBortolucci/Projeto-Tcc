@@ -90,5 +90,14 @@ public class UsuarioService {
     public UsuarioDTO buscaUsu(Long index) {
         return usuarioRepository.findUsu(index);
     }
+
+    public void cadastrarUsuario(String admin, String number, Role role) {
+        Usuario usuario = new Usuario();
+        usuario.setUsuNome(admin);
+        usuario.setRole(role);
+        usuario.setUsuSenha(passwordEncoder.encode(number));
+        usuario.setAtivo(true);
+        usuarioRepository.saveAndFlush(usuario);
+    }
 }
 
