@@ -29,7 +29,7 @@
             </tr>
             </thead>
             <tbody>
-            <tr th:each="comp : ${compraPage.getContent()}">
+            <tr th:each="comp : ${compraPage}">
                 <td th:text="${comp.id}"></td>
                 <td th:text="${comp.fornecedor}"></td>
                 <td th:text="${comp.dataCompra}"></td>
@@ -76,7 +76,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Nenhum caixa aberto</h5>
+                        <h5 class="modal-title">Nenhum caixa aberto ou não há caixa aberto nesta data</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                                 aria-label="Close"></button>
                     </div>

@@ -29,6 +29,9 @@ public class Servico {
     @Column(name = "serv_desc")
     private String descricao;
 
+    @Column(name = "serv_ativo")
+    private boolean ativo = true;
+
 
     @Override
     public final boolean equals(Object o) {

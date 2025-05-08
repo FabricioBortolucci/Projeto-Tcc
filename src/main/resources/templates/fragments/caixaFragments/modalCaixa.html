@@ -10,6 +10,76 @@
 </head>
 <body>
 
+<div th:fragment="modalAddfundos" class="modal fade" id="modalDinamicaFundos" tabindex="-1"
+     aria-labelledby="modalDinamicaFundosLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDinamicaFundosLabel">Adicionar Fundos ao Caixa</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form th:action="@{/caixa/cadastro/adicionarFundos}" method="post" class="form form-control"
+                      th:object="${movimento}">
+
+                    <div class="mb-3">
+                        <label for="valorI" class="form-label">Valor a adicionar:</label>
+                        <input id="valorI" class="form-control w-30 border-dark" type="text" th:field="*{valor}"/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tiposM">Tipo de movimentação:</label>
+                        <select id="tiposM" class="form-select w-75 border-dark" aria-label="select" th:field="*{tipo}">
+                            <option th:each="tipo : ${tiposMovimento}" th:value="${tipo}" th:text="${tipo.descricao}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="desc">Descrição</label>
+                        <textarea id="desc" class="form-control w-75 border-dark" th:field="*{descricao}" rows="3"
+                                  style="resize: none"></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary"
+                                onclick="formatarValorParaDecimal(document.getElementById('valorI'))">Salvar Fundos</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+    <script th:inline="javascript">
+        var modalElement = document.getElementById('modalDinamicaFundos');
+        if (modalElement) {
+            var modalInstance = new bootstrap.Modal(modalElement);
+            modalInstance.show();
+            // Opcional: Remove a modal do DOM quando fechada para evitar conflitos de ID e garantir
+            // que o script de exibição execute novamente se a modal for carregada de novo.
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                modalElement.remove();
+            });
+
+            const valorFundoInputModal = document.getElementById('valorI');
+            if (valorFundoInputModal) {
+                VMasker(valorFundoInputModal).maskMoney({
+                    unit: 'R$',
+                    thousands: '.',
+                    decimal: ',',
+                    precision: 2
+                });
+            }
+            function formatarValorParaDecimal(input) {
+                // Remove todos os caracteres que não são dígitos ou vírgula
+                // e depois substitui a vírgula por ponto.
+                input.value = input.value.replace(/[^\d,]/g, '').replace(',', '.');
+            }
+
+        }
+    </script>
+</div>
 
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>

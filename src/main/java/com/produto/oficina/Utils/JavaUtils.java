@@ -1,15 +1,15 @@
 package com.produto.oficina.Utils;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.Locale;
 
+@Component
 public class JavaUtils {
+
 
 
     public static BigDecimal parseBigDecimal(String valor) {
@@ -22,11 +22,5 @@ public class JavaUtils {
         }
     }
 
-    public static String getUsuarioLogadoUsername() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof UserDetails) {
-            return ((UserDetails) auth.getPrincipal()).getUsername();
-        }
-        return null;
-    }
+
 }

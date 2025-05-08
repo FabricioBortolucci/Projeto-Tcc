@@ -13,38 +13,80 @@
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
         <h1 class="h3">Caixa</h1>
-
-        <form class="form-control" th:action="@{/caixa/cadastrar}" method="post"
-              th:object="${caixa}">
-            <input type="hidden" th:field="*{id}"/>
-
-            <div class="mb-3">
-                <label class="form-label" for="caixaData">Data do cadastro:</label>
-                <input class="form-control w-15 border-dark" id="caixaData" type="datetime-local"
-                       th:field="*{dataCadastro}" disabled/>
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label" for="valorCaixa">Valor do caixa:</label>
-                <input class="form-control w-15 border-dark" id="valorCaixa" type="text"
-                       th:field="*{valor}" required/>
-            </div>
-
-
-            <div class="mt-5">
-                <button class="btn btn-success" style="width: 7%;"
-                        onclick="formatarValorParaDecimal(document.getElementById('valorCaixa'));"
-                        type="submit">Salvar
+        <ul class="nav nav-pills mb-3 mt-3" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="caixaTab-tab" data-bs-toggle="tab" data-bs-target="#caixaTab"
+                        type="button"
+                        role="tab" aria-controls="caixaTab" aria-selected="true">Caixa
                 </button>
-                <a class="btn btn-danger" style="width: 7%;" th:href="@{/caixa}">Cancelar</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="movTab-tab" data-bs-toggle="tab" data-bs-target="#movTab"
+                        type="button"
+                        role="tab" aria-controls="movTab" aria-selected="false">Movimentações
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade show active" id="caixaTab" role="tabpanel" aria-labelledby="caixaTab">
+
+                <form class="form-control" th:action="@{/caixa/cadastrar}" method="post"
+                      th:object="${caixa}">
+                    <input type="hidden" th:field="*{id}"/>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="caixaData">Data da abertura:</label>
+                        <input class="form-control w-15 border-dark" id="caixaData" type="datetime-local"
+                               th:field="*{dataAbertura}" disabled/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="usuarioAbertura">Usuário/Pessoa que abriu o caixa:</label>
+                        <input class="form-control w-15 border-dark" id="usuarioAbertura" type="text"
+                               th:field="*{usuarioAbertura.pesNome}" disabled/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="valorCaixa">Valor de abertura:</label>
+                        <input class="form-control w-15 border-dark" id="valorCaixa" type="text"
+                               th:field="*{valorAbertura}" disabled/>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="obsAbertura">Observação de Abertura:</label>
+                        <textarea class="form-control w-30 border-dark" id="obsAbertura" type="text"
+                                  style="resize: none;"
+                                  rows="3"
+                                  th:field="*{observacaoAbertura}"></textarea>
+                    </div>
+
+
+                    <div class="mt-5">
+                        <button type="button" class="btn btn-primary"
+                                hx-get="/caixa/cadastro/mostrarModalFundos"
+                                hx-target="#addFundosModal"
+                                hx-swap="innerHTML">
+                            Adicionar Fundos
+                        </button>
+                        <a class="btn btn-danger" style="width: 7%;" th:href="@{/caixa}">Fechar</a>
+                    </div>
+                </form>
+
             </div>
-        </form>
+            <div class="tab-pane fade show" id="movTab" role="tabpanel" aria-labelledby="movTab">
+                Movimentacoes
+            </div>
+        </div>
+
+        <div id="addFundosModal">
+        </div>
 
     </main>
 </div>
 
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
 <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -64,7 +106,7 @@
     });
 
     function formatarValorParaDecimal(input) {
-        input.value = input.value.replace(/[^\d,]/g, '').replace(',', '.');
+        if (!input.disabled) input.value = input.value.replace(/[^\d,]/g, '').replace(',', '.');
     }
 </script>
 </body>

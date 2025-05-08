@@ -37,10 +37,10 @@ public class CompraController {
 
     @GetMapping("/cadastro")
     public String compraForm(RedirectAttributes redirectAttributes, Model model) {
-        if (caixaService.verificaCaixaAberto()) {
+       /* if (caixaService.verificaCaixaAberto()) {
             redirectAttributes.addFlashAttribute("mostrarModal", true);
             return "redirect:/compra";
-        }
+        }*/
         model.addAttribute("compra", new Compra());
         model.addAttribute("fornecedores_compra", pessoaService.buscaFornecedores());
         return "compra/compraForm";

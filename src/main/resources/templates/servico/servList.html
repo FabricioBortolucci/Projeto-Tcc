@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Serviços - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
+        <h1 class="h3">Lista de Serviços</h1>
+
+        <div th:if="${servico_cadastrado}" class="alert alert-success" role="alert">
+            Salvo com sucesso!
+        </div>
+
+        <table id="servTableMain" class="table table-dark table-bordered table-hover table-striped table-responsive">
+            <thead>
+            <tr>
+                <th>Id</th>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Ativo</th>
+                <th>Opções</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="serv : ${servicoPage}">
+                <td th:text="${serv.id}"></td>
+                <td th:text="${serv.descricao}"></td>
+                <td th:text="${#numbers.formatCurrency(serv.precoTotal)}"></td>
+                <td th:text="${serv.ativo ? 'Sim' : 'Não'}"></td>
+                <td>
+                    <form th:action="@{/servico/desativar/{index}(index=${serv.id})}" method="post">
+                        <button th:classappend="${!serv.ativo} ? 'disabled'" class="btn btn-danger" type="submit">
+                            Desativar
+                        </button>
+                        <a th:href="@{/servico/editar/{index}(index=${serv.id})}" class="btn btn-primary">
+                            Editar
+                        </a>
+                        <a th:href="@{/servico/visualizar/{index}(index=${serv.id})}" class="btn btn-primary">
+                            Visualizar
+                        </a>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <nav>
+            <ul class="pagination justify-content-center">
+                <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                    <a class="page-link" th:href="@{/servico(page=${currentPage - 1}, size=5)}">Anterior</a>
+                </li>
+                <li class="page-item"
+                    th:each="i : ${#numbers.sequence(0, servicoPage.totalPages - 1)}"
+                    th:classappend="${i == currentPage} ? 'active'">
+                    <a class="page-link" th:href="@{/servico(page=${i}, size=5)}" th:text="${i + 1}">1</a>
+                </li>
+                <li th:classappend="${currentPage + 1 == servicoPage.totalPages} ? 'disabled'" class="page-item">
+                    <a class="page-link" th:href="@{/servico(page=${currentPage + 1}, size=5)}">Próxima</a>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="btn-group w-10">
+            <a class="btn btn-primary" th:href="@{/servico/cadastro}">Novo</a>
+        </div>
+
+
+    </main>
+</div>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+</body>
+</html>

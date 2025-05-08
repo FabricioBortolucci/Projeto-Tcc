@@ -27,6 +27,9 @@ public class Compra {
     
     @Column(name = "mov_comp_data")
     private LocalDateTime dataCompra;
+
+    @Column(name = "mov_comp_data_finalizada")
+    private LocalDateTime dataCompraFinalizada;
     
     @Column(name = "mov_comp_valor_total")
     private BigDecimal valorTotal;

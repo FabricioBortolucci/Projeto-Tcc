@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Serviços - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
+        <h1 class="h3">Cadastro de Serviços</h1>
+        <form class="form-control" th:action="@{/servico/cadastrar}" method="post"
+              th:object="${servico}">
+            <input type="hidden" th:field="*{id}"/>
+
+            <div class="mb-3">
+                <label class="form-label" for="desc">Descrição:</label>
+                <input class="form-control w-15 border-dark" id="desc" type="text"
+                       th:field="*{descricao}" required/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="preco">Preço:</label>
+                <input class="form-control w-15 border-dark" id="preco" type="text"
+                       th:field="*{precoTotal}" required/>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-check-label" for="ativo">Ativo:</label>
+                <input class="form-check-input border-dark" type="checkbox" name="ativo" id="ativo" th:field="*{ativo}">
+            </div>
+
+            <div class="mt-5">
+                <button class="btn btn-success"
+                        style="width: 7%;"
+                        onclick="formatarValorParaDecimal(document.getElementById('preco'))"
+                        type="submit">Salvar
+                </button>
+                <a class="btn btn-danger" style="width: 7%;" th:href="@{/produto}">Cancelar</a>
+            </div>
+        </form>
+    </main>
+</div>
+
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/htmx/htmx.min.js}"></script>
+<script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const precoInput = document.getElementById('preco');
+        VMasker(precoInput).maskMoney({
+            unit: 'R$',
+            suffix: '',
+            thousands: '.',
+            decimal: ',',
+            separator: ',',
+            delimiter: '.',
+            affixesStay: false,
+            allowZero: true,
+            allowNegative: true,
+            precision: 2
+        });
+    });
+
+    function formatarValorParaDecimal(input1, input2) {
+        for (let input of [input1, input2]) {
+            input.value = input.value.replace(/[^\d,]/g, '').replace(',', '.');
+        }
+    }
+</script>
+</body>
+</html>

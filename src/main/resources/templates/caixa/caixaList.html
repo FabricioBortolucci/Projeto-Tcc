@@ -24,15 +24,17 @@
                 <th>Valor</th>
                 <th>Data de cadastro</th>
                 <th>Data de fechamento</th>
+                <th>Observação de Abertura</th>
                 <th>Opções</th>
             </tr>
             </thead>
             <tbody>
-            <tr th:each="caixa : ${caixaPage.getContent()}">
+            <tr th:each="caixa : ${caixaPage}">
                 <td th:text="${caixa.id}"></td>
                 <td th:text="${#numbers.formatCurrency(caixa.valor)}"></td>
                 <td th:text="${#temporals.format(caixa.dataCadastro, 'dd/MM/yyyy HH:mm')}"></td>
                 <td th:text="${#temporals.format(caixa.dataFechamento, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${caixa.observacaoAbertura}"></td>
                 <td>
                     <form th:action="@{/caixa/fechar/{index}(index=${caixa.id})}" method="post">
                         <button th:classappend="${caixa.fechado} ? 'disabled'" class="btn btn-danger" type="submit">

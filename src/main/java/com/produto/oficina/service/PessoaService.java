@@ -7,8 +7,12 @@ import com.produto.oficina.dto.pessoaCad.TelefoneDto;
 import com.produto.oficina.model.*;
 import com.produto.oficina.model.enums.PesTipo;
 import com.produto.oficina.repository.PessoaRepository;
+import com.produto.oficina.repository.UsuarioRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,20 +24,23 @@ import java.util.Optional;
 @Service
 public class PessoaService {
 
-
     private final PessoaRepository repository;
 
     private final EnderecoService enderecoService;
 
     private final TelefoneService telefoneService;
+
     private final CidadeService cidadeService;
 
+    private final UsuarioRepository usuarioRepository;
 
-    public PessoaService(PessoaRepository pessoaRepository, EnderecoService enderecoService, TelefoneService telefoneService, CidadeService cidadeService) {
+
+    public PessoaService(PessoaRepository pessoaRepository, EnderecoService enderecoService, TelefoneService telefoneService, CidadeService cidadeService, UsuarioRepository usuarioRepository) {
         this.repository = pessoaRepository;
         this.enderecoService = enderecoService;
         this.telefoneService = telefoneService;
         this.cidadeService = cidadeService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     public List<FuncionarioDTO> buscaFuncAtivoPorUsuNull() {
@@ -151,5 +158,25 @@ public class PessoaService {
 
     public List<Pessoa> buscaFornecedores() {
        return repository.findAllByPesAtivoAndPesTipo(true, PesTipo.FORNECEDOR);
+    }
+
+    public static String getUsuarioLogadoUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof UserDetails) {
+            return ((UserDetails) auth.getPrincipal()).getUsername();
+        }
+        return null;
+    }
+
+    public Pessoa buscaPessoaLogada() {
+        String username = getUsuarioLogadoUsername();
+        if (username != null) {
+            Usuario usuario = usuarioRepository.findUsuarioByUsuNome(username);
+            Pessoa pes = repository.findPessoaByUsuario(usuario);
+            if (usuario != null && usuario.getPessoaRel() != null) {
+                return pes;
+            }
+        }
+        return null;
     }
 }

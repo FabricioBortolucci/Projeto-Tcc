@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>Usuário - Oficina</title>
+    <title>Serviço - Oficina</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
 </head>
@@ -12,22 +12,19 @@
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <form class="form form-control" th:object="${usuario}">
-            <h1 class="h3 mb-3" th:text="'Usuário ' + *{id}"></h1>
+        <form class="form form-control" th:object="${servico}">
+            <h1 class="h3 mb-3" th:text="'Produto ' + *{id}"></h1>
 
-            <p>Nome:</p>
-            <p th:text="*{usuNome}"/>
+            <p>Descrição do serviço:</p>
+            <p th:text="*{descricao}"/>
 
-            <p>Nível:</p>
-            <p th:text="*{role.descricao}"/>
+            <p>Valor do serviço:</p>
+            <p th:text="*{#numbers.formatCurrency(precoTotal)}"/>
 
-            <p>Ativo:</p>
-            <p th:text="*{ativo} ? 'Sim' : 'Não'"/>
+            <p>Ativo:</p><p th:text="*{ativo} ? 'Sim' : 'Não'"/>
 
-            <p>Funcionário:</p>
-            <p th:text="*{pessoaRel.pesNome}"/>
 
-            <a class="btn btn-primary" style="width: 7%;" th:href="@{/usuario}">Fechar</a>
+            <a class="btn btn-primary" style="width: 7%;" th:href="@{/servico}">Fechar</a>
         </form>
     </main>
 </div>
