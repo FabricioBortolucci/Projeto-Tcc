@@ -32,25 +32,6 @@
             <p>Tipo de produto:</p>
             <p th:text="*{produtoTipo.descricao}"/>
 
-            <h1 class="h3 mb-3">Fornecedores</h1>
-            <table id="prodTableMain"
-                   class="table table-dark table-bordered table-hover table-striped table-responsive">
-                <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Nome</th>
-                    <th>Último fornecimento</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr th:each="f : ${produto.getFornecedores()}">
-                    <td th:text="${f.id}"></td>
-                    <td th:text="${f.pesNome}"></td>
-                    <td th:text="${f.dataUltimoFornecimento != null ? f.dataUltimoFornecimento : 'N/A'}"></td>
-                </tr>
-                </tbody>
-            </table>
-
             <a class="btn btn-primary" style="width: 7%;" th:href="@{/produto}">Fechar</a>
         </form>
     </main>

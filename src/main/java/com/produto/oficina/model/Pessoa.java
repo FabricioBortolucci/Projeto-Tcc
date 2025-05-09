@@ -1,6 +1,5 @@
 package com.produto.oficina.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.produto.oficina.model.enums.PesTipo;
 import jakarta.persistence.*;
 import lombok.*;
@@ -72,14 +71,6 @@ public class Pessoa {
 
     @Column(name = "pes_fsc_jrc")
     private String pesFisicoJuridico;
-
-    @ManyToMany(mappedBy = "fornecedores", fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private List<Produto> produtosFornecidos;
-
-    @Column(name = "data_ultimo_fornecimento")
-    private LocalDateTime dataUltimoFornecimento;
-
 
     public String getTelefonePrincipal() {
         return telefones != null && !telefones.isEmpty() ? Objects.requireNonNull(telefones.stream().filter(Telefone::isTelPrincipal)

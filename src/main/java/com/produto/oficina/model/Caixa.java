@@ -1,12 +1,12 @@
 package com.produto.oficina.model;
 
 import com.produto.oficina.model.enums.StatusCaixa;
+import com.produto.oficina.model.enums.TipoMovimentacao;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp; // Melhor para data de criação
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -137,6 +137,50 @@ public class Caixa {
         this.status = StatusCaixa.ABERTO;
         this.totalEntradasMovimentacoes = BigDecimal.ZERO;
         this.totalSaidasMovimentacoes = BigDecimal.ZERO;
+    }
+
+    public BigDecimal getValorAtualCaixa() {
+        if (this.getStatus() != StatusCaixa.ABERTO && this.getStatus() != StatusCaixa.EM_CONFERENCIA) {
+            return this.valorFechamentoContado != null ? this.valorFechamentoContado : BigDecimal.ZERO;
+        }
+        BigDecimal saldoAtual = this.getValorAbertura();
+
+        for (MovimentacaoCaixa movimentacao : this.getMovimentacoes()) {
+            TipoMovimentacao tipo = movimentacao.getTipo();
+            if (tipo == TipoMovimentacao.ENTRADA || tipo == TipoMovimentacao.SUPRIMENTO) {
+                saldoAtual = saldoAtual.add(movimentacao.getValor());
+            } else if (tipo == TipoMovimentacao.SANGRIA || tipo == TipoMovimentacao.SAIDA) {
+                saldoAtual = saldoAtual.subtract(movimentacao.getValor());
+            }
+        }
+        return saldoAtual;
+    }
+
+    public BigDecimal getValorTotalEntradas() {
+        BigDecimal totalEntradas = BigDecimal.ZERO;
+        for (MovimentacaoCaixa movimentacao : this.getMovimentacoes()) {
+            if (movimentacao.getTipo() == TipoMovimentacao.ENTRADA || movimentacao.getTipo() == TipoMovimentacao.SUPRIMENTO) {
+                totalEntradas = totalEntradas.add(movimentacao.getValor());
+            }
+        }
+        return totalEntradas;
+    }
+
+    public BigDecimal getValorTotalSaidas() {
+        BigDecimal totalSaidas = BigDecimal.ZERO;
+        for (MovimentacaoCaixa movimentacao : this.getMovimentacoes()) {
+            if (movimentacao.getTipo() == TipoMovimentacao.SAIDA || movimentacao.getTipo() == TipoMovimentacao.SANGRIA) {
+                totalSaidas = totalSaidas.add(movimentacao.getValor());
+            }
+        }
+        return totalSaidas;
+    }
+
+    public BigDecimal getCalculaSaldoEsperado() {
+        BigDecimal saldoEsperado = this.getValorAbertura();
+        saldoEsperado = saldoEsperado.add(this.totalEntradasMovimentacoes);
+        saldoEsperado = saldoEsperado.subtract(this.totalSaidasMovimentacoes);
+        return saldoEsperado;
     }
 
     @Override

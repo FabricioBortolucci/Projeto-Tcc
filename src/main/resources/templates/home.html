@@ -1,22 +1,196 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:with="isDarkTheme=${false}"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <title>Home - Oficina</title>
+    <title>Home - Metalúrgica & Tornearia</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .dashboard-card .card-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            min-height: 160px; /* Altura mínima para os cards */
+        }
+        .dashboard-card .display-4 {
+            font-weight: 500;
+        }
+        .dashboard-card .bi {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .list-group-item .bi {
+            margin-right: 0.5rem;
+        }
+
+        /* Estilos para tema escuro no conteúdo principal (se isDarkTheme = true) */
+        /* Se você usar data-bs-theme="dark" na tag <html> globalmente, estes podem não ser necessários */
+        .main-content-dark {
+            background-color: #212529;
+            color: #dee2e6;
+        }
+        .main-content-dark .card:not(.text-bg-dark) { /* Evitar conflito se sidebar já for text-bg-dark */
+            background-color: #2b3035;
+            border-color: #495057;
+        }
+        .main-content-dark .list-group-item {
+            background-color: #2b3035;
+            border-color: #495057;
+        }
+        .main-content-dark h1, .main-content-dark h2, .main-content-dark h4, .main-content-dark h5,
+        .main-content-dark .card-title, .main-content-dark .card-text, .main-content-dark p {
+            color: #f8f9fa;
+        }
+        .main-content-dark .text-muted {
+            color: #adb5bd !important;
+        }
+        .main-content-dark .alert-danger { /* Ajustar cor do texto do alerta de perigo no tema escuro */
+            color: var(--bs-danger-text-emphasis);
+        }
+        .main-content-dark .btn-info { /* Exemplo de ajuste para btn-info no tema escuro */
+            --bs-btn-color: #fff;
+            --bs-btn-hover-color: #fff;
+        }
+    </style>
 </head>
 <body>
-<div class="d-flex">
-    <div th:insert="~{fragments/sidebar}"></div>
-    <main class="d-flex w-100 vh-100 p-4">
-        <h1 class="h1">Bem-vindo, <span th:text="${#authentication.name}"></span>!</h1>
+<div class="d-flex vh-100"> <div th:insert="~{fragments/sidebar}"></div>
+
+    <main class="flex-grow-1 p-4 overflow-auto d-flex flex-column gap-4" th:classappend="${isDarkTheme ? 'main-content-dark' : ''}">
+
+        <div class="mb-2"> <h1 class="h2">Bem-vindo, <span th:text="${#authentication.name}">Usuário</span>!</h1>
+            <p class="text-muted" th:text="'Hoje é ' + ${#temporals.format(#temporals.createNow(), 'dd ''de'' MMMM ''de'' yyyy', new java.util.Locale('pt', 'BR'))}"></p>
+        </div>
+
+        <section>
+            <h2 class="h4 mb-3">Visão Geral</h2>
+            <div class="row">
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card dashboard-card h-100 shadow-sm">
+                        <div class="card-body">
+                            <i class="bi bi-journal-arrow-down text-primary"></i> <h5 class="card-title fs-6 text-muted">Ordens/Serviços Pendentes</h5>
+                            <p class="card-text display-4" th:text="${estatisticas != null ? estatisticas.ordensServicoAbertas : '0'}">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card dashboard-card h-100 shadow-sm">
+                        <div class="card-body">
+                            <i class="bi bi-people-fill text-success"></i>
+                            <h5 class="card-title fs-6 text-muted">Clientes Ativos</h5>
+                            <p class="card-text display-4" th:text="${estatisticas != null ? estatisticas.clientesAtivos : '0'}">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card dashboard-card h-100 shadow-sm">
+                        <div class="card-body">
+                            <i class="bi bi-graph-up-arrow text-warning"></i>
+                            <h5 class="card-title fs-6 text-muted">Faturamento do Mês</h5>
+                            <p class="card-text h3" th:text="${estatisticas != null ? estatisticas.faturamentoMes : 'R$ 0,00'}">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card dashboard-card h-100 shadow-sm">
+                        <div class="card-body">
+                            <i class="bi bi-boxes text-info"></i> <h5 class="card-title fs-6 text-muted">Total de Itens/Produtos</h5>
+                            <p class="card-text display-4" th:text="${estatisticas != null ? estatisticas.totalProdutosCadastrados : '0'}">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card dashboard-card h-100 shadow-sm">
+                        <div class="card-body">
+                            <i class="bi bi-exclamation-octagon-fill text-danger"></i>
+                            <h5 class="card-title fs-6 text-muted">Alertas de Estoque</h5>
+                            <p class="card-text display-4" th:text="${estatisticas != null ? estatisticas.produtosEmEstoqueBaixo : '0'}">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="h4 mb-3">Ações Rápidas</h2>
+            <div class="d-flex flex-wrap gap-2">
+                <a th:href="@{/ordem-servico/cadastro}" class="btn btn-primary"> <i class="bi bi-plus-circle-fill me-1"></i> Nova Ordem/Serviço
+                </a>
+                <a th:href="@{/pessoa/cadastro}" class="btn btn-success">
+                    <i class="bi bi-person-plus-fill me-1"></i> Novo Cliente
+                </a>
+                <a th:href="@{/produto/cadastro}" class="btn btn-info"> <i class="bi bi-box-arrow-in-down me-1"></i> Cadastrar Item/Produto
+                </a>
+                <a th:href="@{/caixa/cadastro(isHome = true)}" class="btn btn-warning">
+                    <i class="bi bi-cash-coin me-1"></i> Caixa/Financeiro
+                </a>
+            </div>
+        </section>
+
+        <section>
+            <h2 class="h4 mb-3">Alertas de Estoque (Itens <= 3 unidades)</h2>
+            <div class="card shadow-sm">
+                <div class="card-body p-0"> <div th:if="${atividadesRecentes == null or atividadesRecentes.empty or (#lists.size(atividadesRecentes) == 1 and atividadesRecentes[0].link == null)}"
+                                                 class="p-3"> <div class="d-flex align-items-center text-muted">
+                    <i th:classappend="${(atividadesRecentes != null and not atividadesRecentes.empty) ? atividadesRecentes[0].icon : 'bi-check-circle-fill'}" class="bi fs-4 me-2"></i>
+                    <span th:text="${(atividadesRecentes != null and not atividadesRecentes.empty) ? atividadesRecentes[0].titulo : 'Nenhum alerta de estoque no momento.'}">Nenhum alerta.</span>
+                </div>
+                    <small th:if="${(atividadesRecentes != null and not atividadesRecentes.empty and atividadesRecentes[0].link == null)}" th:text="${atividadesRecentes[0].descricao}" class="d-block mt-1 ms-4 ps-2"></small>
+                </div>
+
+                    <ul class="list-group list-group-flush"
+                        th:if="${atividadesRecentes != null and not (#lists.size(atividadesRecentes) == 1 and atividadesRecentes[0].link == null)}">
+                        <li th:each="alerta : ${atividadesRecentes}" class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">
+                                    <i th:classappend="${alerta.icon ?: 'bi-exclamation-circle-fill'}" class="bi me-2"></i>
+                                    <span th:text="${alerta.titulo}">Estoque Baixo: Produto X</span>
+                                </h6>
+                                <small th:text="${alerta.descricao}">Estoque Atual: Y (Limite: <=3)</small>
+                            </div>
+                            <small class="fw-bold" th:classappend="${#strings.contains(alerta.icon, 'text-danger') ? 'text-danger' : 'text-warning'}" th:text="${alerta.tempo}">Alerta Crítico</small>
+                            <a th:if="${alerta.link}" th:href="@{${alerta.link}}" class="stretched-link" title="Ver produto"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+             tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="staticBackdropLabel"><i class="bi bi-exclamation-triangle-fill"></i> Atenção</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Já existe um caixa aberto.
+                        <br>
+                        Edite o caixa aberto ou feche-o para poder abrir um novo.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendido</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
-
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:if="${mostrarModal}" th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener("DOMContentLoaded", function () {
+        var staticBackdropModal = new bootstrap.Modal(document.getElementById('staticBackdrop'));
+        staticBackdropModal.show();
+    });
+    /*]]>*/
+</script>
 </body>
 </html>

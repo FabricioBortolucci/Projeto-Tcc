@@ -6,6 +6,7 @@ import com.produto.oficina.model.MovimentacaoCaixa;
 import com.produto.oficina.model.enums.TipoMovimentacao;
 import com.produto.oficina.service.CaixaService;
 import com.produto.oficina.service.CompraService;
+import com.produto.oficina.service.MovimentacaoCaixaService;
 import com.produto.oficina.service.PessoaService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,17 +17,24 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
+
 @Controller
 @RequestMapping("/caixa")
 public class CaixaController {
 
     private final CaixaService caixaService;
     private final PessoaService pessoaService;
+    private final MovimentacaoCaixaService mvService;
 
-    public CaixaController(CaixaService caixaService, PessoaService pessoaService) {
+    public CaixaController(CaixaService caixaService, PessoaService pessoaService, MovimentacaoCaixaService mvService) {
         this.caixaService = caixaService;
         this.pessoaService = pessoaService;
+        this.mvService = mvService;
     }
+
+    private Long caixaId = 0L;
 
     @GetMapping
     public String caixaList(Model model,
@@ -39,12 +47,18 @@ public class CaixaController {
     }
 
     @GetMapping("/cadastro")
-    public String caixaForm(RedirectAttributes redirectAttributes, Model model) {
+    public String caixaForm(@RequestParam(required = false, defaultValue = "false") boolean isHome, RedirectAttributes redirectAttributes, Model model) {
         if (caixaService.verificaCaixaAberto()) {
             redirectAttributes.addFlashAttribute("mostrarModal", true);
+            if (isHome) {
+                return "redirect:/home";
+            }
             return "redirect:/caixa";
         }
         model.addAttribute("caixa", caixaService.novoCaixa(pessoaService.buscaPessoaLogada()));
+        model.addAttribute("caixa_cadastrado", true);
+        model.addAttribute("listaMovimentacao", new ArrayList<>());
+        model.addAttribute("mensagem", "Caixa cadastrado com sucesso!");
         return "caixa/caixaForm";
     }
 
@@ -64,6 +78,7 @@ public class CaixaController {
 
     @GetMapping("/editar/{index}")
     public String caixaEdit(@PathVariable Long index, Model model) {
+        model.addAttribute("listaMovimentacao", mvService.buscarTodasMovimentacoesPorCaixa(index));
         model.addAttribute("caixa", caixaService.findById(index));
         return "caixa/caixaForm";
     }
@@ -78,19 +93,73 @@ public class CaixaController {
 
     // Movimentação de Fundos no caixa
 
-    @GetMapping("/cadastro/mostrarModalFundos")
-    public String showModalFundos(Model model) {
+    @GetMapping("/editar/mostrarModalFundos/{id}")
+    public String showModalFundos(@PathVariable Long id,
+                                  @RequestParam(required = false, defaultValue = "false") boolean remover,
+                                  Model model) {
+        caixaId = id;
+        if (remover) {
+            model.addAttribute("modal_title", "Remover fundos do caixa");
+            model.addAttribute("modal_label", "Valor a ser removido: ");
+            model.addAttribute("tiposMovimento", TipoMovimentacao.apenasSaidas());
+        } else {
+            model.addAttribute("modal_title", "Adicionar fundos no caixa");
+            model.addAttribute("modal_label", "Valor a ser adicionado: ");
+            model.addAttribute("tiposMovimento", TipoMovimentacao.apenasEntradas());
+        }
         model.addAttribute("movimento", new MovimentacaoCaixa());
-        model.addAttribute("tiposMovimento", TipoMovimentacao.values());
         model.addAttribute("mostrarModal", true);
         return "fragments/caixaFragments/modalCaixa";
     }
 
-    @PostMapping("/cadastro/adicionarFundos")
+    @PostMapping("/editar/movimentarFundos")
     public String addFundos(@ModelAttribute MovimentacaoCaixa movimento,
                             RedirectAttributes redirectAttributes,
                             Model model) {
-        return null;
+        mvService.salvarMovimentacao(movimento, caixaId);
+        redirectAttributes.addFlashAttribute("mensagem", "Movimento realizado com sucesso!");
+        return "redirect:/caixa/editar/" + movimento.getCaixa().getId();
+    }
+
+    @GetMapping("/editar/fechamento/{id}")
+    public String fechamentoDeCaixa(@PathVariable Long id, Model model) {
+        model.addAttribute("caixa", caixaService.findById(id));
+        return "caixa/caixaFechamentoForm";
+    }
+
+    @PostMapping("/editar/fechar")
+    public String fecharCaixa(@ModelAttribute("caixa") Caixa caixaDoFormulario,
+                              RedirectAttributes redirectAttributes,
+                              Model model) {
+        if (caixaId == null) {
+            redirectAttributes.addFlashAttribute("mensagem", "Erro: ID do Caixa não foi fornecido.");
+            return "redirect:/caixa";
+        }
+        caixaService.fecharCaixa(caixaDoFormulario, pessoaService.buscaPessoaLogada());
+
+        redirectAttributes.addFlashAttribute("mensagem", "Caixa ID " + caixaId + " fechado com sucesso!");
+        return "redirect:/caixa";
+    }
+
+
+    @PostMapping("/editar/fechamento/calcular-diferenca-fragmento")
+    public String calcularDiferencaFragmento(
+            @RequestParam("saldoEsperadoSistema") String saldoEsperadoStr,
+            @RequestParam("valorFechamentoContado") String valorFechamentoContadoStr,
+            Model model) {
+
+        // O JavaScript já deve enviar valores "limpos" (ex: "1250.75")
+        // devido ao htmx:configRequest
+        BigDecimal saldoEsperado = JavaUtils.parseMonetaryString(saldoEsperadoStr);
+        BigDecimal valorContado = JavaUtils.parseMonetaryString(valorFechamentoContadoStr);
+
+        BigDecimal diferenca = valorContado.subtract(saldoEsperado);
+
+        model.addAttribute("diferencaCalculada", diferenca);
+        model.addAttribute("valorPuroDiferenca", diferenca.toPlainString()); // Para o data-valor-puro
+
+        // Retorna o caminho para o fragmento Thymeleaf
+        return "fragments/caixaFragments/fragDiff :: fragmentoDiferencaCaixa";
     }
 
 

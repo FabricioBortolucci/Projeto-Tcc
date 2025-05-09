@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -7,102 +7,135 @@
     <title>Caixa - Oficina</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" href="/images/bootstrap-icons.css" th:href="@{/images/bootstrap-icons.css}">
+    <style>
+        /* Estilos personalizados leves, se necessário */
+        .table th, .table td {
+            vertical-align: middle; /* Alinha o conteúdo verticalmente ao centro nas células da tabela */
+        }
+
+        .action-buttons a, .action-buttons button {
+            min-width: 100px; /* Largura mínima para botões de ação, ajuste conforme necessário */
+        }
+
+        /* Ajustes para melhor contraste no table-dark, se necessário */
+        .table-dark .badge a { /* Exemplo: se badges contiverem links */
+            color: inherit;
+        }
+    </style>
 </head>
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
-    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <h1 class="h3">Lista de Caixas</h1>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4 overflow-auto">
+        <h1 class="h3 mb-4">Lista de Caixas</h1>
 
-        <div th:if="${alert}" th:text="${mensagem}" class="alert alert-success" role="alert">
+        <div th:if="${mensagem}" class="alert alert-success" role="alert" th:text="${mensagem}"/>
+
+        <div class="table-responsive">
+            <table id="prodTableMain" class="table table-dark table-striped table-hover table-bordered caption-top">
+                <caption class="fs-6">Caixas registrados no sistema</caption>
+                <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Valor Atual</th>
+                    <th>Status</th>
+                    <th>Aberto por</th>
+                    <th>Data Abertura</th>
+                    <th>Data Fechamento</th>
+                    <th style="min-width: 200px;">Obs. Abertura</th>
+                    <th style="min-width: 220px;">Opções</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${caixaPage == null or caixaPage.content.isEmpty()}">
+                    <td colspan="8" class="text-center">Nenhum caixa encontrado.</td>
+                </tr>
+                <tr th:each="caixa : ${caixaPage}">
+                    <td th:text="${caixa.id}"></td>
+                    <td th:text="${#numbers.formatCurrency(caixa.valorAtualCaixa)}"></td>
+                    <td>
+                        <span th:classappend="${caixa.status.descricao == 'Aberto'} ?
+                            'badge bg-success' : (${caixa.status.descricao == 'Fechado'} ?
+                            'badge bg-secondary' : 'badge bg-warning text-dark')" th:text="${caixa.status.descricao}"></span>
+                    </td>
+                    <td th:text="${caixa.usuarioAbertura.pesNome}"></td>
+                    <td th:text="${caixa.dataAbertura != null ? #temporals.format(caixa.dataAbertura, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
+                    <td th:text="${caixa.dataFechamento != null ? #temporals.format(caixa.dataFechamento, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
+                    <td th:text="${#strings.abbreviate(caixa.observacaoAbertura, 70)}"></td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-2 action-buttons">
+                            <a th:href="@{/caixa/editar/{index}(index=${caixa.id})}" class="btn btn-light btn-sm"> <i
+                                    class="bi bi-eye"></i> Visualizar
+                            </a>
+                            <a th:if="${caixa.status.descricao == 'Aberto'}"
+                               th:href="@{/caixa/editar/fechamento/{id}(id=${caixa.id})}"
+                               class="btn btn-secondary btn-sm"> <i class="bi bi-lock"></i> Fechamento
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
 
-        <table id="prodTableMain" class="table table-dark table-bordered table-hover table-striped table-responsive">
-            <thead>
-            <tr>
-                <th>Id</th>
-                <th>Valor</th>
-                <th>Data de cadastro</th>
-                <th>Data de fechamento</th>
-                <th>Observação de Abertura</th>
-                <th>Opções</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="caixa : ${caixaPage}">
-                <td th:text="${caixa.id}"></td>
-                <td th:text="${#numbers.formatCurrency(caixa.valor)}"></td>
-                <td th:text="${#temporals.format(caixa.dataCadastro, 'dd/MM/yyyy HH:mm')}"></td>
-                <td th:text="${#temporals.format(caixa.dataFechamento, 'dd/MM/yyyy HH:mm')}"></td>
-                <td th:text="${caixa.observacaoAbertura}"></td>
-                <td>
-                    <form th:action="@{/caixa/fechar/{index}(index=${caixa.id})}" method="post">
-                        <button th:classappend="${caixa.fechado} ? 'disabled'" class="btn btn-danger" type="submit">
-                            Fechar Caixa
-                        </button>
-                        <a th:classappend="${caixa.fechado} ? 'disabled'" th:href="@{/caixa/editar/{index}(index=${caixa.id})}" class="btn btn-primary">
-                            Editar
-                        </a>
-                        <a  th:href="@{/caixa/visualizar/{index}(index=${caixa.id})}" class="btn btn-primary">
-                            Visualizar
-                        </a>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <nav>
-            <ul class="pagination justify-content-center">
-                <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/caixa(page=${currentPage - 1}, size=5)}">Anterior</a>
-                </li>
-                <li class="page-item"
-                    th:each="i : ${#numbers.sequence(0, caixaPage.totalPages - 1)}"
-                    th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{/caixa(page=${i}, size=5)}" th:text="${i + 1}">1</a>
-                </li>
-                <li th:classappend="${currentPage + 1 == caixaPage.totalPages} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/caixa(page=${currentPage + 1}, size=5)}">Próxima</a>
-                </li>
-            </ul>
-        </nav>
+        <div class="mt-4" th:if="${caixaPage != null and caixaPage.totalPages > 1}">
+            <nav aria-label="Paginação da lista de caixas">
+                <ul class="pagination justify-content-center">
+                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                        <a class="page-link" th:href="@{/caixa(page=${currentPage - 1}, size=${caixaPage.size})}">Anterior</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, caixaPage.totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/caixa(page=${i}, size=${caixaPage.size})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+                    <li th:classappend="${currentPage + 1 >= caixaPage.totalPages} ? 'disabled'" class="page-item">
+                        <a class="page-link" th:href="@{/caixa(page=${currentPage + 1}, size=${caixaPage.size})}">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
 
-        <div class="btn-group w-10">
-            <a class="btn btn-primary" th:href="@{/caixa/cadastro}">Novo</a>
+        <div class="mt-4">
+            <a class="btn btn-success" th:href="@{/caixa/cadastro}"> <i class="bi bi-plus-circle"></i> Novo Caixa
+            </a>
         </div>
 
         <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
              tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Caixa</h5>
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="staticBackdropLabel"><i class="bi bi-exclamation-triangle-fill"></i>
+                            Atenção</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                                 aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         Já existe um caixa aberto.
                         <br>
-                        Edite o caixa aberto ou feche o caixa para abrir um novo.
+                        Edite o caixa aberto ou feche-o para poder abrir um novo.
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendido</button>
                     </div>
                 </div>
             </div>
         </div>
-
     </main>
 </div>
-
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
 <script th:if="${mostrarModal}" th:inline="javascript">
+    /*<![CDATA[*/
     document.addEventListener("DOMContentLoaded", function () {
-        const modal = new bootstrap.Modal(document.getElementById('staticBackdrop'));
-        modal.show();
+        var staticBackdropModal = new bootstrap.Modal(document.getElementById('staticBackdrop'));
+        staticBackdropModal.show();
     });
+    /*]]>*/
 </script>
 </body>
 </html>

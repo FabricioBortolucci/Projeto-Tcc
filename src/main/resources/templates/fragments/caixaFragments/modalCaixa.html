@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -7,82 +7,103 @@
     <title>Oficina</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" href="/images/bootstrap-icons.css" th:href="@{/images/bootstrap-icons.css}">
+    <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
 </head>
 <body>
 
 <div th:fragment="modalAddfundos" class="modal fade" id="modalDinamicaFundos" tabindex="-1"
      aria-labelledby="modalDinamicaFundosLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalDinamicaFundosLabel">Adicionar Fundos ao Caixa</h5>
+                <h5 class="modal-title" id="modalDinamicaFundosLabel">
+                    <span th:text="${modal_title}">Título Padrão do Modal</span>
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form th:action="@{/caixa/cadastro/adicionarFundos}" method="post" class="form form-control"
-                      th:object="${movimento}">
+                <form th:action="@{/caixa/cadastro/movimentarFundos}" method="post" th:object="${movimento}">
 
                     <div class="mb-3">
-                        <label for="valorI" class="form-label">Valor a adicionar:</label>
-                        <input id="valorI" class="form-control w-30 border-dark" type="text" th:field="*{valor}"/>
+                        <label for="valorI" class="form-label" th:text="${modal_label ?: 'Valor:'}">Valor:</label>
+                        <input id="valorI" class="form-control" type="text" th:field="*{valor}" placeholder="R$ 0,00"/>
                     </div>
 
                     <div class="mb-3">
-                        <label for="tiposM">Tipo de movimentação:</label>
-                        <select id="tiposM" class="form-select w-75 border-dark" aria-label="select" th:field="*{tipo}">
-                            <option th:each="tipo : ${tiposMovimento}" th:value="${tipo}" th:text="${tipo.descricao}">
+                        <label for="tiposM" class="form-label">Tipo de movimentação:</label>
+                        <select id="tiposM" class="form-select" aria-label="Selecione o tipo de movimentação"
+                                th:field="*{tipo}">
+                            <option value="" disabled selected>Selecione...</option>
+                            <option th:each="tipoOpt : ${tiposMovimento}" th:value="${tipoOpt}"
+                                    th:text="${tipoOpt.descricao}">
                             </option>
                         </select>
                     </div>
 
                     <div class="mb-3">
-                        <label for="desc">Descrição</label>
-                        <textarea id="desc" class="form-control w-75 border-dark" th:field="*{descricao}" rows="3"
-                                  style="resize: none"></textarea>
+                        <label for="desc" class="form-label">Descrição:</label>
+                        <textarea id="desc" class="form-control" th:field="*{descricao}" rows="3"
+                                  style="resize: none;"
+                                  placeholder="Adicione uma breve descrição (opcional)"></textarea>
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-primary"
-                                onclick="formatarValorParaDecimal(document.getElementById('valorI'))">Salvar Fundos</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-primary"
+                                onclick="formatarValorParaDecimal(document.getElementById('valorI'))">
+                            <i class="bi bi-check-circle"></i> Salvar
+                        </button>
                     </div>
                 </form>
             </div>
-
         </div>
     </div>
     <script th:inline="javascript">
+        /*<![CDATA[*/
+        // Função para formatar o valor para decimal antes de enviar
+        // É bom ter essa função definida globalmente se for usada em múltiplos lugares,
+        // ou encapsulada de forma que não polua o escopo global se for muito específica.
+        function formatarValorParaDecimal(input) {
+            if (input && input.value) {
+                // Remove R$, espaços, todos os pontos (milhares) e substitui vírgula por ponto decimal
+                input.value = input.value.replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.');
+            }
+        }
+
         var modalElement = document.getElementById('modalDinamicaFundos');
         if (modalElement) {
-            var modalInstance = new bootstrap.Modal(modalElement);
+            var modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement); // Uso de getOrCreateInstance é mais robusto
             modalInstance.show();
-            // Opcional: Remove a modal do DOM quando fechada para evitar conflitos de ID e garantir
-            // que o script de exibição execute novamente se a modal for carregada de novo.
+
             modalElement.addEventListener('hidden.bs.modal', function () {
+                // Considerar se 'modalElement.remove()' é sempre desejado.
+                // Se o modal for sempre o mesmo, apenas ocultá-lo pode ser suficiente e mais performático
+                // do que removê-lo e recriá-lo, a menos que o conteúdo interno mude drasticamente
+                // ou haja problemas de estado/ID. Se o HTMX substitui o conteúdo da modal,
+                // remover pode ser uma boa estratégia para garantir um estado limpo.
+                var backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) {
+                    backdrop.remove(); // Garante que o backdrop seja removido se houver múltiplos ou persistentes
+                }
                 modalElement.remove();
             });
 
             const valorFundoInputModal = document.getElementById('valorI');
-            if (valorFundoInputModal) {
+            if (valorFundoInputModal && typeof VMasker !== 'undefined') {
                 VMasker(valorFundoInputModal).maskMoney({
-                    unit: 'R$',
+                    // unit: 'R$', // VMasker pode adicionar a unidade automaticamente
                     thousands: '.',
                     decimal: ',',
-                    precision: 2
+                    precision: 2,
+                    zeroCents: true // Para exibir R$ 10,00 em vez de R$ 10,
                 });
             }
-            function formatarValorParaDecimal(input) {
-                // Remove todos os caracteres que não são dígitos ou vírgula
-                // e depois substitui a vírgula por ponto.
-                input.value = input.value.replace(/[^\d,]/g, '').replace(',', '.');
-            }
-
         }
+        /*]]>*/
     </script>
 </div>
 
-
-<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
-<script th:src="@{/js/htmx/htmx.min.js}"></script>
 </body>
 </html>

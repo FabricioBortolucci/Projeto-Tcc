@@ -13,29 +13,8 @@
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
         <h1 class="h3">Cadastro de Produtos</h1>
-        <ul class="nav nav-pills mb-3 mt-3" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="produtoTab-tab" data-bs-toggle="tab" data-bs-target="#produtoTab"
-                        type="button"
-                        role="tab" aria-controls="produtoTab" aria-selected="true">Produto
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="fornecedorTab-tab" data-bs-toggle="tab" data-bs-target="#fornecedorTab"
-                        type="button"
-                        role="tab" aria-controls="fornecedorTab" aria-selected="false">Fornecedor
-                </button>
-            </li>
-        </ul>
-        <div class="tab-content" id="myTabContent">
-            <div class="tab-pane fade show active" id="produtoTab" role="tabpanel" aria-labelledby="produtoTab">
-                <div th:insert="~{fragments/produtoFrags/produtoForm :: produtoForm}"></div>
-            </div>
+        <div th:insert="~{fragments/produtoFrags/produtoForm :: produtoForm}"></div>
 
-            <div class="tab-pane fade show" id="fornecedorTab" role="tabpanel" aria-labelledby="fornecedorTab">
-                <div th:insert="~{fragments/produtoFrags/fornecedorForm :: fornecedorForm}"></div>
-            </div>
-        </div>
     </main>
 </div>
 

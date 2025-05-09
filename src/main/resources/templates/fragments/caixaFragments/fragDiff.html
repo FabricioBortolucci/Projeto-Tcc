@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Oficina - Fragmento Caixa</title>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" href="/images/bootstrap-icons.css" th:href="@{/images/bootstrap-icons.css}">
+    <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
+
+    <style>
+        /* Definições das classes de status para o fragmento */
+        .status-sobra {
+            color: #0f5132; /* Cor do texto para Bootstrap success */
+            background-color: #d1e7dd; /* Fundo verde claro (Bootstrap success background) */
+            border-color: #badbcc; /* Borda correspondente */
+            font-weight: bold;
+        }
+        .status-falta {
+            color: #842029; /* Cor do texto para Bootstrap danger */
+            background-color: #f8d7da; /* Fundo vermelho claro (Bootstrap danger background) */
+            border-color: #f5c2c7; /* Borda correspondente */
+            font-weight: bold;
+        }
+        .status-zerado {
+            color: #000; /* Cor padrão do texto ou um cinza escuro */
+            background-color: #e9ecef; /* Fundo similar a inputs desabilitados */
+            border-color: #ced4da; /* Borda correspondente */
+        }
+
+        /* Classe para estilizar o span da diferença */
+        .status-diferenca-caixa {
+            min-width: 80px; /* Ajustado para acomodar "Sobra" ou "Falta" confortavelmente */
+            /* display: flex; /* input-group-text já é display:flex no BS5 */
+            align-items: center; /* Alinha o texto verticalmente no centro */
+            justify-content: center; /* Alinha o texto horizontalmente no centro */
+            /* O padding vertical pode ser ajustado para bater com a altura do input se necessário,
+               mas o Bootstrap geralmente lida bem com isso com input-group-text.
+               Se houver desalinhamento vertical persistente com o input,
+               verifique os paddings do .form-control e do .input-group-text. */
+        }
+
+        /* Para simular a classe .input-financial que pode estar na página principal */
+        .input-financial {
+            /* max-width: 250px; /* Exemplo, ajuste conforme sua definição */
+        }
+    </style>
+</head>
+<body>
+
+<div th:fragment="fragmentoDiferencaCaixa">
+    <label class="form-label" for="saldoDiferenca">Diferença de Caixa:</label>
+    <div class="input-group input-financial">
+        <input class="form-control" id="saldoDiferenca" type="text"
+               th:value="${#numbers.formatDecimal(diferencaCalculada, 1, 'POINT', 2, 'COMMA')}"
+               th:attr="data-valor-puro=${valorPuroDiferenca}" disabled/>
+        <span class="input-group-text status-diferenca-caixa" id="statusDiferencaCaixa"
+              th:text="${diferencaCalculada.compareTo(T(java.math.BigDecimal).ZERO) == 0 ? 'OK' :
+                            (diferencaCalculada.compareTo(T(java.math.BigDecimal).ZERO) > 0 ? 'Sobra' : 'Falta')}">
+            </span>
+    </div>
+</div>
+
+
+<script th:src="@{/js/bootstrap.bundle.min.js}"></script> </body>
+</html>

@@ -3,7 +3,6 @@ package com.produto.oficina.controller;
 import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.Produto;
 import com.produto.oficina.model.enums.ProdutoTipo;
-import com.produto.oficina.service.PessoaService;
 import com.produto.oficina.service.ProdutoService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,10 +20,8 @@ import java.util.List;
 public class ProdutoController {
 
     private final ProdutoService produtoService;
-    private final PessoaService pessoaService;
 
-    public ProdutoController(PessoaService pessoaService, ProdutoService produtoService) {
-        this.pessoaService = pessoaService;
+    public ProdutoController(ProdutoService produtoService) {
         this.produtoService = produtoService;
     }
 
@@ -42,17 +39,13 @@ public class ProdutoController {
 
     @GetMapping("/cadastro")
     public String produtoForm(Model model) {
-        fornecedores.clear();
         model.addAttribute("produto", new Produto());
-        model.addAttribute("fornecedores", fornecedores);
         model.addAttribute("tipo_lista", ProdutoTipo.values());
-        model.addAttribute("forn_list", produtoService.buscaFornecedores());
         return "produto/prodForm";
     }
 
     @PostMapping("/cadastrar")
     public String produtoSave(@ModelAttribute Produto produto, RedirectAttributes redirectAttributes) {
-        produto.getFornecedores().addAll(fornecedores);
         produtoService.save(produto);
         redirectAttributes.addFlashAttribute("produto_cadastrado", true);
         return "redirect:/produto";
@@ -67,37 +60,10 @@ public class ProdutoController {
     @GetMapping("/editar/{index}")
     public String produtoEdit(@PathVariable Long index, Model model) {
         Produto prod = produtoService.findById(index);
-        fornecedores.clear();
-        fornecedores.addAll(prod.getFornecedores());
 
         model.addAttribute("produto", prod);
-        model.addAttribute("fornecedores", fornecedores);
         model.addAttribute("tipo_lista", ProdutoTipo.values());
-        model.addAttribute("forn_list", produtoService.buscaFornecedores());
         return "produto/prodForm";
-    }
-
-    @PostMapping("/cadastro/adicionar")
-    public String adicionarForn(@RequestParam(value = "fornecedor", required = false) Long fornecedor, Model model) {
-        if (fornecedor != null) {
-            pessoaService.buscaFornecedorPorId(fornecedor)
-                    .ifPresent(pessoa -> {
-                        if (!fornecedores.contains(pessoa)) {
-                            fornecedores.add(pessoa);
-                        }
-                    });
-        }
-        model.addAttribute("fornecedores", fornecedores);
-        return "fragments/produtoFrags/fornecedorForm :: fornecedorTable";
-    }
-
-    @DeleteMapping("/cadastro/remover/{index}")
-    public String removerForn(@PathVariable Integer index, Model model) {
-        if (index >= 0 && index < fornecedores.size()) {
-            fornecedores.remove(index.intValue());
-        }
-        model.addAttribute("fornecedores", fornecedores);
-        return "fragments/produtoFrags/fornecedorForm :: fornecedorTable";
     }
 
     @GetMapping("/visualizar/{index}")

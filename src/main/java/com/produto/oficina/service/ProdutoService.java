@@ -1,9 +1,6 @@
 package com.produto.oficina.service;
 
-import com.produto.oficina.dto.FornecedorDTO;
-import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.Produto;
-import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,7 +15,6 @@ public class ProdutoService {
 
 
     private final ProdutoRepository produtoRepository;
-    private final PessoaRepository pessoaRepository;
 
 
     public Page<Produto> findAll(Pageable pageable) {
@@ -51,16 +47,8 @@ public class ProdutoService {
         return produtoRepository.findById(index).get();
     }
 
-    public List<FornecedorDTO> buscaFornecedores() {
-        return pessoaRepository.findFornecedores();
-    }
-
     public List<Produto> buscarPorNome(String query) {
         return produtoRepository.findByNomeContainingIgnoreCase(query);
     }
 
-
-    public List<Produto> buscarProdutosPorFornecedor(Long fornecedorId) {
-        return produtoRepository.buscaPorFornecedor(fornecedorId);
-    }
 }

@@ -49,7 +49,6 @@ public class CompraController {
     @GetMapping("/buscarProdutos")
     public String buscarProdutos(@RequestParam(required = false) Long fornecedorId,
                                  Model model) {
-        model.addAttribute("produtos", produtoService.buscarProdutosPorFornecedor(fornecedorId));
         return "fragments/compraFrags/produtosSelect :: produtoSelect";
     }
 

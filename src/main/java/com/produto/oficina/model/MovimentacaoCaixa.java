@@ -43,7 +43,6 @@ public class MovimentacaoCaixa {
      * Data e hora em que a movimentação foi registrada.
      * Preenchido automaticamente na criação.
      */
-    @CreationTimestamp // JPA/Hibernate preenche automaticamente ao criar
     @Column(name = "data_movimentacao", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -59,7 +58,7 @@ public class MovimentacaoCaixa {
     /**
      * Descrição da movimentação (ex: "Venda pedido 123", "Pagamento fornecedor X", "Suprimento inicial").
      */
-    @Column(name = "descricao", nullable = false, length = 255)
+    @Column(name = "descricao", nullable = false, length = 255, columnDefinition = "TEXT")
     private String descricao;
 
     /**
@@ -108,4 +107,7 @@ public class MovimentacaoCaixa {
         this.origemTipo = origemTipo;
         // dataMovimentacao será preenchida por @CreationTimestamp
     }
+
+
+
 }

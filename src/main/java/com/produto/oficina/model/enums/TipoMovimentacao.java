@@ -11,4 +11,12 @@ public enum TipoMovimentacao {
     TipoMovimentacao(String descricao) {
         this.descricao = descricao;
     }
+
+    public static TipoMovimentacao[] apenasEntradas() {
+        return new TipoMovimentacao[]{ENTRADA, SUPRIMENTO};
+    }
+
+    public static TipoMovimentacao[] apenasSaidas() {
+        return new TipoMovimentacao[]{SAIDA, SANGRIA};
+    }
 }

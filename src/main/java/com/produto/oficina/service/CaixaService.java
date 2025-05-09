@@ -1,5 +1,6 @@
 package com.produto.oficina.service;
 
+import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.Caixa;
 import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.enums.StatusCaixa;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -59,11 +61,12 @@ public class CaixaService {
             observacaoHistorico = " Nenhum caixa anterior encontrado. Iniciando com R$0,00.";
         }
 
-        return new Caixa(
+        Caixa novoCaixa = new Caixa(
                 usuarioAbertura,
                 valorAberturaNovoCaixa,
                 observacaoHistorico.trim()
         );
+        return caixaRepository.saveAndFlush(novoCaixa);
     }
 
     public boolean verificaCaixaAberto() {
@@ -71,4 +74,28 @@ public class CaixaService {
     }
 
 
+    public void salvarCaixaAposMovimento(Caixa caixaAtual) {
+        caixaRepository.saveAndFlush(caixaAtual);
+    }
+
+    @Transactional
+    public void fecharCaixa(Caixa caixaForm, Pessoa usuarioFechamento) {
+        Optional<Caixa> caixaOptional = caixaRepository.findById(caixaForm.getId());
+        if (caixaOptional.isPresent()) {
+            Caixa caixaAtual = caixaOptional.get();
+            caixaAtual.setStatus(StatusCaixa.FECHADO);
+            caixaAtual.setDataFechamento(LocalDateTime.now());
+            caixaAtual.setValorFechamentoContado(caixaForm.getValorFechamentoContado());
+            caixaAtual.setObservacaoFechamento(caixaForm.getObservacaoFechamento());
+            caixaAtual.setUsuarioFechamento(usuarioFechamento);
+
+            caixaAtual.setTotalEntradasMovimentacoes(caixaAtual.getValorTotalEntradas());
+            caixaAtual.setTotalSaidasMovimentacoes(caixaAtual.getValorTotalSaidas());
+
+            caixaAtual.setSaldoEsperadoSistema(caixaAtual.getCalculaSaldoEsperado());
+            caixaAtual.setDiferencaCaixa(caixaAtual.getValorFechamentoContado().subtract(caixaAtual.getSaldoEsperadoSistema()));
+
+            caixaRepository.saveAndFlush(caixaAtual);
+        }
+    }
 }

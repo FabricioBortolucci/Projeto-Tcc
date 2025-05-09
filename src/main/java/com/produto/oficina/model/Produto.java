@@ -46,15 +46,6 @@ public class Produto {
     @Enumerated(EnumType.STRING)
     private ProdutoTipo produtoTipo;
 
-    @ManyToMany
-    @JoinTable(
-            name = "produto_fornecedor",
-            joinColumns = @JoinColumn(name = "produto_id"),
-            inverseJoinColumns = @JoinColumn(name = "fornecedor_id")
-    )
-    @ToString.Exclude
-    private List<Pessoa> fornecedores = new ArrayList<>();
-
     @Column(name = "prod_ativo")
     private Boolean ativo = true;
 

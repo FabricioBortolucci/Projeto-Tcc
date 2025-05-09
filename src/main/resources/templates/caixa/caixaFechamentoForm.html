@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:hx="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Caixa - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <style>
+        .input-financial {
+            max-width: 250px;
+        }
+
+        .textarea-observation {
+            max-width: 450px;
+            resize: none;
+        }
+
+        /* Estilização do <span> que mostra o status "OK", "Sobra", "Falta".
+           O seletor de ID é usado porque o elemento tem id="statusDiferencaCaixa".
+           Isso sobrescreve/complementa o estilo inline que você tinha. */
+        #statusDiferencaCaixa {
+            min-width: 80px; /* Garante espaço para os textos "Sobra", "Falta". */
+            display: flex; /* Usa flexbox para melhor alinhamento do texto interno. */
+            align-items: center; /* Centraliza o texto verticalmente. */
+            justify-content: center; /* Centraliza o texto horizontalmente. */
+            /* Padding e a maior parte da aparência de "input-group-text" vêm do Bootstrap. */
+            /* As cores de fundo e texto virão das classes .status-* abaixo. */
+        }
+
+        /* Definições das classes de status para o fragmento */
+        .status-sobra {
+            color: #0f5132; /* Cor do texto para Bootstrap success */
+            background-color: #d1e7dd; /* Fundo verde claro (Bootstrap success background) */
+            border-color: #badbcc; /* Borda correspondente */
+            font-weight: bold;
+        }
+        .status-falta {
+            color: #842029; /* Cor do texto para Bootstrap danger */
+            background-color: #f8d7da; /* Fundo vermelho claro (Bootstrap danger background) */
+            border-color: #f5c2c7; /* Borda correspondente */
+            font-weight: bold;
+        }
+        .status-zerado {
+            color: #000; /* Cor padrão do texto ou um cinza escuro */
+            background-color: #e9ecef; /* Fundo similar a inputs desabilitados */
+            border-color: #ced4da; /* Borda correspondente */
+        }
+
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4 overflow-auto">
+        <h1 class="h3 mb-4">Fechamento Caixa</h1>
+        <div class="card">
+            <div class="card-body">
+                <form th:action="@{/caixa/editar/fechar}" method="post" th:object="${caixa}" id="formFechamentoCaixa">
+                    <input type="hidden" th:field="*{id}"/>
+
+                    <div class="row">
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <label class="form-label" for="valorAbertura">Valor de abertura:</label>
+                            <input class="form-control input-financial" id="valorAbertura" type="text"
+                                   th:value="${#numbers.formatDecimal(caixa.valorAbertura, 1, 'POINT', 2, 'COMMA')}"
+                                   disabled/>
+                        </div>
+
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <label class="form-label" for="valorTotalMovEntrada">Valor Total de Entradas:</label>
+                            <input class="form-control input-financial" id="valorTotalMovEntrada" type="text"
+                                   name="totalEntradasMovimentacoes"
+                                   th:value="${#numbers.formatDecimal(caixa.valorTotalEntradas, 1, 'POINT', 2, 'COMMA')}"
+                                   disabled/>
+                        </div>
+
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <label class="form-label" for="valorTotalMovSaidas">Valor Total de Saídas:</label>
+                            <input class="form-control input-financial" id="valorTotalMovSaidas" type="text"
+                                   name="totalSaidasMovimentacoes"
+                                   th:value="${#numbers.formatDecimal(caixa.valorTotalSaidas, 1, 'POINT', 2, 'COMMA')}"
+                                   disabled/>
+                        </div>
+
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <label class="form-label" for="saldoEsperadoSistema">Saldo Esperado do Sistema:</label>
+                            <input class="form-control input-financial" id="saldoEsperadoSistema" type="text"
+                                   name="saldoEsperadoSistema"
+                                   th:value="${#numbers.formatDecimal(caixa.calculaSaldoEsperado, 1, 'POINT', 2, 'COMMA')}"
+                                   disabled/>
+                        </div>
+
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <label class="form-label" for="saldoFechamentoContado">Saldo de Fechamento
+                                (Contado):</label>
+                            <input class="form-control input-financial border-dark" id="saldoFechamentoContado"
+                                   type="text" th:field="*{valorFechamentoContado}"
+                                   th:hx-post="@{/caixa/editar/fechamento/calcular-diferenca-fragmento}"
+                                   hx-target="#containerDiferenca"
+                                   hx-swap="innerHTML"
+                                   hx-trigger="input changed delay:500ms"
+                                   hx-include="#saldoEsperadoSistema, #saldoFechamentoContado"
+                                   hx-indicator="#loadingIndicatorDiferenca"/>
+                            <div class="form-text">Informe o valor físico contado no caixa.</div>
+                        </div>
+
+                        <div class="col-md-6 col-lg-4 mb-3" id="containerDiferenca">
+                            <label class="form-label" for="saldoDiferenca">Diferença de Caixa:</label>
+                            <div class="input-group input-financial">
+                                <input class="form-control" id="saldoDiferenca" type="text" disabled/>
+                                <span class="input-group-text" id="statusDiferencaCaixa"
+                                      style="min-width: 75px; display: inline-block; text-align: center;"></span>
+                            </div>
+                            <div id="loadingIndicatorDiferenca" class="htmx-indicator spinner-border spinner-border-sm"
+                                 role="status">
+                                <span class="visually-hidden">Calculando...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="obsFechamento">Observação de Fechamento:</label>
+                        <textarea class="form-control textarea-observation border-dark" id="obsFechamento"
+                                  rows="3" th:field="*{observacaoFechamento}"></textarea>
+                    </div>
+
+                    <input type="hidden" id="diferencaCaixaHidden" name="diferencaCaixa" th:field="*{diferencaCaixa}"/>
+
+
+                    <div class="mt-4 pt-3 border-top d-flex flex-wrap gap-2">
+                        <button type="submit" onclick="prepararSubmitFechamentoHTMX()" class="btn btn-success">
+                            <i class="bi bi-check-lg"></i> Fechar Caixa
+                        </button>
+                        <a class="btn btn-danger" th:href="@{/caixa/editar/{id}(id=*{id})}">
+                            <i class="bi bi-x-circle"></i> Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+<script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
+<script>
+    // Função para desmascarar valores ANTES de serem enviados pelo HTMX ou formulário
+    function desmascararParaNumeroString(valorMascarado) {
+        if (!valorMascarado) return "0.00";
+        let valor = valorMascarado.replace('R$', '').trim();
+        valor = valor.replace(/\./g, ''); // Remove pontos de milhar
+        valor = valor.replace(',', '.');   // Substitui vírgula decimal por ponto
+        return parseFloat(valor).toFixed(2) || "0.00";
+    }
+
+    document.body.addEventListener('htmx:configRequest', function (evt) {
+        // Desmascara os valores antes de serem incluídos na requisição HTMX
+        // Isso é crucial se o backend espera números puros.
+        if (evt.detail.path === '/caixa/editar/fechamento/calcular-diferenca-fragmento') {
+            const saldoEsperadoEl = document.getElementById('saldoEsperadoSistema');
+            const saldoContadoEl = document.getElementById('saldoFechamentoContado');
+
+            if (saldoEsperadoEl && saldoEsperadoEl.value) {
+                evt.detail.parameters['saldoEsperadoSistema'] = desmascararParaNumeroString(saldoEsperadoEl.value);
+            }
+            if (saldoContadoEl && saldoContadoEl.value) {
+                // O 'valorFechamentoContado' já é pego pelo hx-include com seu nome de campo
+                // mas se for necessário desmascarar explicitamente para o HTMX:
+                evt.detail.parameters['valorFechamentoContado'] = desmascararParaNumeroString(saldoContadoEl.value);
+            }
+        }
+    });
+
+    // Função para reaplicar máscaras após o HTMX atualizar o conteúdo
+    function aplicarMascaraDiferenca() {
+        const elSaldoDiferenca = document.getElementById('saldoDiferenca');
+        if (elSaldoDiferenca) {
+            VMasker(elSaldoDiferenca).maskMoney({
+                unit: 'R$', suffixUnit: '', thousands: '.', decimal: ',', precision: 2, allowNegative: true
+            });
+        }
+    }
+
+    // Evento do HTMX para reaplicar a máscara após o conteúdo ser trocado
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        if (event.detail.target.id === 'containerDiferenca') {
+            aplicarMascaraDiferenca();
+            // Preencher o campo oculto da diferença para o submit do formulário principal
+            const saldoDiferencaCalculado = document.getElementById('saldoDiferenca').dataset.valorPuro; // Assume que o fragmento coloca esse data attribute
+            const diferencaCaixaHidden = document.getElementById('diferencaCaixaHidden');
+            if (diferencaCaixaHidden && saldoDiferencaCalculado !== undefined) {
+                diferencaCaixaHidden.value = saldoDiferencaCalculado;
+            }
+        }
+    });
+
+    // Inicializa máscaras nos campos que já existem na página
+    document.addEventListener('DOMContentLoaded', function () {
+        const camposParaMascarar = ['valorAbertura', 'valorTotalMovEntrada', 'valorTotalMovSaidas', 'saldoEsperadoSistema', 'saldoFechamentoContado'];
+        camposParaMascarar.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                VMasker(el).maskMoney({
+                    unit: 'R$', suffixUnit: '', thousands: '.', decimal: ',', precision: 2, allowNegative: true
+                });
+            }
+        });
+        aplicarMascaraDiferenca(); // Caso o fragmento já venha com o campo
+    });
+
+    function prepararSubmitFechamentoHTMX() {
+        // Desmascarar o valorFechamentoContado para o submit principal
+        const saldoFechamentoContadoInput = document.getElementById('saldoFechamentoContado');
+        if (saldoFechamentoContadoInput) {
+            saldoFechamentoContadoInput.value = desmascararParaNumeroString(saldoFechamentoContadoInput.value);
+        }
+        // O campo diferencaCaixaHidden já deve ter sido preenchido pelo htmx:afterSwap
+    }
+</script>
+</body>
+</html>
