@@ -1,23 +1,121 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Cadastro de Produtos - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
 
-    <title>Home - Oficina</title>
-    <link rel="stylesheet" type="text/css" media="all"
-          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+        .form-control:focus, .form-select:focus { /* Destaque sutil no foco */
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Para garantir que o input-group-text tenha a mesma altura do input */
+        .input-group .input-group-text {
+            height: calc(1.5em + .75rem + 2px); /* Equivalente à altura padrão do form-control */
+        }
+    </style>
 </head>
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
-    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <h1 class="h3">Cadastro de Produtos</h1>
-        <div th:insert="~{fragments/produtoFrags/produtoForm :: produtoForm}"></div>
+    <main class="d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto">
+        <div class="mb-4">
+            <h1 class="h3">Cadastro de Produtos</h1>
+        </div>
 
+        <div class="card shadow-sm">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-semibold">Dados do Produto</h5>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="@{/produto/cadastrar}" method="post" th:object="${produto}"
+                      onsubmit="formatarValorParaDecimal(document.getElementById('precoProd'), document.getElementById('precoCustoProd')); return true;">
+                    <input type="hidden" th:field="*{id}"/>
+
+                    <div class="row g-3">
+                        <div class="col-md-7">
+                            <label class="form-label" for="nomeProd">Nome do produto <span class="text-danger">*</span></label>
+                            <input class="form-control" id="nomeProd" type="text" th:field="*{nome}" required/>
+                        </div>
+
+                        <div class="col-md-5">
+                            <label class="form-label" for="tipoProd">Tipo de produto <span class="text-danger">*</span></label>
+                            <select id="tipoProd" class="form-select" aria-label="select tipo produto"
+                                    th:field="*{produtoTipo}" required>
+                                <option value="">Selecione um tipo...</option>
+                                <option th:each="tipo : ${tipo_lista}" th:value="${tipo}"
+                                        th:text="${tipo.descricao}"></option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="precoCustoProd">Preço Custo <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input class="form-control" id="precoCustoProd" type="text" th:field="*{precoCusto}"
+                                       required placeholder="0,00"/>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="precoProd">Preço Venda <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input class="form-control" id="precoProd" type="text" th:field="*{precoUnitario}"
+                                       required placeholder="0,00"/>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="tmProd">Tamanho (metros/unidade)</label>
+                            <input class="form-control" id="tmProd" type="number" step="0.01" placeholder="0.00"
+                                   th:field="*{tamanhoMetros}"/>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label" for="quantProd">Quantidade em Estoque <span
+                                    class="text-danger">*</span></label>
+                            <input class="form-control" id="quantProd" type="number" th:field="*{estoque}" required
+                                   min="0" value="0"/>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="descProd">Descrição</label>
+                            <textarea class="form-control" style="resize: none;" id="descProd" rows="3"
+                                      th:field="*{descricao}"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="inputAtivo"
+                                       th:field="*{ativo}" th:checked="*{ativo == null ? true : ativo}">
+                                <label class="form-check-label" for="inputAtivo">Produto Ativo</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                        <a class="btn btn-outline-secondary" th:href="@{/produto}">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar
+                        </a>
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-check-lg me-1"></i>Salvar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </main>
 </div>
-
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/js/htmx/htmx.min.js}"></script>
@@ -25,37 +123,32 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const precoProdInput = document.getElementById('precoProd');
-        VMasker(precoProdInput).maskMoney({
-            unit: 'R$',
-            suffix: '',
-            thousands: '.',
-            decimal: ',',
-            separator: ',',
-            delimiter: '.',
-            affixesStay: false,
-            allowZero: true,
-            allowNegative: true,
-            precision: 2
-        });
+        if (precoProdInput) { // Verifica se o elemento existe
+            VMasker(precoProdInput).maskMoney({
+                unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
+                delimiter: '.', affixesStay: false, allowZero: true, allowNegative: true, precision: 2
+            });
+        }
+
         const precoCustoInput = document.getElementById('precoCustoProd');
-        VMasker(precoCustoInput).maskMoney({
-            unit: 'R$',
-            suffix: '',
-            thousands: '.',
-            decimal: ',',
-            separator: ',',
-            delimiter: '.',
-            affixesStay: false,
-            allowZero: true,
-            allowNegative: true,
-            precision: 2
-        });
+        if (precoCustoInput) { // Verifica se o elemento existe
+            VMasker(precoCustoInput).maskMoney({
+                unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
+                delimiter: '.', affixesStay: false, allowZero: true, allowNegative: true, precision: 2
+            });
+        }
     });
 
-    function formatarValorParaDecimal(input1, input2) {
-        for (let input of [input1, input2]) {
-            input.value = input.value.replace(/[^\d,]/g, '').replace(',', '.');
+    function formatarValorParaDecimal(inputPrecoVenda, inputPrecoCusto) {
+        // Esta função é chamada no onsubmit do formulário.
+        // Ela modifica o valor dos inputs ANTES da submissão.
+        if (inputPrecoVenda) {
+            inputPrecoVenda.value = inputPrecoVenda.value.replace(/[^\d,]/g, '').replace(',', '.');
         }
+        if (inputPrecoCusto) {
+            inputPrecoCusto.value = inputPrecoCusto.value.replace(/[^\d,]/g, '').replace(',', '.');
+        }
+        // Não é necessário retornar nada específico aqui, a menos que queira impedir o submit (return false)
     }
 </script>
 </body>

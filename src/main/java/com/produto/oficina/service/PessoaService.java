@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -99,16 +100,17 @@ public class PessoaService {
             pessoa = new Pessoa();
             pessoa.setPesDataCadastro(LocalDateTime.now());
         }
+        if (Objects.equals(pessoaDto.getPesFisicoJuridico(), "Fisíca")) {
+            pessoa.setPesDataNascimento(pessoaDto.getPesDataNascimento());
+            pessoa.setPesGenero(pessoaDto.getPesGenero());
+        }
         pessoa.setPesNome(pessoaDto.getPesNome());
         pessoa.setPesEmail(pessoaDto.getPesEmail());
         pessoa.setPesCpfCnpj(pessoaDto.getPesCpfCnpj());
         pessoa.setPesTipo(pessoaDto.getPesTipo());
         pessoa.setPesAtivo(true);
-        pessoa.setPesDataNascimento(pessoaDto.getPesDataNascimento());
-        pessoa.setPesGenero(pessoaDto.getPesGenero());
         pessoa.setPesFisicoJuridico(pessoaDto.getPesFisicoJuridico());
         pessoa.setPesRg(pessoaDto.getPesRg());
-
 
         return pessoa;
     }
@@ -157,7 +159,7 @@ public class PessoaService {
     }
 
     public List<Pessoa> buscaFornecedores() {
-       return repository.findAllByPesAtivoAndPesTipo(true, PesTipo.FORNECEDOR);
+        return repository.findAllByPesAtivoAndPesTipo(true, PesTipo.FORNECEDOR);
     }
 
     public static String getUsuarioLogadoUsername() {

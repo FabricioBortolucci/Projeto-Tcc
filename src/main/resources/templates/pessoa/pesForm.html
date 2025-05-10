@@ -7,6 +7,8 @@
     <title>Cadastro Pessoas</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" th:href="@{/css/choices.min.css}">
+
 </head>
 <body>
 
@@ -18,102 +20,368 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="userDetails-tab" data-bs-toggle="tab" data-bs-target="#userDetails"
                         type="button"
-                        role="tab" aria-controls="userDetails" aria-selected="true">Dados
+                        role="tab" aria-controls="userDetails" aria-selected="true">
+                    <i class="bi bi-person-lines-fill me-1"></i> Dados
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="userAddresses-tab" data-bs-toggle="tab" data-bs-target="#userAddresses"
                         type="button"
-                        role="tab" aria-controls="userAddresses" aria-selected="false">Endereços
+                        role="tab" aria-controls="userAddresses" aria-selected="false">
+                    <i class="bi bi-geo-alt-fill me-1"></i> Endereços
                 </button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="userPhones-tab" data-bs-toggle="tab" data-bs-target="#userPhones"
                         type="button"
-                        role="tab" aria-controls="userPhones" aria-selected="false">Telefones
+                        role="tab" aria-controls="userPhones" aria-selected="false">
+                    <i class="bi bi-telephone-fill me-1"></i> Telefones
                 </button>
             </li>
         </ul>
         <div class="tab-content" id="myTabContent">
             <div class="tab-pane fade show active" id="userDetails" role="tabpanel" aria-labelledby="userDetails">
-                <div th:insert="~{fragments/pessoaFrags/pessoaForm}"></div>
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0 fw-semibold">Dados Principais da Pessoa</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form th:action="@{/pessoa/cadastrar}" method="post" th:object="${novo_pessoa}">
+                            <input type="hidden" th:field="*{id}"/>
+
+                            <fieldset class="mb-3">
+                                <legend class="col-form-label col-sm-12 pt-0 fs-6 fw-normal">Tipo de Vínculo <span
+                                        class="text-danger">*</span></legend>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" th:field="*{pesTipo}"
+                                               th:value="${T(com.produto.oficina.model.enums.PesTipo).FUNCIONARIO}"
+                                               id="funcCheck" required> <label class="form-check-label"
+                                                                               for="funcCheck">Funcionário</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" th:field="*{pesTipo}"
+                                               th:value="${T(com.produto.oficina.model.enums.PesTipo).CLIENTE}"
+                                               id="clienteCheck" required>
+                                        <label class="form-check-label" for="clienteCheck">Cliente</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" th:field="*{pesTipo}"
+                                               th:value="${T(com.produto.oficina.model.enums.PesTipo).FORNECEDOR}"
+                                               id="fornecedorCheck" required>
+                                        <label class="form-check-label" for="fornecedorCheck">Fornecedor</label>
+                                    </div>
+                                </div>
+                            </fieldset>
+
+                            <hr class="my-4">
+
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <fieldset>
+                                        <legend class="col-form-label col-sm-12 pt-0 fs-6 fw-normal">Natureza da Pessoa
+                                            <span
+                                                    class="text-danger">*</span></legend>
+                                        <div class="d-flex flex-wrap gap-3">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio"
+                                                       th:field="*{pesFisicoJuridico}"
+                                                       value="Jurídica" id="juriCheck" required
+                                                       hx-on:change="document.getElementById('cpfCnpjLabel').innerText = 'CNPJ:'; document.getElementById('dataNasc').style.display='none'; document.getElementById('containerGenero').style.display='none';"
+                                                       th:checked="${#strings.equals(novo_pessoa.pesFisicoJuridico, 'Jurídica')}">
+                                                <label class="form-check-label" for="juriCheck">Jurídica</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio"
+                                                       th:field="*{pesFisicoJuridico}"
+                                                       value="Fisíca" id="fisCheck" required
+                                                       hx-on:change="document.getElementById('cpfCnpjLabel').innerText = 'CPF:'; document.getElementById('dataNasc').style.display='block'; document.getElementById('containerGenero').style.display='block';"
+                                                       th:checked="${#strings.equals(novo_pessoa.pesFisicoJuridico, 'Fisíca')}"
+                                                       checked> <label class="form-check-label"
+                                                                       for="fisCheck">Física</label>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="nomeUser">Nome Completo / Razão Social <span
+                                            class="text-danger">*</span></label>
+                                    <input class="form-control" id="nomeUser" type="text" th:field="*{pesNome}"
+                                           required/>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="emailUser">Email <span
+                                            class="text-danger">*</span></label>
+                                    <input class="form-control" id="emailUser" type="email" th:field="*{pesEmail}"
+                                           placeholder="exemplo@dominio.com" required/>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="docUser" id="cpfCnpjLabel">CPF:<span
+                                            class="text-danger">*</span></label>
+                                    <input class="form-control" id="docUser" type="text" th:field="*{pesCpfCnpj}"
+                                           placeholder="Apenas números" required/>
+                                </div>
+
+                                <div class="col-md-6" id="dataNasc"
+                                     th:styleappend="${novo_pessoa.pesFisicoJuridico == 'Jurídica' ? 'display:none;' : ''}">
+                                    <label class="form-label" for="dataN">Data de Nascimento:<span
+                                            class="text-danger">*</span></label>
+                                    <input class="form-control" id="dataN" type="date" th:field="*{pesDataNascimento}"/>
+                                </div>
+
+                                <div class="col-md-12" id="containerGenero"
+                                     th:styleappend="${novo_pessoa.pesFisicoJuridico == 'Jurídica' ? 'display:none;' : ''}">
+                                    <fieldset class="mt-2">
+                                        <legend class="col-form-label col-sm-12 pt-0 fs-6 fw-normal">Gênero:</legend>
+                                        <div class="d-flex flex-wrap gap-3">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" id="pesGenM" type="radio"
+                                                       th:field="*{pesGenero}"
+                                                       value="Masculino"/>
+                                                <label class="form-check-label" for="pesGenM">Masculino</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" id="pesGenF" type="radio"
+                                                       th:field="*{pesGenero}"
+                                                       value="Feminino"/>
+                                                <label class="form-check-label" for="pesGenF">Feminino</label>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-check form-switch mt-3">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="inputAtivo"
+                                               th:field="*{pesAtivo}"/>
+                                        <label class="form-check-label" for="inputAtivo">Pessoa Ativa</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                                <a class="btn btn-outline-secondary" th:href="@{/pessoa}">
+                                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                                </a>
+                                <button class="btn btn-success" type="submit">
+                                    <i class="bi bi-check-lg me-1"></i>Salvar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
 
             <div class="tab-pane fade" id="userAddresses" role="tabpanel" aria-labelledby="userAddresses">
-                <div th:insert="~{fragments/pessoaFrags/enderecoForm}"></div>
+                <div class="card shadow-sm">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0 fw-semibold">Dados Principais de Endereço</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="enderecoFormContainer" th:object="${novo_endereco}" method="post">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="Inputcep" class="form-label">CEP:</label>
+                                    <input class="form-control" id="Inputcep" th:field="*{endCep}"/>
+                                    <p class="text-danger" th:if="${#fields.hasErrors('endCep')}"
+                                       th:errors="*{endCep}"></p>
+                                </div>
 
-                <div id="tabelaEnderecoContainer" class="mb-3">
-                    <table class="table table-dark table-bordered table-hover table-striped table-responsive table-sm">
+                                <div class="col-md-6">
+                                    <label for="Inputrua" class="form-label">Rua:</label>
+                                    <input class="form-control" id="Inputrua" th:field="*{endRua}"/>
+                                    <p class="text-danger" th:if="${#fields.hasErrors('endRua')}"
+                                       th:errors="*{endRua}"></p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="Inputnumero" class="form-label">Número:</label>
+                                    <input class="form-control" id="Inputnumero" th:field="*{endNumero}"/>
+                                    <p class="text-danger" th:if="${#fields.hasErrors('endNumero')}"
+                                       th:errors="*{endNumero}"></p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="Inputbairro" class="form-label">Bairro:</label>
+                                    <input class="form-control" id="Inputbairro" th:field="*{endBairro}"/>
+                                    <p class="text-danger" th:if="${#fields.hasErrors('endBairro')}"
+                                       th:errors="*{endBairro}"></p>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="selectEstado" class="form-label">Estado:</label>
+                                    <select class="form-select"
+                                            id="selectEstado"
+                                            name="estado"
+                                            th:hx-get="@{/pessoa/cadastro/cidades}"
+                                            hx-target="#selectCidade" hx-include="[name='estado']"
+                                            hx-swap="innerHTML">
+                                        <option value="">Selecione um Estado</option>
+                                        <option th:each="est : ${estados}" th:value="${est.id}"
+                                                th:text="${est.estNome}"></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label for="selectCidade" class="form-label">Cidade:</label>
+                                    <select id="selectCidade" class="form-select" th:field="*{cidadeId}">
+                                        <option value="">Selecione um estado primeiro</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                                <button type="submit"
+                                        class="btn btn-success"
+                                        th:hx-post="@{/pessoa/cadastro/enderecos/adicionar}"
+                                        hx-target="#tabelaEnderecoContainer"
+                                        hx-swap="outerHTML">
+                                    <i class="bi bi-plus-lg"></i> Adicionar Endereço
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div id="tabelaEnderecoContainer" class="mt-3 mb-4 table-responsive">
+                    <table class="table table-dark table-bordered table-hover table-striped table-sm caption-top">
+                        <caption class="fs-6">Endereços Cadastrados</caption>
                         <thead>
                         <tr>
-                            <th>Rua</th>
-                            <th>Número</th>
-                            <th>Bairro</th>
-                            <th>CEP</th>
-                            <th>Cidade</th>
-                            <th>Principal</th>
-                            <th>Opções</th>
+                            <th style="width: 25%;">Rua</th>
+                            <th style="width: 10%;">Número</th>
+                            <th style="width: 20%;">Bairro</th>
+                            <th style="width: 10%;">CEP</th>
+                            <th style="width: 15%;">Cidade/UF</th>
+                            <th style="width: 10%;">Principal</th>
+                            <th style="min-width: 100px;">Opções</th>
                         </tr>
                         </thead>
                         <tbody>
+                        <tr th:if="${enderecos == null or #lists.isEmpty(enderecos)}">
+                            <td colspan="7" class="text-muted p-3">Nenhum endereço cadastrado.</td>
+                        </tr>
                         <tr th:each="ende, iter : ${enderecos}" th:id="'endereco-' + ${iter.index}">
-                            <td th:text="${ende.endRua}"></td>
-                            <td th:text="${ende.endNumero}"></td>
-                            <td th:text="${ende.endBairro}"></td>
-                            <td th:text="${ende.endCep}"></td>
-                            <td th:text="${ende.cidade.cidNome}"></td>
-                            <td th:text="${ende.endPrincipal ? 'Sim' : 'Não'}"></td>
+                            <td th:text="${ende.endRua ?: 'N/A'}"></td>
+                            <td th:text="${ende.endNumero ?: 'N/A'}"></td>
+                            <td th:text="${ende.endBairro ?: 'N/A'}"></td>
+                            <td th:text="${ende.endCep ?: 'N/A'}"></td>
+                            <td th:text="${(ende.cidade?.cidNome ?: 'N/A') + ' - ' + (ende.cidade?.estado?.sigla ?: '')}"></td>
                             <td>
-                                <button class="btn btn-danger"
-                                        th:hx-delete="@{/pessoa/cadastro/enderecos/remover/{index}(index=${iter.index})}"
-                                        hx-target="#tabelaEnderecoContainer"
-                                        hx-swap="outerHTML">
-                                    Remover
-                                </button>
-                                <button class="btn btn-primary"
-                                        th:hx-get="@{/pessoa/cadastro/enderecos/editar/{index}(index=${iter.index})}"
-                                        hx-target="#enderecoForm"
-                                        hx-swap="outerHTML">
-                                    Editar
-                                </button>
+                    <span th:classappend="${ende.endPrincipal} ? 'badge bg-success' : 'badge bg-light text-dark'"
+                          th:text="${ende.endPrincipal ? 'Sim' : 'Não'}"></span>
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                                    <button class="btn btn-danger btn-sm" title="Remover Endereço"
+                                            th:hx-delete="@{/pessoa/cadastro/enderecos/remover/{index}(index=${iter.index})}"
+                                            hx-target="#tabelaEnderecoContainer"
+                                            hx-swap="outerHTML"
+                                            hx-confirm="Tem certeza que deseja remover este endereço?">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm" title="Editar Endereço"
+                                            th:hx-get="@{/pessoa/cadastro/enderecos/editar/{index}(index=${iter.index})}"
+                                            hx-target="#enderecoFormContainer" hx-swap="innerHTML"><i
+                                            class="bi bi-pencil-square"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
+
             </div>
 
             <div class="tab-pane fade" id="userPhones" role="tabpanel" aria-labelledby="userPhones">
-                <div th:insert="~{fragments/pessoaFrags/telefoneForm}"></div>
+                <div  class="card shadow-sm">
+                    <div class="card-header bg-light py-3">
+                        <h5 class="mb-0 fw-semibold">Dados Principais de Telefone</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="telefoneFormContainer" th:object="${novo_telefone}" method="post">
+                            <input type="hidden" th:field="*{id}"/>
 
-                <div id="tabelaTelefoneContainer" class="mb-3">
-                    <table class="table table-dark table-bordered table-hover table-striped table-responsive table-sm">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="inputNum">Número:</label>
+                                    <input class="form-control" id="inputNum" type="text"
+                                           th:field="*{telNumero}" placeholder="Apenas números" required/>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label" for="telSelect">Tipo:</label>
+                                    <select id="telSelect" class="form-select" aria-label="select"
+                                            th:field="*{tipo}"
+                                            required>
+                                        <option th:each="tipo : ${lista_tel}" th:value="${tipo}"
+                                                th:text="${tipo.descricao}">
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="col-12">
+                                    <div class="form-check form-switch mt-3">
+                                        <label class="form-check-label" for="inputTelPrincipal">Telefone
+                                            principal</label>
+                                        <input class="form-check-input" id="inputTelPrincipal" type="checkbox"
+                                               th:field="*{telPrincipal}" required/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                                <button type="button"
+                                        class="btn btn-success"
+                                        th:hx-post="@{/pessoa/cadastro/telefones/adicionar}"
+                                        hx-target="#tabelaTelefoneContainer"
+                                        hx-swap="outerHTML">
+                                    <i class="bi bi-plus-lg"></i> Adicionar Telefone
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+
+                <div id="tabelaTelefoneContainer" class="mt-3 mb-4 table-responsive">
+                    <table class="table table-dark table-bordered table-hover table-striped table-sm caption-top">
+                        <caption class="fs-6">Telefones Cadastrados</caption>
                         <thead>
                         <tr>
-                            <th>Número</th>
-                            <th>Tipo</th>
-                            <th>Principal</th>
-                            <th>Opções</th>
+                            <th style="width: 40%;">Número</th>
+                            <th style="width: 30%;">Tipo</th>
+                            <th style="width: 15%;">Principal</th>
+                            <th style="min-width: 100px;">Opções</th>
                         </tr>
                         </thead>
                         <tbody>
+                        <tr th:if="${telefones == null or #lists.isEmpty(telefones)}">
+                            <td colspan="4" class="text-muted p-3">Nenhum telefone cadastrado para esta pessoa.</td>
+                        </tr>
                         <tr th:each="tel, iter : ${telefones}" th:id="'telefone-' + ${iter.index}">
-                            <td th:text="${tel.telNumero}"></td>
-                            <td th:text="${tel.tipo.descricao}"></td>
-                            <td th:text="${tel.telPrincipal ? 'Sim' : 'Não'}"></td>
+                            <td th:text="${tel.telNumero ?: 'N/A'}"></td>
+                            <td th:text="${tel.tipo?.descricao ?: 'N/A'}"></td>
                             <td>
-                                <button class="btn btn-danger"
-                                        th:hx-delete="@{/pessoa/cadastro/telefones/remover/{index}(index=${iter.index})}"
-                                        hx-target="#tabelaTelefoneContainer"
-                                        hx-swap="outerHTML">
-                                    Remover
-                                </button>
-                                <button class="btn btn-primary"
-                                        th:hx-get="@{/pessoa/cadastro/telefones/editar/{index}(index=${iter.index})}"
-                                        hx-target="#telefoneForm"
-                                        hx-swap="outerHTML">
-                                    Editar
-                                </button>
+                    <span th:classappend="${tel.telPrincipal} ? 'badge bg-success' : 'badge bg-light text-dark'"
+                          th:text="${tel.telPrincipal ? 'Sim' : 'Não'}"></span>
+                            </td>
+                            <td>
+                                <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                                    <button class="btn btn-danger btn-sm" title="Remover Telefone"
+                                            th:hx-delete="@{/pessoa/cadastro/telefones/remover/{index}(index=${iter.index})}"
+                                            hx-target="#tabelaTelefoneContainer"
+                                            hx-swap="outerHTML"
+                                            hx-confirm="Tem certeza que deseja remover este telefone?">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>
+                                    <button class="btn btn-light btn-sm" title="Editar Telefone"
+                                            th:hx-get="@{/pessoa/cadastro/telefones/editar/{index}(index=${iter.index})}"
+                                            hx-target="#telefoneFormContainer" hx-swap="innerHTML"><i
+                                            class="bi bi-pencil-square"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         </tbody>
@@ -125,7 +393,174 @@
 </div>
 
 
+<script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+<script>
+    // Store choices instances globally to manage them
+    window.globalChoicesInstances = window.globalChoicesInstances || {};
+
+    // Define Choices.js options in a broader scope
+    const estadoChoicesOptions = {
+        searchEnabled: true,
+        itemSelectText: '',
+        placeholder: true,
+        placeholderValue: 'Buscar Estado...', // Ou 'Selecione um Estado'
+        searchPlaceholderValue: 'Buscar Estado...'
+    };
+
+    const cidadeChoicesOptions = {
+        searchEnabled: true, // Ensure search is enabled for cities
+        itemSelectText: '',
+        placeholder: true,
+        placeholderValue: 'Selecione uma cidade...', // Placeholder
+        searchPlaceholderValue: 'Buscar Cidade...'
+    };
+
+    function initializeOrReinitializeChoices(elementOrId, options) {
+        const element = (typeof elementOrId === 'string') ? document.getElementById(elementOrId) : elementOrId;
+
+        if (!element) {
+            console.error("Choices.js: Elemento não encontrado para inicialização:", elementOrId);
+            return;
+        }
+        // É crucial que o elemento tenha um ID para o rastreamento em globalChoicesInstances
+        if (!element.id) {
+            console.error("Choices.js: Elemento precisa de um ID para inicialização:", element);
+            return;
+        }
+        const elementId = element.id;
+
+        // Destruir instância existente, se houver
+        if (window.globalChoicesInstances[elementId]) {
+            try {
+                window.globalChoicesInstances[elementId].destroy();
+                // console.log(`Choices instance for #${elementId} destroyed.`);
+            } catch (e) {
+                // console.warn(`Could not destroy previous Choices instance for #${elementId}:`, e);
+            }
+        }
+
+        // Criar e armazenar a nova instância
+        // console.log(`Initializing Choices for #${elementId}`);
+        try {
+            const newInstance = new Choices(element, options);
+            window.globalChoicesInstances[elementId] = newInstance;
+        } catch (e) {
+            console.error(`Erro ao inicializar Choices para #${elementId}:`, e, "Elemento:", element, "Opções:", options);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Inicialização no carregamento da página (para o formulário de "novo endereço")
+        if (document.getElementById('selectEstado')) {
+            initializeOrReinitializeChoices('selectEstado', estadoChoicesOptions);
+        }
+        if (document.getElementById('selectCidade')) {
+            initializeOrReinitializeChoices('selectCidade', cidadeChoicesOptions);
+        }
+
+        // ... (seu código existente para pesFisicoJuridico) ...
+        var tipoPessoaSelecionado = null;
+        var radiosTipoPessoa = document.querySelectorAll('input[name="pesFisicoJuridico"]');
+        radiosTipoPessoa.forEach(function (radio) {
+            if (radio.checked) {
+                tipoPessoaSelecionado = radio.value;
+            }
+        });
+
+        var labelCpfCnpj = document.getElementById('cpfCnpjLabel');
+        var campoDataNasc = document.getElementById('dataNasc');
+        var containerGenero = document.getElementById('containerGenero');
+
+        function updatePessoaFieldsVisibility(tipo) {
+            if (tipo === 'Jurídica') {
+                if (labelCpfCnpj) labelCpfCnpj.innerText = 'CNPJ:';
+                if (campoDataNasc) campoDataNasc.style.display = 'none';
+                if (containerGenero) containerGenero.style.display = 'none';
+            } else { // Default to Física or if 'Fisíca'
+                if (labelCpfCnpj) labelCpfCnpj.innerText = 'CPF:';
+                if (campoDataNasc) campoDataNasc.style.display = 'block';
+                if (containerGenero) containerGenero.style.display = 'block';
+            }
+        }
+
+        if (tipoPessoaSelecionado) {
+            updatePessoaFieldsVisibility(tipoPessoaSelecionado);
+        } else {
+            const fisCheck = document.getElementById('fisCheck');
+            if (fisCheck && !document.querySelector('input[name="pesFisicoJuridico"]:checked')) {
+                fisCheck.checked = true;
+                updatePessoaFieldsVisibility('Fisíca');
+            } else if (document.querySelector('input[name="pesFisicoJuridico"]:checked')) {
+                updatePessoaFieldsVisibility(document.querySelector('input[name="pesFisicoJuridico"]:checked').value);
+            } else {
+                updatePessoaFieldsVisibility('Fisíca');
+            }
+        }
+    });
+
+    // Listener de evento HTMX para re-inicializar Choices.js após swaps
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        const targetElement = event.detail.target; // O elemento que foi o alvo do hx-*
+        const swappedInElement = event.detail.elt; // O elemento que foi efetivamente trocado/inserido no DOM
+        const requestConfig = event.detail.requestConfig; // Configurações da requisição HTMX
+
+        // console.log('htmx:afterSwap', { targetId: targetElement.id, swappedInElement, path: requestConfig.path });
+
+        // Cenário 1: Conteúdo de #selectCidade foi atualizado (troca de estado)
+        if (targetElement.id === 'selectCidade' && requestConfig.path.includes('/pessoa/cadastro/cidades')) {
+            // console.log('HTMX swap for #selectCidade content. Re-initializing Choices.');
+            initializeOrReinitializeChoices('selectCidade', cidadeChoicesOptions);
+        }
+
+        // Cenário 2: O #enderecoForm foi substituído (ao carregar para edição)
+        // O `targetElement` será o #enderecoForm original que disparou a ação,
+        // e `swappedInElement` é o novo #enderecoForm que veio do servidor.
+        if (targetElement.id === 'enderecoForm' && requestConfig.path.includes('/pessoa/cadastro/enderecos/editar/')) {
+            // console.log('HTMX swap for #enderecoForm (edit). Initializing Choices for new select elements.');
+
+            const newFormElement = swappedInElement; // Este é o novo <div id="enderecoForm"...>
+
+            // Encontre os selects dentro do novo formulário que foi carregado
+            const selectEstadoInForm = newFormElement.querySelector('#selectEstado');
+            const selectCidadeInForm = newFormElement.querySelector('#selectCidade');
+
+            if (selectEstadoInForm) {
+                initializeOrReinitializeChoices(selectEstadoInForm, estadoChoicesOptions); // Passa o elemento diretamente
+            } else {
+                // console.warn('#selectEstado não encontrado no #enderecoForm trocado para edição.');
+            }
+
+            if (selectCidadeInForm) {
+                initializeOrReinitializeChoices(selectCidadeInForm, cidadeChoicesOptions); // Passa o elemento diretamente
+
+                // Lógica Opcional: Se o servidor NÃO pré-popula as cidades ao editar,
+                // e um estado já vem selecionado, podemos precisar disparar o carregamento das cidades.
+                // É MELHOR que o servidor já envie as cidades corretas para o estado selecionado.
+                if (selectEstadoInForm && selectEstadoInForm.value && selectCidadeInForm.options.length <= 1) {
+                    let cityPlaceholderOnly = true;
+                    if (selectCidadeInForm.options.length === 1 && selectCidadeInForm.options[0].value === "") {
+                        // Provavelmente um placeholder como "Selecione um estado primeiro"
+                    } else if (selectCidadeInForm.options.length === 0) {
+                        // Definitivamente precisa carregar
+                    } else {
+                        cityPlaceholderOnly = false;
+                    }
+
+                    if (cityPlaceholderOnly) {
+                        // console.log("Estado selecionado no formulário de edição, mas cidades não parecem populadas. Disparando 'change' em #selectEstado.");
+                        const hxGetAttr = selectEstadoInForm.getAttribute('hx-get'); // Verifica se o select de estado está configurado para buscar cidades
+                        if (hxGetAttr) {
+                            htmx.trigger(selectEstadoInForm, 'change'); // Dispara o evento que o hx-get escuta
+                        }
+                    }
+                }
+            } else {
+                // console.warn('#selectCidade não encontrado no #enderecoForm trocado para edição.');
+            }
+        }
+    });
+</script>
 </body>
 </html>

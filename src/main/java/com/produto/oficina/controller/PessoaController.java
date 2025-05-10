@@ -82,43 +82,48 @@ public class PessoaController {
         return "redirect:/pessoa";
     }
 
+    @GetMapping("/visualizar/{index}")
+    public String visualizarPessoa(@PathVariable Long index, Model model) {
+        PessoaDto pessoaDto = pessoaService.buscaPessoaEnderecosTelefones(index);
+        model.addAttribute("pessoa", pessoaDto);
+        model.addAttribute("enderecos", pessoaDto.getEnderecos());
+        model.addAttribute("telefones", pessoaDto.getTelefones());
+        return "pessoa/pessoaVisu";
+    }
+
     @GetMapping("/cadastro/cidades")
     public String atualizarCidades(@RequestParam("estado") Long estadoId, Model model) {
+        model.addAttribute("cidadeId", null);
         model.addAttribute("cidades", cidadeService.findCidadesByEstadoId(estadoId));
-        return "fragments/pessoaFrags/cidadesSelect";
+        return "fragments/pessoaFrags/cidadesSelect :: alterarEst";
     }
 
     @PostMapping("/cadastro/enderecos/adicionar")
     public String adicionarEnderecoLista(@Valid @ModelAttribute EnderecoDto enderecoDto,
                                          BindingResult result,
                                          Model model) {
-        if (enderecoDto != null
-                && !Objects.equals(enderecoDto.getEndRua(), "")
-                && !Objects.equals(enderecoDto.getEndCep(), "")
-                && !Objects.equals(enderecoDto.getEndBairro(), "")
-                && enderecoDto.getCidadeId() != null) {
 
-            enderecoDto.setCidade(cidadeService.findCidadeEestadoById(enderecoDto.getCidadeId()));
+        enderecoDto.setCidade(cidadeService.findCidadeEestadoById(enderecoDto.getCidadeId()));
 
-            for (EnderecoDto endereco : enderecosDtoList) {
-                if (endereco.getEndNumero().equals(enderecoDto.getEndNumero()) &&
-                        endereco.getEndRua().equals(enderecoDto.getEndRua()) &&
-                        endereco.getEndCep().equals(enderecoDto.getEndCep()) &&
-                        endereco.getEndBairro().equals(enderecoDto.getEndBairro()) &&
-                        endereco.getCidade().equals(enderecoDto.getCidade())) {
-                    model.addAttribute("enderecos", enderecosDtoList);
-                    return "fragments/pessoaFrags/enderecoTable";
-                }
+        for (EnderecoDto endereco : enderecosDtoList) {
+            if (endereco.getEndNumero().equals(enderecoDto.getEndNumero()) &&
+                    endereco.getEndRua().equals(enderecoDto.getEndRua()) &&
+                    endereco.getEndCep().equals(enderecoDto.getEndCep()) &&
+                    endereco.getEndBairro().equals(enderecoDto.getEndBairro()) &&
+                    endereco.getCidade().equals(enderecoDto.getCidade())) {
+                model.addAttribute("enderecos", enderecosDtoList);
+                return "fragments/pessoaFrags/enderecoTable";
             }
-
-            if (enderecoDto.isEndPrincipal()) {
-                enderecosDtoList.forEach(e -> e.setEndPrincipal(false));
-            } else if (enderecosDtoList.isEmpty()) {
-                enderecoDto.setEndPrincipal(true);
-            }
-            enderecosDtoList.add(enderecoDto);
-            model.addAttribute("novo_endereco", new EnderecoDto());
         }
+
+        if (enderecoDto.isEndPrincipal()) {
+            enderecosDtoList.forEach(e -> e.setEndPrincipal(false));
+        } else if (enderecosDtoList.isEmpty()) {
+            enderecoDto.setEndPrincipal(true);
+        }
+        enderecosDtoList.add(enderecoDto);
+
+        model.addAttribute("novo_endereco", new EnderecoDto());
         model.addAttribute("enderecos", enderecosDtoList);
         return "fragments/pessoaFrags/enderecoTable";
     }
@@ -126,10 +131,14 @@ public class PessoaController {
     @DeleteMapping("/cadastro/enderecos/remover/{index}")
     public String removerEnderecoLista(@PathVariable Integer index, Model model) {
         if (index >= 0 && index < enderecosDtoList.size()) {
-            if (enderecosDtoList.get(index).isEndPrincipal() && enderecosDtoList.size() > 1) {
-                enderecosDtoList.getFirst().setEndPrincipal(true);
+            if (enderecosDtoList.get(index).isEndPrincipal()) {
+                enderecosDtoList.remove(index.intValue());
+                if (!enderecosDtoList.isEmpty()) {
+                    enderecosDtoList.stream().findFirst().get().setEndPrincipal(true);
+                }
+            } else {
+                enderecosDtoList.remove(index.intValue());
             }
-            enderecosDtoList.remove(index.intValue());
         }
         model.addAttribute("enderecos", enderecosDtoList);
         model.addAttribute("novo_endereco", new EnderecoDto());
@@ -173,10 +182,14 @@ public class PessoaController {
     @DeleteMapping("/cadastro/telefones/remover/{index}")
     public String removerTelefoneLista(@PathVariable Integer index, Model model) {
         if (index >= 0 && index < telefonesDtoList.size()) {
-            if (telefonesDtoList.get(index).isTelPrincipal() && telefonesDtoList.size() > 1) {
-                telefonesDtoList.getFirst().setTelPrincipal(true);
+            if (telefonesDtoList.get(index).isTelPrincipal()) {
+                telefonesDtoList.remove(index.intValue());
+                if (!telefonesDtoList.isEmpty()) {
+                    telefonesDtoList.stream().findFirst().get().setTelPrincipal(true);
+                }
+            } else {
+                telefonesDtoList.remove(index.intValue());
             }
-            telefonesDtoList.remove(index.intValue());
         }
         model.addAttribute("telefones", telefonesDtoList);
         return "fragments/pessoaFrags/telefoneTable";

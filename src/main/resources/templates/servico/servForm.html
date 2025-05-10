@@ -1,51 +1,81 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Cadastro de Serviços - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa; /* Fundo suave para a página */
+        }
 
-    <title>Serviços - Oficina</title>
-    <link rel="stylesheet" type="text/css" media="all"
-          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+        .form-control:focus, .form-select:focus { /* Destaque sutil no foco */
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Para garantir que o input-group-text tenha a mesma altura do input */
+        .input-group .input-group-text {
+            height: calc(1.5em + .75rem + 2px); /* Equivalente à altura padrão do form-control */
+        }
+    </style>
 </head>
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
-    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <h1 class="h3">Cadastro de Serviços</h1>
-        <form class="form-control" th:action="@{/servico/cadastrar}" method="post"
-              th:object="${servico}">
-            <input type="hidden" th:field="*{id}"/>
+    <main class="d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto">
+        <div class="mb-4">
+            <h1 class="h3">Cadastro de Serviços</h1>
+        </div>
 
-            <div class="mb-3">
-                <label class="form-label" for="desc">Descrição:</label>
-                <input class="form-control w-15 border-dark" id="desc" type="text"
-                       th:field="*{descricao}" required/>
+        <div class="card shadow-sm">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-semibold">Dados do Serviço</h5>
             </div>
+            <div class="card-body p-4">
+                <form th:action="@{/servico/cadastrar}" method="post" th:object="${servico}"
+                      onsubmit="formatarEEnviarServico(); return true;">
+                    <input type="hidden" th:field="*{id}"/>
 
-            <div class="mb-3">
-                <label class="form-label" for="preco">Preço:</label>
-                <input class="form-control w-15 border-dark" id="preco" type="text"
-                       th:field="*{precoTotal}" required/>
-            </div>
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label" for="desc">Descrição do Serviço <span class="text-danger">*</span></label>
+                            <input class="form-control" id="desc" type="text" th:field="*{descricao}" required/>
+                        </div>
 
-            <div class="mb-3">
-                <label class="form-check-label" for="ativo">Ativo:</label>
-                <input class="form-check-input border-dark" type="checkbox" name="ativo" id="ativo" th:field="*{ativo}">
-            </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="preco">Preço <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input class="form-control" id="preco" type="text" th:field="*{precoTotal}" required
+                                       placeholder="0,00"/>
+                            </div>
+                        </div>
 
-            <div class="mt-5">
-                <button class="btn btn-success"
-                        style="width: 7%;"
-                        onclick="formatarValorParaDecimal(document.getElementById('preco'))"
-                        type="submit">Salvar
-                </button>
-                <a class="btn btn-danger" style="width: 7%;" th:href="@{/produto}">Cancelar</a>
+                        <div class="col-12">
+                            <div class="form-check form-switch mt-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="ativo"
+                                       th:field="*{ativo}"
+                                       th:checked="*{ativo == null ? true : ativo}">
+                                <label class="form-check-label" for="ativo">Serviço Ativo</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                        <a class="btn btn-outline-secondary" th:href="@{/servico}"> <i class="bi bi-x-circle me-1"></i>Cancelar
+                        </a>
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-check-lg me-1"></i>Salvar Serviço
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </main>
 </div>
-
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script th:src="@{/js/htmx/htmx.min.js}"></script>
@@ -53,25 +83,30 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const precoInput = document.getElementById('preco');
-        VMasker(precoInput).maskMoney({
-            unit: 'R$',
-            suffix: '',
-            thousands: '.',
-            decimal: ',',
-            separator: ',',
-            delimiter: '.',
-            affixesStay: false,
-            allowZero: true,
-            allowNegative: true,
-            precision: 2
-        });
+        if (precoInput) { // Verifica se o elemento existe
+            VMasker(precoInput).maskMoney({
+                unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
+                delimiter: '.', affixesStay: false, allowZero: true, allowNegative: true, precision: 2
+            });
+        }
     });
 
-    function formatarValorParaDecimal(input1, input2) {
-        for (let input of [input1, input2]) {
-            input.value = input.value.replace(/[^\d,]/g, '').replace(',', '.');
+    // Função para formatar o campo de preço antes da submissão
+    function formatarCampoPrecoServico() {
+        const precoInput = document.getElementById('preco');
+        if (precoInput && precoInput.value) {
+            // Remove tudo que não for dígito ou vírgula, depois troca vírgula por ponto
+            precoInput.value = precoInput.value.replace(/[^\d,]/g, '').replace(',', '.');
         }
     }
+
+    // Função a ser chamada no onsubmit do formulário
+    function formatarEEnviarServico() {
+        formatarCampoPrecoServico();
+        // Se houver outros campos para formatar, chame as funções aqui
+        return true; // Permite a submissão do formulário
+    }
+
 </script>
 </body>
 </html>

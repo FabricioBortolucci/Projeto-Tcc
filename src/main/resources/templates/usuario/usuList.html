@@ -1,77 +1,133 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <title>Usuários - Oficina</title>
-    <link rel="stylesheet" type="text/css" media="all"
-          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        /* Estilos padrão da "Lista de Caixas" com a nova regra de centralização */
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center; /* Centraliza todo o texto nas células da tabela */
+        }
+
+        .table-dark .badge a { /* Se houver links dentro de badges */
+            color: inherit;
+        }
+
+        .table-dark .btn-light {
+            /* Ajustes de contraste se necessário, mas o padrão Bootstrap geralmente funciona bem */
+        }
+
+        /* Estilos para os botões de ação apenas com ícone, como na tela de Serviços */
+        .action-button-wrapper .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .action-button-wrapper .bi {
+            vertical-align: text-bottom;
+        }
+    </style>
 </head>
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
-    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <h1 class="h3">Lista de Usuários</h1>
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4 overflow-auto">
+        <h1 class="h3 mb-4">Lista de Usuários</h1>
 
-        <table class="table table-dark table-bordered table-hover table-striped table-responsive">
-            <thead>
-            <tr>
-                <th>Id</th>
-                <th>Nome</th>
-                <th>Permissão</th>
-                <th>Funcionário</th>
-                <th>Ativo</th>
-                <th>Opções</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="users : ${usuarios_lista.content}">
-                <td th:text="${users.getId()}"></td>
-                <td th:text="${users.getUsuNome()}"></td>
-                <td th:text="${users.getRoleName()}"></td>
-                <td th:text="${users.getFuncionario() == null ? 'Desativado' : users.getFuncionario().getPesNome()}"></td>
-                <td th:text="${users.ativo ? 'Sim' : 'Não'}"></td>
-                <td>
-                    <form th:action="@{/usuario/remover/{index}(index=${users.id})}" method="post">
-                        <button th:classappend="${!users.ativo} ? 'disabled'" class="btn btn-danger" type="submit">
-                            Desativar
-                        </button>
-                        <a th:href="@{/usuario/editar/{index}(index=${users.id})}" class="btn btn-primary">
-                            Editar
-                        </a>
-                        <a th:href="@{/usuario/visualizar/{index}(index=${users.id})}" class="btn btn-primary">
-                            Visualizar
-                        </a>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <nav>
-            <ul class="pagination justify-content-center">
-                <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/usuario(page=${currentPage - 1}, size=5)}">Anterior</a>
-                </li>
-                <li class="page-item"
-                    th:each="i : ${#numbers.sequence(0, usuarios_lista.totalPages - 1)}"
-                    th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{/usuario(page=${i}, size=5)}" th:text="${i + 1}">1</a>
-                </li>
-                <li th:classappend="${currentPage + 1 == usuarios_lista.totalPages} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/usuario(page=${currentPage + 1}, size=5)}">Próxima</a>
-                </li>
-            </ul>
-        </nav>
-        <div class="btn-group w-10">
-            <a class="btn btn-primary " th:href="@{/usuario/cadastro}">Novo</a>
+        <div th:if="${usuario_cadastrado_mensagem}" class="alert alert-success alert-dismissible fade show"
+             role="alert">
+            <span th:text="${usuario_cadastrado_mensagem}">Usuário salvo com sucesso!</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
 
+        <div class="table-responsive">
+            <table class="table table-dark table-bordered table-hover table-striped caption-top">
+                <caption class="fs-6">Usuários registrados no sistema</caption>
+                <thead>
+                <tr>
+                    <th style="width: 5%;">Id</th>
+                    <th style="width: 25%;">Nome</th>
+                    <th style="width: 15%;">Permissão</th>
+                    <th style="width: 25%;">Funcionário Vinculado</th>
+                    <th style="width: 10%;">Ativo</th>
+                    <th style="min-width: 150px;">Opções</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${usuarios_lista == null or usuarios_lista.empty}">
+                    <td colspan="6" class="text-muted p-3">Nenhum usuário encontrado.</td>
+                </tr>
+                <tr th:each="users : ${usuarios_lista.content}">
+                    <td th:text="${users.id}"></td>
+                    <td th:text="${users.usuNome}"></td>
+                    <td th:text="${users.roleName}"></td>
+                    <td>
+                        <span th:if="${users.funcionario != null}" th:text="${users.funcionario.pesNome}"></span>
+                        <span th:if="${users.funcionario == null}" class="badge bg-secondary">Não Vinculado</span>
+                    </td>
+                    <td>
+                        <span th:classappend="${users.ativo} ? 'badge bg-success' : 'badge bg-danger'"
+                              th:text="${users.ativo ? 'Sim' : 'Não'}"></span>
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                            <form th:action="@{/usuario/remover/{index}(index=${users.id})}" method="post"
+                                  class="d-inline-block">
+                                <button class="btn btn-danger btn-sm"
+                                        th:classappend="${!users.ativo} ? 'disabled'"
+                                        type="submit">
+                                    <i class="bi bi-person-slash"></i>
+                                </button>
+                            </form>
+                            <a th:href="@{/usuario/editar/{index}(index=${users.id})}" class="btn btn-light btn-sm"
+                               title="Editar">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a th:href="@{/usuario/visualizar/{index}(index=${users.id})}" class="btn btn-light btn-sm"
+                               title="Visualizar">
+                                <i class="bi bi-eye-fill"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
 
+        <div class="mt-4" th:if="${usuarios_lista != null and usuarios_lista.totalPages > 1}">
+            <nav aria-label="Paginação da lista de usuários">
+                <ul class="pagination justify-content-center">
+                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                        <a class="page-link"
+                           th:href="@{/usuario(page=${currentPage - 1}, size=${usuarios_lista.size})}">Anterior</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, usuarios_lista.totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/usuario(page=${i}, size=${usuarios_lista.size})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+                    <li th:classappend="${currentPage + 1 >= usuarios_lista.totalPages} ? 'disabled'" class="page-item">
+                        <a class="page-link"
+                           th:href="@{/usuario(page=${currentPage + 1}, size=${usuarios_lista.size})}">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="mt-4">
+            <a class="btn btn-success" th:href="@{/usuario/cadastro}">
+                <i class="bi bi-plus-circle"></i> Novo Usuário
+            </a>
+        </div>
     </main>
 </div>
 
-
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
 </body>
 </html>

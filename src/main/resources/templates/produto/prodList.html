@@ -1,87 +1,121 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <title>Produtos - Oficina</title>
-    <link rel="stylesheet" type="text/css" media="all"
-          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        /* Estilos personalizados EXATAMENTE como na tela de Lista de Caixas */
+        .table th, .table td {
+            vertical-align: middle; /* Alinha o conteúdo verticalmente ao centro nas células da tabela */
+        }
+
+        .action-buttons a, .action-buttons button {
+            min-width: 100px; /* Largura mínima para botões de ação, ajuste conforme necessário */
+        }
+
+        /* Ajustes para melhor contraste no table-dark, se necessário (exemplo da tela de Caixa) */
+        .table-dark .badge a {
+            color: inherit;
+        }
+
+        .table-dark .btn-light {
+            /* Para garantir bom contraste de texto do btn-light no fundo escuro */
+            /* color: #000; Pode ser ajustado se necessário */
+        }
+    </style>
 </head>
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
-    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <h1 class="h3">Lista de Produtos</h1>
-
-        <div th:if="${produto_cadastrado}" class="alert alert-success" role="alert">
-            Salvo com sucesso!
+    <main class="d-flex flex-column position-relative w-100 vh-100 p-4 overflow-auto">
+        <h1 class="h3 mb-4">Lista de Produtos</h1>
+        <div th:if="${produto_cadastrado_mensagem}" class="alert alert-success" role="alert"
+             th:text="${produto_cadastrado_mensagem}">
         </div>
 
-        <table id="prodTableMain" class="table table-dark table-bordered table-hover table-striped table-responsive">
-            <thead>
-            <tr>
-                <th>Id</th>
-                <th>Nome</th>
-                <th>Preço Venda</th>
-                <th>Preço Custo</th>
-                <th>Quantidade</th>
-                <th>Descrição</th>
-                <th>Tipo</th>
-                <th>Ativo</th>
-                <th>Opções</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="prods : ${produtoPage.content}">
-                <td th:text="${prods.id}"></td>
-                <td th:text="${prods.nome}"></td>
-                <td th:text="${#numbers.formatCurrency(prods.precoUnitario)}"></td>
-                <td th:text="${#numbers.formatCurrency(prods.precoCusto)}"></td>
-                <td th:text="${prods.estoque}"></td>
-                <td th:text="${prods.produtoTipo.descricao}"></td>
-                <td th:text="${prods.descricao}"></td>
-                <td th:text="${prods.ativo == true ? 'Sim' : 'Não'}"></td>
-                <td>
-                    <form th:action="@{/produto/remover/{index}(index=${prods.id})}" method="post">
-                        <button class="btn btn-danger" type="submit">
-                            Desativar
-                        </button>
-                        <a th:href="@{/produto/editar/{index}(index=${prods.id})}" class="btn btn-primary">
-                            Editar
-                        </a>
-                        <a th:href="@{/produto/visualizar/{index}(index=${prods.id})}" class="btn btn-primary">
-                            Visualizar
-                        </a>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-        <nav>
-            <ul class="pagination justify-content-center">
-                <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/produto(page=${currentPage - 1}, size=5)}">Anterior</a>
-                </li>
-                <li class="page-item"
-                    th:each="i : ${#numbers.sequence(0, produtoPage.totalPages - 1)}"
-                    th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{/produto(page=${i}, size=5)}" th:text="${i + 1}">1</a>
-                </li>
-                <li th:classappend="${currentPage + 1 == produtoPage.totalPages} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/produto(page=${currentPage + 1}, size=5)}">Próxima</a>
-                </li>
-            </ul>
-        </nav>
-
-        <div class="btn-group w-10">
-            <a class="btn btn-primary" th:href="@{/produto/cadastro}">Novo</a>
+        <div class="table-responsive">
+            <table id="prodTableMain" class="table table-dark table-striped table-hover table-bordered caption-top">
+                <caption class="fs-6">Produtos registrados no sistema</caption>
+                <thead>
+                <tr>
+                    <th class="text-center" style="width: 5%;">Id</th>
+                    <th class="text-center" style="width: 20%;">Nome</th>
+                    <th class="text-center" style="width: 12%;">Preço Venda</th>
+                    <th class="text-center" style="width: 12%;">Preço Custo</th>
+                    <th class="text-center" style="width: 8%;">Estoque</th>
+                    <th class="text-center" style="width: 20%;">Descrição</th>
+                    <th class="text-center" style="width: 10%;">Tipo</th>
+                    <th class="text-center" style="width: 8%;">Ativo</th>
+                    <th class="text-center" style="min-width: 230px;">Opções</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${produtoPage == null or produtoPage.content.isEmpty()}">
+                    <td colspan="9" class="text-center">Nenhum produto encontrado.</td>
+                </tr>
+                <tr th:each="prods : ${produtoPage.content}">
+                    <td class="text-center" th:text="${prods.id}"></td>
+                    <td th:text="${prods.nome}"></td>
+                    <td class="text-center" th:text="${#numbers.formatCurrency(prods.precoUnitario)}"></td>
+                    <td class="text-center" th:text="${#numbers.formatCurrency(prods.precoCusto)}"></td>
+                    <td class="text-center" th:text="${prods.estoque}"></td>
+                    <td th:text="${#strings.abbreviate(prods.descricao, 70)}"></td>
+                    <td th:text="${prods.produtoTipo != null ? prods.produtoTipo.descricao : 'N/A'}"></td>
+                    <td class="text-center">
+                         <span th:classappend="${prods.ativo} ? 'badge bg-success' : 'badge bg-danger'"
+                               th:text="${prods.ativo ? 'Sim' : 'Não'}"></span>
+                    </td>
+                    <td>
+                        <div class="d-flex flex-wrap gap-2">
+                            <form th:action="@{/produto/remover/{index}(index=${prods.id})}" method="post"
+                                  class="d-inline-block">
+                                <button th:classappend="${!prods.ativo} ? 'disabled'" class="btn btn-danger btn-sm" type="submit">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                            <a th:href="@{/produto/editar/{index}(index=${prods.id})}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a th:href="@{/produto/visualizar/{index}(index=${prods.id})}" class="btn btn-light btn-sm">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
 
+        <div class="mt-4" th:if="${produtoPage != null and produtoPage.totalPages > 1}">
+            <nav aria-label="Paginação da lista de produtos">
+                <ul class="pagination justify-content-center">
+                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                        <a class="page-link" th:href="@{/produto(page=${currentPage - 1}, size=${produtoPage.size})}">Anterior</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, produtoPage.totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/produto(page=${i}, size=${produtoPage.size})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+                    <li th:classappend="${currentPage + 1 >= produtoPage.totalPages} ? 'disabled'" class="page-item">
+                        <a class="page-link" th:href="@{/produto(page=${currentPage + 1}, size=${produtoPage.size})}">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="mt-4">
+            <a class="btn btn-success" th:href="@{/produto/cadastro}">
+                <i class="bi bi-plus-circle"></i> Novo Produto
+            </a>
+        </div>
 
     </main>
 </div>
-
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>

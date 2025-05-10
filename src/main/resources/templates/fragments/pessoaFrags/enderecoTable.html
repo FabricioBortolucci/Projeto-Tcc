@@ -11,40 +11,49 @@
 <body>
 <th:block th:fragment="addEndereco">
 
-    <div id="tabelaEnderecoContainer" class="mb-3">
-        <table class="table table-dark table-bordered table-hover table-striped table-responsive table-sm">
+    <div id="tabelaEnderecoContainer" class="mt-3 mb-4 table-responsive">
+        <table class="table table-dark table-bordered table-hover table-striped table-sm caption-top">
+            <caption class="fs-6">Endereços Cadastrados</caption>
             <thead>
             <tr>
-                <th>Rua</th>
-                <th>Número</th>
-                <th>Bairro</th>
-                <th>CEP</th>
-                <th>Cidade</th>
-                <th>Principal</th>
-                <th>Opções</th>
+                <th style="width: 25%;">Rua</th>
+                <th style="width: 10%;">Número</th>
+                <th style="width: 20%;">Bairro</th>
+                <th style="width: 10%;">CEP</th>
+                <th style="width: 15%;">Cidade/UF</th>
+                <th style="width: 10%;">Principal</th>
+                <th style="min-width: 100px;">Opções</th>
             </tr>
             </thead>
             <tbody>
+            <tr th:if="${enderecos == null or #lists.isEmpty(enderecos)}">
+                <td colspan="7" class="text-muted p-3">Nenhum endereço cadastrado.</td>
+            </tr>
             <tr th:each="ende, iter : ${enderecos}" th:id="'endereco-' + ${iter.index}">
-                <td th:text="${ende.endRua}"></td>
-                <td th:text="${ende.endNumero}"></td>
-                <td th:text="${ende.endBairro}"></td>
-                <td th:text="${ende.endCep}"></td>
-                <td th:text="${ende.cidade.cidNome}"></td>
-                <td th:text="${ende.endPrincipal ? 'Sim' : 'Não'}"></td>
+                <td th:text="${ende.endRua ?: 'N/A'}"></td>
+                <td th:text="${ende.endNumero ?: 'N/A'}"></td>
+                <td th:text="${ende.endBairro ?: 'N/A'}"></td>
+                <td th:text="${ende.endCep ?: 'N/A'}"></td>
+                <td th:text="${(ende.cidade?.cidNome ?: 'N/A') + ' - ' + (ende.cidade?.estado?.sigla ?: '')}"></td>
                 <td>
-                    <button class="btn btn-danger"
-                            th:hx-delete="@{/pessoa/cadastro/enderecos/remover/{index}(index=${iter.index})}"
-                            hx-target="#tabelaEnderecoContainer"
-                            hx-swap="outerHTML">
-                        Remover
-                    </button>
-                    <button class="btn btn-primary"
-                            th:hx-get="@{/pessoa/cadastro/enderecos/editar/{index}(index=${iter.index})}"
-                            hx-target="#enderecoForm"
-                            hx-swap="outerHTML">
-                        Editar
-                    </button>
+                    <span th:classappend="${ende.endPrincipal} ? 'badge bg-success' : 'badge bg-light text-dark'"
+                          th:text="${ende.endPrincipal ? 'Sim' : 'Não'}"></span>
+                </td>
+                <td>
+                    <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                        <button class="btn btn-danger btn-sm" title="Remover Endereço"
+                                th:hx-delete="@{/pessoa/cadastro/enderecos/remover/{index}(index=${iter.index})}"
+                                hx-target="#tabelaEnderecoContainer"
+                                hx-swap="outerHTML"
+                                hx-confirm="Tem certeza que deseja remover este endereço?">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                        <button class="btn btn-light btn-sm" title="Editar Endereço"
+                                th:hx-get="@{/pessoa/cadastro/enderecos/editar/{index}(index=${iter.index})}"
+                                hx-target="#enderecoFormContainer" hx-swap="innerHTML"><i
+                                class="bi bi-pencil-square"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
             </tbody>

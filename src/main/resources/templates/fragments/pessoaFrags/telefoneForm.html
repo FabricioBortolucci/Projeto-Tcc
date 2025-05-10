@@ -1,56 +1,41 @@
-<!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<form th:fragment="addTel" id="telefoneFormContainer" th:object="${novo_telefone}" method="post">
+    <input type="hidden" th:field="*{id}"/>
 
-    <title>Pessoas - Oficina</title>
-    <link rel="stylesheet" type="text/css" media="all"
-          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
-</head>
-<body>
-<th:block th:fragment="telForm">
-
-    <form id="telefoneForm" class="form-control" th:object="${novo_telefone}" method="post">
-        <input type="hidden" th:field="*{id}"/>
-
-        <div class="mb-3">
+    <div class="row g-3">
+        <div class="col-md-6">
             <label class="form-label" for="inputNum">Número:</label>
-            <input class="form-control w-15 border-dark" id="inputNum" type="text"
-                   th:field="*{telNumero}" required/>
+            <input class="form-control" id="inputNum" type="text"
+                   th:field="*{telNumero}" placeholder="Apenas números" required/>
         </div>
 
-        <div class="mb-3">
+        <div class="col-md-6">
             <label class="form-label" for="telSelect">Tipo:</label>
-            <select id="telSelect" class="form-select w-25 border-dark" aria-label="select" th:field="*{tipo}"
+            <select id="telSelect" class="form-select" aria-label="select"
+                    th:field="*{tipo}"
                     required>
-                <option th:each="tipo : ${lista_tel}" th:value="${tipo}" th:text="${tipo.descricao}">
+                <option th:each="tipo : ${lista_tel}" th:value="${tipo}"
+                        th:text="${tipo.descricao}">
                 </option>
             </select>
         </div>
 
-        <div class="mb-3">
-            <label class="form-check-label" for="inputTelPrincipal">Principal:</label>
-            <input class="form-check-input border-dark" id="inputTelPrincipal" type="checkbox"
-                   th:field="*{telPrincipal}" required/>
+        <div class="col-12">
+            <div class="form-check form-switch mt-3">
+                <label class="form-check-label" for="inputTelPrincipal">Telefone
+                    principal</label>
+                <input class="form-check-input" id="inputTelPrincipal" type="checkbox"
+                       th:field="*{telPrincipal}" required/>
+            </div>
         </div>
-
-
+    </div>
+    <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
         <button type="button"
-                class="btn btn-primary"
+                class="btn btn-success"
                 th:hx-post="@{/pessoa/cadastro/telefones/adicionar}"
                 hx-target="#tabelaTelefoneContainer"
-                hx-on::after-request="document.getElementById('telefoneForm').reset();"
                 hx-swap="outerHTML">
-            Adicionar Telefone
+            <i class="bi bi-plus-lg"></i> Adicionar Telefone
         </button>
-    </form>
+    </div>
 
-
-</th:block>
-
-
-<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
-
-</body>
-</html>
+</form>

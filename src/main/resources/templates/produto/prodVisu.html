@@ -1,42 +1,90 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <title>Produto - Oficina</title>
-    <link rel="stylesheet" type="text/css" media="all"
-          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
+    <title th:text="'Detalhes do Produto #' + ${produto.id ?: ''} + ' - Oficina'">Detalhes do Produto - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        /* Estilo para lista de descrição (dl, dt, dd) */
+        .details-dl dt {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        @media (min-width: 576px) { /* sm breakpoint */
+            .details-dl dt {
+                margin-bottom: 0;
+            }
+        }
+        .details-dl dd {
+            margin-bottom: 0.75rem;
+        }
+    </style>
 </head>
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
-    <main class="d-flex flex-column position-relative w-100 vh-100 p-4">
-        <form class="form form-control" th:object="${produto}">
-            <h1 class="h3 mb-3" th:text="'Produto ' + *{id}"></h1>
+    <main class="d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto">
 
-            <p>Nome:</p>
-            <p th:text="*{nome}"/>
+        <div class="mb-4">
+            <h1 class="h3" th:text="'Detalhes do Produto #' + ${produto.id ?: 'N/D'}"></h1>
+        </div>
 
-            <p>Valor Unitário:</p>
-            <p th:text="*{#numbers.formatCurrency(precoUnitario)}"/>
+        <div class="card shadow-sm" th:if="${produto != null}" th:object="${produto}">
+            <div class="card-body p-4">
+                <dl class="row details-dl">
+                    <dt class="col-sm-3">Nome:</dt>
+                    <dd class="col-sm-9" th:text="*{nome ?: 'N/A'}"></dd>
 
-            <p>Valor Custo:</p>
-            <p th:text="*{#numbers.formatCurrency(precoCusto)}"/>
+                    <dt class="col-sm-3">Tipo de Produto:</dt>
+                    <dd class="col-sm-9" th:text="*{produtoTipo?.descricao ?: 'N/A'}"></dd>
 
-            <p>Estoque:</p>
-            <p th:text="*{estoque}"/>
+                    <dt class="col-sm-3">Valor Unitário (Venda):</dt>
+                    <dd class="col-sm-9" th:text="*{precoUnitario != null ? #numbers.formatCurrency(precoUnitario) : 'N/A'}"></dd>
 
-            <p>Descrição:</p><p th:text="*{descricao}"/>
+                    <dt class="col-sm-3">Valor Custo:</dt>
+                    <dd class="col-sm-9" th:text="*{precoCusto != null ? #numbers.formatCurrency(precoCusto) : 'N/A'}"></dd>
 
-            <p>Tipo de produto:</p>
-            <p th:text="*{produtoTipo.descricao}"/>
+                    <dt class="col-sm-3">Estoque Atual:</dt>
+                    <dd class="col-sm-9" th:text="*{estoque ?: 0}"></dd>
 
-            <a class="btn btn-primary" style="width: 7%;" th:href="@{/produto}">Fechar</a>
-        </form>
+                    <dt class="col-sm-3" th:if="*{tamanhoMetros != null}">Tamanho:</dt>
+                    <dd class="col-sm-9" th:if="*{tamanhoMetros != null}" th:text="*{#numbers.formatDecimal(tamanhoMetros, 1, 2) + ' m/un'}"></dd>
+
+                    <dt class="col-sm-3">Descrição:</dt>
+                    <dd class="col-sm-9">
+                        <p th:if="*{descricao != null and !descricao.isEmpty()}" th:text="*{descricao}" class="mb-0"></p>
+                        <p th:if="*{descricao == null or descricao.isEmpty()}" class="text-muted fst-italic mb-0">Sem descrição informada.</p>
+                    </dd>
+
+                    <dt class="col-sm-3">Status:</dt>
+                    <dd class="col-sm-9">
+                        <span th:if="*{ativo}" class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Ativo</span>
+                        <span th:unless="*{ativo}" class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Inativo</span>
+                    </dd>
+                </dl>
+
+                <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                    <a class="btn btn-outline-secondary" th:href="@{/produto}">
+                        <i class="bi bi-arrow-left-circle me-1"></i> Voltar para Lista
+                    </a>
+                    <a class="btn btn-primary" th:if="${produto.id != null}" th:href="@{/produto/editar/{id}(id=${produto.id})}">
+                        <i class="bi bi-pencil-square me-1"></i> Editar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div th:unless="${produto != null}" class="alert alert-warning" role="alert">
+            Produto não encontrado.
+        </div>
+
     </main>
 </div>
-
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
