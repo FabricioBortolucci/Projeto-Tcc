@@ -11,5 +11,8 @@ public enum Role {
         this.descricao = descricao;
     }
 
+    public static Role[] onlyNormalRoles() {
+        return new Role[]{USER, ADMIN};
+    }
 
 }

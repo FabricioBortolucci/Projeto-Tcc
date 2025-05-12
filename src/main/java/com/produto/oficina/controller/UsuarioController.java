@@ -39,7 +39,7 @@ public class UsuarioController {
         try {
             model.addAttribute("novo_usuario", new UsuarioDTO());
             model.addAttribute("func_lista", pessoaService.buscaFuncAtivoPorUsuNull());
-            model.addAttribute("role_lista", Role.values());
+            model.addAttribute("role_lista", Role.onlyNormalRoles());
             return "usuario/usuForm";
         } catch (Exception e) {
             e.printStackTrace();
