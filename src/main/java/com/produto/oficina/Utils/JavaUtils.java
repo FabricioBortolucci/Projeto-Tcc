@@ -44,4 +44,11 @@ public class JavaUtils {
         }
     }
 
+    public static String formatMonetaryString(BigDecimal value) {
+        if (value == null) {
+            return "";
+        }
+        return NumberFormat.getCurrencyInstance(Locale.of("pt", "BR")).format(value);
+    }
+
 }

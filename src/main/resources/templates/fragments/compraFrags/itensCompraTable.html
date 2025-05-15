@@ -1,52 +1,43 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<body>
-<th:block th:fragment="tabelaEtotalItens">
-  <div class="table-responsive mt-4">
-    <table id="prodTable" class="table table-dark table-striped table-hover table-bordered table-sm caption-top">
-      <caption class="fs-6">Produtos Adicionados à Compra</caption>
-      <thead>
-      <tr>
-        <th style="width:10%">Id Prod.</th>
+<table id="prodTable"
+       th:fragment="itensCompraTable"
+       class="table table-dark table-striped table-hover table-bordered table-sm caption-top">
+    <caption class="fs-6">Produtos Adicionados à Compra</caption>
+    <thead>
+    <tr>
+        <th style="width:10%">Id Produto</th>
         <th>Nome</th>
-        <th class="text-end">Vlr. Custo</th>
-        <th class="text-end">Qtd.</th>
-        <th class="text-end">Subtotal</th>
+        <th class="text-center">Preço Custo</th>
+        <th class="text-center">Quantidade</th>
+        <th class="text-center">Subtotal</th>
         <th class="text-center">Opções</th>
-      </tr>
-      </thead>
-      <tbody id="corpoTabelaProdutosCompra">
-      <tr id="linhaSemProdutosCompra" th:if="${#lists.isEmpty(compra.itens)}">
-        <td colspan="6" class="text-muted p-3">Nenhum produto adicionado à compra.</td>
-      </tr>
-      <tr th:each="item, iterStat : ${compra.itens}" th:id="'itemCompra-' + ${iterStat.index}">
-        <td th:text="${item.produto?.id ?: 'N/A'}"></td>
-        <td th:text="${item.produto?.nome ?: 'N/A'}"></td>
-        <td class="text-end" th:text="${item.valorCusto != null ? #numbers.formatCurrency(item.valorCusto) : 'R$ 0,00'}"></td>
-        <td class="text-end" th:text="${item.quantidade ?: 0}"></td>
-        <td class="text-end" th:text="${#numbers.formatCurrency(item.subtotal)}"></td> <td class="text-center">
-        <div class="d-flex justify-content-center gap-1 action-button-wrapper">
-          <button type="button" class="btn btn-danger btn-sm" title="Remover Item"
-                  th:hx-delete="@{/compra/itens/remover/{itemIndex}(itemIndex=${iterStat.index})}"
-                  hx-target="#itensCompraSection" hx-swap="outerHTML"
-                  hx-confirm="Remover este item da compra?">
-            <i class="bi bi-trash-fill"></i>
-          </button>
-        </div>
-      </td>
-      </tr>
-      </tbody>
-      <tfoot>
-      <tr>
-        <td colspan="4" class="text-end fw-bold">Valor Total dos Itens:</td>
-        <td id="valorTotalCompraTfoot" class="text-end fw-bold" th:text="${#numbers.formatCurrency(compra.valorTotalItens ?: 0.00)}">R$ 0,00</td>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item, iter : ${compra.itemCompraList}" th:id="'item-' + ${iter.index}">
+        <td th:text="${item.produto.id}"></td>
+        <td th:text="${item.produto.nome}"></td>
+        <td th:text="${#numbers.formatCurrency(item.valorUnitario)}"></td>
+        <td th:text="${item.quantidade}"></td>
+        <td th:text="${#numbers.formatCurrency(item.subTotal)}"></td>
+        <td>
+            <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                <button class="btn btn-danger btn-sm" title="Remover Item"
+                        onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
+                        th:hx-delete="@{/compra/cadastro/remover-item/{index}(index=${iter.index})}"
+                        hx-target="#prodTable"
+                        hx-swap="outerHTML">
+                    <i class="bi bi-trash-fill"></i>
+                </button>
+            </div>
+        </td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+        <td colspan="4" class="text-end fw-bold">Valor Total da Compra:</td>
+        <td id="valorTotalCompraTfoot" class="text-end fw-bold"
+            th:text="${#numbers.formatCurrency(compra.calculaValorTotalItens)}"></td>
         <td></td>
-      </tr>
-      </tfoot>
-    </table>
-  </div>
-
-  <span id="valorTotalFinalCompra" hx-swap-oob="true" th:text="${#numbers.formatCurrency(compra.valorTotalItens ?: 0.00)}"></span>
-</th:block>
-</body>
-</html>
+    </tr>
+    </tfoot>
+</table>

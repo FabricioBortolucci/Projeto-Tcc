@@ -1,15 +1,19 @@
 package com.produto.oficina.dto;
 
+import com.produto.oficina.model.ItemCompra;
 import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.enums.PlanoPagamento;
 import com.produto.oficina.model.enums.TipoPagamento;
-import lombok.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Setter
@@ -26,11 +30,13 @@ public class CompraDTO implements Serializable {
     TipoPagamento tipoPagamento;
     PlanoPagamento planoPagamento;
     String observacao;
-    Integer totalParcelas;
+    Integer totalParcelas = 1;
 
-    Integer quantItens;
+    Integer quantItens = 1;
     BigDecimal valorUnitarioItens;
     BigDecimal valorTotalItens;
+
+    List<ItemCompra> itemCompraList = new ArrayList<>();
 
     public CompraDTO() {
     }
@@ -48,5 +54,13 @@ public class CompraDTO implements Serializable {
         this.quantItens = quantItens;
         this.valorUnitarioItens = valorUnitarioItens;
         this.valorTotalItens = valorTotalItens;
+    }
+
+    public BigDecimal getCalculaValorTotalItens() {
+        BigDecimal valorTotal = BigDecimal.ZERO;
+        for (ItemCompra item : itemCompraList) {
+            valorTotal = valorTotal.add(item.getSubTotal());
+        }
+        return valorTotal;
     }
 }

@@ -2,7 +2,7 @@ package com.produto.oficina.model.enums;
 
 public enum PlanoPagamento {
     AVISTA("À Vísta"),
-    APRAZO("A prazo");
+    APRAZO("À Prazo");
 
     public final String descricao;
 

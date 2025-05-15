@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+<div id="valorTotal"
+     th:fragment="valorTotalContent">
+    <h3 th:text="'Valor total da compra ' + ${#numbers.formatCurrency(compra.calculaValorTotalItens)}"></h3>
+</div>
+</body>
+</html>

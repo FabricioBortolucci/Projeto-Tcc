@@ -7,7 +7,8 @@
     <title>Login</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+    <link rel="stylesheet" type="text/css" media="all"
+          href="/images/bootstrap-icons.css"
           th:href="@{/images/bootstrap-icons.css}">
     <style>
         :root {
@@ -26,21 +27,25 @@
             height: 100%;
             margin: 0;
         }
+
         .login-section {
             background-color: #3A4750; /* Sua cor de fundo principal da seção */
         }
+
         .card {
             /* No tema escuro, o card já terá um fundo escuro.
                Se quiser uma borda sutil:
                border: 1px solid rgba(var(--bs-primary-rgb), 0.3);
             */
         }
+
         /* Garante que o anel de foco use a cor primária (teal) */
         .form-control.focus-ring:focus {
             /* O Bootstrap 5.3+ já deve usar --bs-focus-ring-color que pode ser derivado do primary */
             /* Se precisar forçar: */
             /* box-shadow: 0 0 0 .25rem rgba(var(--bs-primary-rgb), 0.25); */
         }
+
         .form-check-input.focus-ring:focus {
             /* box-shadow: 0 0 0 .25rem rgba(var(--bs-primary-rgb), 0.25); */
         }
@@ -88,14 +93,16 @@
                                 Entrar <i class="bi bi-box-arrow-in-right ms-1"></i>
                             </button>
 
-                            <div th:if="${param.error}" class="alert alert-danger d-flex align-items-center mt-3" role="alert">
+                            <div th:if="${param.error}" class="alert alert-danger d-flex align-items-center mt-3"
+                                 role="alert">
                                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                                 <div>
                                     Usuário ou senha inválidos!
                                 </div>
                             </div>
 
-                            <div th:if="${param.logout}" class="alert alert-info d-flex align-items-center mt-3" role="alert">
+                            <div th:if="${param.logout}" class="alert alert-info d-flex align-items-center mt-3"
+                                 role="alert">
                                 <i class="bi bi-check-circle-fill me-2"></i>
                                 <div>
                                     Logout realizado com sucesso.

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<body>
+
+<!-- Erro parcela -->
+<div th:fragment="erroParcelas" class="alert alert-danger" th:if="${erro_gerar_parcelas}">
+    O número de parcelas deve ser maior que 1 e menor que 12.
+</div>
+
+<!-- Lista de parcelas -->
+<option th:fragment="listaParcelas"
+        th:each="tipo : ${parcelas}"
+        th:text="${tipo}" selected disabled>
+</option>
+
+<!-- Lista de tipo de pagamento -->
+<option th:fragment="tiposPagamentos"
+        th:each="tipo : ${tipos_pagamento}"
+        th:value="${tipo}"
+        th:text="${tipo.descricao}">
+</option>
+</body>
+</html>

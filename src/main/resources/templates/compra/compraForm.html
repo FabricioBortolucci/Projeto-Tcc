@@ -85,8 +85,12 @@
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="fechamentoTab-tab" data-bs-toggle="tab" data-bs-target="#fechamentoTabPane"
-                        type="button" role="tab" aria-controls="fechamentoTabPane" aria-selected="false">
-                    <i class="bi bi-receipt-cutoff me-1"></i> Observações e Fechamento
+                        type="button" role="tab" aria-controls="fechamentoTabPane" aria-selected="false"
+                        th:hx-get="@{/compra/cadastro/valor-total}"
+                        hx-trigger="click"
+                        hx-target="#valorTotal"
+                        hx-swap="outerHTML">
+                    <i class="bi bi-receipt-cutoff me-1"></i> Finalização
                 </button>
             </li>
         </ul>
@@ -144,20 +148,29 @@
                                     <label class="form-label" for="valorCusto">Valor Custo (Un.):</label>
                                     <input type="text" class="form-control" id="valorCusto"
                                            th:field="*{valorUnitarioItens}"
-                                           name="temp_valorCusto"
+                                           name="valorCusto"
                                            placeholder="0,00">
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label" for="quantidade">Quantidade:</label>
                                     <input type="number"
                                            th:field="*{quantItens}"
-                                           class="form-control" id="quantidade" name="temp_quantidade" required>
+                                           class="form-control" id="quantidade" name="quantidade" required>
                                 </div>
 
                                 <div class="col-md-2 d-flex align-items-center" style="margin-top: 1.5rem;">
-                                    <button type="button" class="btn btn-primary w-100" id="btnAddProduto">
+                                    <button type="button"
+                                            class="btn btn-primary w-100"
+                                            id="btnAddProduto"
+                                            onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
+                                            th:hx-post="@{/compra/cadastro/adicionar-item}"
+                                            hx-include="#prodSelect, #quantidade, #valorCusto"
+                                            hx-swap="outerHTML"
+                                            hx-target="#prodTable"
+                                            _="on htmx:afterRequest set the innerHTML of #parcelasGeradas to '<option selected disabled>Parcelas...</option>'">
                                         <i class="bi bi-plus-circle-fill me-1"></i> Adicionar
                                     </button>
+
                                 </div>
 
                             </div>
@@ -170,61 +183,130 @@
                                     <tr>
                                         <th style="width:10%">Id Produto</th>
                                         <th>Nome</th>
-                                        <th class="text-end">Preço Custo</th>
-                                        <th class="text-end">Quantidade</th>
-                                        <th class="text-end">Subtotal</th>
+                                        <th class="text-center">Preço Custo</th>
+                                        <th class="text-center">Quantidade</th>
+                                        <th class="text-center">Subtotal</th>
                                         <th class="text-center">Opções</th>
                                     </tr>
                                     </thead>
-                                    <tbody id="corpoTabelaProdutosCompra">
-                                    <!-- <tr id="linhaSemProdutosCompra" th:if="${#lists.isEmpty(compra.itens)}">
-                                         <td colspan="6" class="text-muted p-3">Nenhum produto adicionado à compra.</td>
-                                     </tr>-->
+                                    <tbody>
+                                    <tr th:each="item : ${compra.itemCompraList}">
+                                        <td th:text="${item.id}"></td>
+                                        <td th:text="${item.produto.nome}"></td>
+                                        <td th:text="${#numbers.formatCurrency(item.valorUnitario)}"></td>
+                                        <td th:text="${item.quantidade}"></td>
+                                        <td th:text="${#numbers.formatCurrency(item.subTotal)}"></td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                                                <button class="btn btn-danger btn-sm" title="Remover Item"
+                                                        th:hx-delete="@{/compra/cadastro/remover-item}"
+                                                        hx-target="#prodTable"
+                                                        hx-swap="outerHTML">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
                                     </tbody>
                                     <tfoot>
                                     <tr>
                                         <td colspan="4" class="text-end fw-bold">Valor Total da Compra:</td>
-                                        <td id="valorTotalCompraTfoot" class="text-end fw-bold">R$ 0,00</td>
+                                        <td id="valorTotalCompraTfoot" class="text-end fw-bold"
+                                            th:text="${#numbers.formatCurrency(compra.calculaValorTotalItens)}"></td>
                                         <td></td>
                                     </tr>
                                     </tfoot>
                                 </table>
+
+                                <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                                    <a class="btn btn-secondary" th:href="@{/compra}"> <i
+                                            class="bi bi-x-circle me-1"></i>Cancelar
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="fechamentoTabPane" role="tabpanel" aria-labelledby="fechamentoTab-tab">
+
+                    <div th:insert="~{fragments/compraFrags/compraReplaces :: erroParcelas}"></div>
                     <div class="card shadow-sm">
                         <div class="card-header bg-light py-3">
                             <h5 class="mb-0 fw-semibold">Observações e Finalização</h5>
                         </div>
                         <div class="card-body p-4">
+                            <h3 id="valorTotal"
+                                th:text="'Valor total da compra: ' +
+                            ${compra.calculaValorTotalItens != null
+                            ? #numbers.formatCurrency(compra.calculaValorTotalItens) : 'R$ 0,00'}"></h3>
+
+                            <hr class="my-4">
                             <div class="row g-3">
-                                <div class="col-12">
-                                    <label for="observacaoCompra" class="form-label">Observações Gerais da
-                                        Compra:</label>
-                                    <textarea class="form-control" id="observacaoCompra" th:field="*{observacao}"
-                                              rows="4" style="resize: vertical;"></textarea>
+                                <div class="col-md-5">
+                                    <label for="planoPag" class="form-label">Plano Pagamento:</label>
+                                    <select id="planoPag"
+                                            class="form-select"
+                                            th:field="*{planoPagamento}"
+                                            th:hx-get="@{/compra/cadastro/buscar-planoPag}"
+                                            hx-trigger="load, change"
+                                            hx-target="#tipoPag" required>
+                                        <option value="" selected disabled>Selecione um plano...</option>
+                                        <option th:each="plano : ${planos_pagamento}"
+                                                th:value="${plano}"
+                                                th:text="${plano.descricao}"></option>
+                                    </select>
                                 </div>
-                                <div class="col-12">
-                                    <h4 class="text-end">Valor Total:
-                                        <span id="valorTotalFinalCompra"
-                                              th:text="${#numbers.formatCurrency(compra.valorTotal)}">R$ 0,00</span>
-                                    </h4>
+
+                                <div class="col-md-4">
+                                    <label for="tipoPag" class="form-label">Tipo Pagamento:</label>
+                                    <select id="tipoPag"
+                                            class="form-select"
+                                            th:field="*{tipoPagamento}">
+                                        <option value="" selected disabled>Selecione um plano...</option>
+                                    </select>
                                 </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label" for="numParcelas">Número de parcelas:</label>
+                                    <input type="number"
+                                           th:field="*{totalParcelas}"
+                                           class="form-control" id="numParcelas" required>
+                                </div>
+
+                                <div class="col-md-1 d-flex align-items-center mt-4">
+                                    <button id="botaoGerar"
+                                            class="btn btn-primary"
+                                            type="button"
+                                            th:hx-get="@{/compra/cadastro/gerar-parcelas}"
+                                            hx-swap="innerHTML"
+                                            hx-include="#numParcelas"
+                                            hx-target="#parcelasGeradas">
+                                        <i class="bi bi-check-lg me-1"></i>Gerar
+                                    </button>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label for="parcelasGeradas" class="form-label">Parcelas:</label>
+                                    <select id="parcelasGeradas"
+                                            class="form-select">
+                                        <option value="" selected disabled>Parcelas...</option>
+                                    </select>
+                                </div>
+
                             </div>
 
                             <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                                <a class="btn btn-secondary" th:href="@{/compra}"> <i
-                                        class="bi bi-x-circle me-1"></i>Cancelar
-                                </a>
                                 <button class="btn btn-success" type="submit">
                                     <i class="bi bi-check-lg me-1"></i>Salvar Compra
                                 </button>
+                                <a class="btn btn-secondary" th:href="@{/compra}">
+                                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </form>
     </main>
@@ -233,16 +315,11 @@
 <script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
-<script th:src="@{/js/htmx/htmx.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+<script src="https://unpkg.com/hyperscript.org@0.9.14"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const valorCustoInput = document.getElementById('valorCusto');
-        if (valorCustoInput) { // Verifica se o elemento existe
-            VMasker(valorCustoInput).maskMoney({
-                unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
-                delimiter: '.', affixesStay: false, allowZero: true, allowNegative: true, precision: 2
-            });
-        }
+        aplicarMascaraValorCusto(); // Mantém para o campo valorCusto
         const selectF = document.getElementById('fornecedorInput');
         const choicesF = new Choices(selectF, {
             searchEnabled: true,
@@ -257,7 +334,45 @@
             placeholder: true,
             placeholderValue: 'Selecione um produto',
         });
+
+        const planoSelect = document.getElementById('planoPag');
+        const parcelasInput = document.getElementById('numParcelas');
+
+        planoSelect.addEventListener('change', function () {
+            const valorSelecionado = planoSelect.options[planoSelect.selectedIndex].text.toLowerCase();
+            parcelasInput.disabled = valorSelecionado.includes('Vísta'); // 'vista' sem acento aqui se for o caso
+        });
+
     });
+
+    function aplicarMascaraValorCusto() {
+        const valorCustoInput = document.getElementById('valorCusto');
+        if (valorCustoInput) {
+            VMasker(valorCustoInput).maskMoney({
+                unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',', // Ajustado para padrão brasileiro comum
+                delimiter: '.', affixesStay: false, allowZero: true, allowNegative: false, precision: 2 // allowNegative: false é mais comum para custo
+            });
+        }
+    }
+
+    function formatarValorParaDecimal(inputValorCusto) {
+        if (inputValorCusto) {
+            // Remove tudo que não for dígito ou vírgula, depois substitui vírgula por ponto
+            let valor = inputValorCusto.value.replace('R$', '').trim(); // Remove R$ e espaços
+            valor = valor.replace(/\./g, ''); // Remove pontos (milhar)
+            valor = valor.replace(',', '.'); // Substitui vírgula (decimal) por ponto
+            inputValorCusto.value = valor;
+        }
+    }
+
+    document.body.addEventListener('htmx:afterSwap', function (evt) {
+        // Só reaplica se o campo de valorCusto foi o alvo ou parte de um swap maior que o inclua
+        // Melhor verificar se o elemento específico existe antes de tentar aplicar a máscara
+        if (document.getElementById('valorCusto')) {
+            aplicarMascaraValorCusto();
+        }
+    });
+
 </script>
 
 </body>

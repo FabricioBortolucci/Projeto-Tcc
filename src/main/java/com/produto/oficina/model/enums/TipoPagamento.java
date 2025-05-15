@@ -11,4 +11,11 @@ public enum TipoPagamento {
     TipoPagamento(String descricao) {
         this.descricao = descricao;
     }
+
+    public static TipoPagamento[] apenasAvista() {
+        return new TipoPagamento[]{DINHEIRO, PIX};
+    }
+    public static TipoPagamento[] apenasAtrasado() {
+        return new TipoPagamento[]{PARCELADO, CHEQUE};
+    }
 }

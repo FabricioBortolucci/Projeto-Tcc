@@ -48,11 +48,11 @@ public class CaixaController {
 
     @GetMapping("/cadastro")
     public String caixaForm(@RequestParam(required = false, defaultValue = "false") boolean isHome, RedirectAttributes redirectAttributes, Model model) {
+        if (isHome) {
+            return "redirect:/caixa";
+        }
         if (caixaService.verificaCaixaAberto()) {
             redirectAttributes.addFlashAttribute("mostrarModal", true);
-            if (isHome) {
-                return "redirect:/home";
-            }
             return "redirect:/caixa";
         }
         model.addAttribute("caixa", caixaService.novoCaixa(pessoaService.buscaPessoaLogada()));
