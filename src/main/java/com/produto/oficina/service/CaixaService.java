@@ -98,4 +98,8 @@ public class CaixaService {
             caixaRepository.saveAndFlush(caixaAtual);
         }
     }
+
+    public Caixa buscaCaixaAtualAberto() {
+        return caixaRepository.findCaixaByStatus(StatusCaixa.ABERTO);
+    }
 }

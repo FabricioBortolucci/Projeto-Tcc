@@ -1,9 +1,11 @@
 package com.produto.oficina.model;
 
 import com.produto.oficina.model.enums.PlanoPagamento;
+import com.produto.oficina.model.enums.StatusCompra;
 import com.produto.oficina.model.enums.TipoPagamento;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,10 +29,23 @@ public class Compra {
     private Pessoa fornecedor;
 
     @Column(name = "mov_comp_data")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dataCompra;
 
     @Column(name = "mov_comp_data_finalizada")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dataCompraFinalizada;
+
+    @Column(name = "mov_comp_data_cancelamento")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime dataCompraCancelamento;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comp_usuario_cancelou")
+    private Usuario usuarioCancelou;
+
+    @Column(name = "mov_comp_obs_cancelamento")
+    private String observacaoCancelamento;
 
     @Column(name = "mov_comp_valor_total")
     private BigDecimal valorTotal;
@@ -42,6 +57,10 @@ public class Compra {
     @Column(name = "comp_planopagamento")
     @Enumerated(EnumType.STRING)
     private PlanoPagamento planoPagamento;
+
+    @Column(name = "comp_status")
+    @Enumerated(EnumType.STRING)
+    private StatusCompra statusCompra;
 
     @Column(name = "mov_comp_observacao")
     private String observacao;

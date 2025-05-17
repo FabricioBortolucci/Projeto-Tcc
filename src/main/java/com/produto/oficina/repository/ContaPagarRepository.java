@@ -1,12 +1,11 @@
 package com.produto.oficina.repository;
 
-import com.produto.oficina.model.Compra;
+import com.produto.oficina.model.ContaPagar;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface CompraRepository extends JpaRepository<Compra, Long> {
+public interface ContaPagarRepository extends JpaRepository<ContaPagar, Long> {
 
 
-    Compra findCompraByIdOrderByIdAsc(Long id);
 }

@@ -10,8 +10,13 @@ import com.produto.oficina.service.CaixaService;
 import com.produto.oficina.service.CompraService;
 import com.produto.oficina.service.PessoaService;
 import com.produto.oficina.service.ProdutoService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -48,7 +53,7 @@ public class CompraController {
     public String compraList(Model model,
                              @RequestParam(defaultValue = "0") int page,
                              @RequestParam(defaultValue = "5") int size) {
-        Page<Compra> compraPage = compraService.findAll(PageRequest.of(page, size));
+        Page<Compra> compraPage = compraService.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
         model.addAttribute("compraPage", compraPage);
         model.addAttribute("currentPage", page);
         return "compra/compraList";
@@ -75,6 +80,22 @@ public class CompraController {
         return "redirect:/compra";
     }
 
+    @PostMapping("/salvar-sem-finalizar")
+    public ResponseEntity<Void> compraSaveSemFinalizar(@ModelAttribute("compra") CompraDTO compraDTO,
+                                                       RedirectAttributes redirectAttributes) {
+        compraService.salvarCompraAberta(compraDTO);
+        redirectAttributes.addFlashAttribute("compra_cadastrada", true);
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("HX-Redirect", "/compra");
+        return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER); // Redirect com HTMX
+    }
+
+    @GetMapping("/visualizar/{index}")
+    public String visualizarCompra(@PathVariable Long index, Model model) {
+        model.addAttribute("compra", compraService.findById(index));
+        return "compra/compraVisu";
+    }
+
 
     @GetMapping("/produto/buscar-precoProd")
     public String buscarPrecoProduto(@ModelAttribute("compra") CompraDTO compraDTO,
@@ -84,7 +105,7 @@ public class CompraController {
         compraDTO.setValorUnitarioItens(produto.getPrecoCusto());
 
         model.addAttribute("compra", compraDTO);
-        return "fragments/compraFrags/detalhesItemCompra";
+        return "fragments/compraFrags/compraReplaces :: detalhesItem";
     }
 
     @PostMapping("/cadastro/adicionar-item")
@@ -95,7 +116,7 @@ public class CompraController {
                                 Model model) {
         compraService.adicionarItemCompra(compraDTO, produtoId, quantidade, valorCusto);
         model.addAttribute("compra", compraDTO);
-        return "fragments/compraFrags/itensCompraTable";
+        return "fragments/compraFrags/compraReplaces :: itensCompraTable";
     }
 
     @DeleteMapping("/cadastro/remover-item/{index}")
@@ -106,7 +127,7 @@ public class CompraController {
             compraDTO.getItemCompraList().remove(index);
         }
         model.addAttribute("compra", compraDTO);
-        return "fragments/compraFrags/itensCompraTable";
+        return "fragments/compraFrags/compraReplaces :: itensCompraTable";
     }
 
     @GetMapping("/cadastro/buscar-planoPag")
@@ -128,14 +149,13 @@ public class CompraController {
     @GetMapping("/cadastro/valor-total")
     public String getValorTotal(@ModelAttribute("compra") CompraDTO compraDTO, Model model) {
         model.addAttribute("compra", compraDTO);
-        return "fragments/compraFrags/valorTotal :: valorTotalContent";
+        return "fragments/compraFrags/compraReplaces :: valorTotalContent";
     }
 
-    @GetMapping("/cadastro/gerar-parcelas")
+    @PostMapping("/cadastro/gerar-parcelas")
     public String gerarPagamentos(@ModelAttribute("compra") CompraDTO compraDTO, Model model) {
         if (compraDTO.getTotalParcelas() < 1 || compraDTO.getTotalParcelas() > 12 || compraDTO.getCalculaValorTotalItens().compareTo(BigDecimal.ZERO) <= 0) {
-            model.addAttribute("erro_gerar_parcelas", true);
-            return "fragments/compraFrags/compraReplaces :: erroParcelas";
+            return "fragments/compraFrags/compraReplaces :: listaParcelas";
         }
         List<String> parcelas = new ArrayList<>();
         for (int i = 1; i <= compraDTO.getTotalParcelas(); i++) {

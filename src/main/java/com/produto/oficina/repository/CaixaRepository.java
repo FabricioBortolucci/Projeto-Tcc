@@ -17,4 +17,6 @@ public interface CaixaRepository extends JpaRepository<Caixa, Long> {
     Optional<Caixa> findTopByStatusOrderByDataFechamentoDesc(StatusCaixa status);
 
     boolean existsByStatus(StatusCaixa status);
+
+    Caixa findCaixaByStatus(StatusCaixa status);
 }

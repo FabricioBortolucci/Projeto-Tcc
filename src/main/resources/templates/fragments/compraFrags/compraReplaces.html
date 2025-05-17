@@ -2,10 +2,6 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <body>
 
-<!-- Erro parcela -->
-<div th:fragment="erroParcelas" class="alert alert-danger" th:if="${erro_gerar_parcelas}">
-    O número de parcelas deve ser maior que 1 e menor que 12.
-</div>
 
 <!-- Lista de parcelas -->
 <option th:fragment="listaParcelas"
@@ -19,5 +15,80 @@
         th:value="${tipo}"
         th:text="${tipo.descricao}">
 </option>
+
+<!-- Valor total -->
+<div id="valorTotal"
+     th:fragment="valorTotalContent">
+    <h3 th:text="'Valor total da compra ' + ${#numbers.formatCurrency(compra.calculaValorTotalItens)}"></h3>
+</div>
+
+
+<!-- Tabela itensCompra -->
+<table id="prodTable"
+       th:fragment="itensCompraTable"
+       class="table table-dark table-striped table-hover table-bordered table-sm caption-top">
+    <caption class="fs-6">Produtos Adicionados à Compra</caption>
+    <thead>
+    <tr>
+        <th style="width:10%">Id Produto</th>
+        <th>Nome</th>
+        <th class="text-center">Preço Custo</th>
+        <th class="text-center">Quantidade</th>
+        <th class="text-center">Subtotal</th>
+        <th class="text-center">Opções</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="item, iter : ${compra.itemCompraList}" th:id="'item-' + ${iter.index}">
+        <td th:text="${item.produto.id}"></td>
+        <td th:text="${item.produto.nome}"></td>
+        <td th:text="${#numbers.formatCurrency(item.valorUnitario)}"></td>
+        <td th:text="${item.quantidade}"></td>
+        <td th:text="${#numbers.formatCurrency(item.subTotal)}"></td>
+        <td>
+            <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                <button class="btn btn-danger btn-sm" title="Remover Item"
+                        onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
+                        th:hx-delete="@{/compra/cadastro/remover-item/{index}(index=${iter.index})}"
+                        _="on htmx:afterRequest
+                             set the innerHTML of #parcelasGeradas to '<option selected disabled>Parcelas...</option>'
+                             then set the value of #numParcelas to 1"
+                        hx-target="#prodTable"
+                        hx-swap="outerHTML">
+                    <i class="bi bi-trash-fill"></i>
+                </button>
+            </div>
+        </td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+        <td colspan="4" class="text-end fw-bold">Valor Total da Compra:</td>
+        <td id="valorTotalCompraTfoot" class="text-end fw-bold"
+            th:text="${#numbers.formatCurrency(compra.calculaValorTotalItens)}"></td>
+        <td></td>
+    </tr>
+    </tfoot>
+</table>
+
+
+<!-- Update valor custo -->
+<div th:fragment="detalhesItem" id="valorProduto" class="col-md-3">
+    <label class="form-label" for="valorCusto">Valor Custo (Un.):</label>
+    <input type="text" class="form-control" id="valorCusto"
+           th:field="*{compra.valorUnitarioItens}"
+           name="temp_valorCusto"
+           placeholder="0,00">
+</div>
+<script th:inline="javascript">
+    (function () {
+        const vcInput = document.getElementById('valorCusto');
+        if (vcInput && typeof VMasker === "function" && !vcInput.classList.contains('vm-masked-compra')) {
+            VMasker(vcInput).maskMoney({unit: 'R$', precision: 2, thousands: '.', decimal: ','});
+            vcInput.classList.add('vm-masked-compra');
+        }
+    })();
+</script>
+
 </body>
 </html>

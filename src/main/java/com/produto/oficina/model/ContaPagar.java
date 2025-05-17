@@ -53,6 +53,6 @@ public class ContaPagar {
     @JoinColumn(name = "compra_id")
     private Compra compra;
 
-    @OneToMany(mappedBy = "contaPagar")
+    @OneToMany(mappedBy = "contaPagar", cascade = CascadeType.ALL)
     private List<MovimentacaoCaixa> movimentacoes;
 }

@@ -226,12 +226,7 @@
                                 </table>
 
                                 <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                                    <a class="btn btn-secondary"
-                                       onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
-                                       th:hx-post="@{/compra/salvar-sem-finalizar}"> <i
-                                            class="bi bi-check-lg me-1"></i>Salvar sem finalizar
-                                    </a>
-                                    <a class="btn btn-danger" th:href="@{/compra}"> <i
+                                    <a class="btn btn-secondary" th:href="@{/compra}"> <i
                                             class="bi bi-x-circle me-1"></i>Cancelar
                                     </a>
                                 </div>
@@ -241,11 +236,11 @@
                 </div>
                 <div class="tab-pane fade" id="fechamentoTabPane" role="tabpanel" aria-labelledby="fechamentoTab-tab">
 
-                    <!--<div id="divErroParcelas" class="alert alert-danger alert-dismissible fade" role="alert">
+                    <div id="divErroParcelas" class="alert alert-danger alert-dismissible fade" role="alert">
                         <strong>Erro!</strong> O número de parcelas deve ser entre 1 e 12, e o valor total da compra
                         deve ser positivo.
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>-->
+                    </div>
 
                     <div class="card shadow-sm">
                         <div class="card-header bg-light py-3">
@@ -305,27 +300,27 @@
                                             type="button"
                                             onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
                                             th:hx-post="@{/compra/cadastro/gerar-parcelas}"
-
+                                            _="on htmx:beforeRequest
+                                                    set valorNumerico to parseString(#valorTotalCompraTfoot.innerText)
+                                                    if (Number(#numParcelas.value) > 12) or
+                                                       (Number(#numParcelas.value) < 1) or
+                                                       (valorNumerico == 0) or
+                                                       (valorNumerico is NaN)
+                                                    then
+                                                        halt the event
+                                                        add .show to #divErroParcelas
+                                                        wait 2s
+                                                        remove .show from #divErroParcelas
+                                                    else
+                                                        remove .show from #divErroParcelas
+                                                    end"
                                             hx-swap="innerHTML"
                                             hx-include="#numParcelas"
                                             hx-target="#parcelasGeradas">
                                         <i class="bi bi-check-lg me-1"></i>Gerar
                                     </button>
                                 </div>
-                                <!--_="on htmx:beforeRequest
-                                                                                    set valorNumerico to parseString(#valorTotalCompraTfoot.innerText)
-                                                                                    if (Number(#numParcelas.value) > 12) or
-                                                                                       (Number(#numParcelas.value) < 1) or
-                                                                                       (valorNumerico == 0) or
-                                                                                       (valorNumerico is NaN)
-                                                                                    then
-                                                                                        halt the event
-                                                                                        add .show to #divErroParcelas
-                                                                                        wait 2s
-                                                                                        remove .show from #divErroParcelas
-                                                                                    else
-                                                                                        remove .show from #divErroParcelas
-                                                                                    end"-->
+
                                 <div class="col-md-5">
                                     <label class="form-label" for="descProd">Observação:</label>
                                     <textarea class="form-control" style="resize: none;" id="descProd" rows="3"
@@ -334,18 +329,12 @@
                             </div>
 
                             <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                                <button class="btn btn-secondary"
-                                        type="button"
-                                        onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
-                                        th:hx-post="@{/compra/salvar-sem-finalizar}">
-                                    <i class="bi bi-check-lg me-1"></i>Salvar sem finalizar
-                                </button>
                                 <button class="btn btn-success"
                                         onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
                                         type="submit">
-                                    <i class="bi bi-check-lg me-1"></i>Finalizar
+                                    <i class="bi bi-check-lg me-1"></i>Salvar Compra
                                 </button>
-                                <a class="btn btn-danger" th:href="@{/compra}">
+                                <a class="btn btn-secondary" th:href="@{/compra}">
                                     <i class="bi bi-x-circle me-1"></i>Cancelar
                                 </a>
                             </div>

@@ -42,6 +42,9 @@
                 text-align: left; /* Left align for medium screens and up */
             }
         }
+        .badge.status-aberta { background-color: var(--bs-warning-bg-subtle); color: var(--bs-warning-text-emphasis); border: 1px solid var(--bs-warning-border-subtle); }
+        .badge.status-finaliza { background-color: var(--bs-success-bg-subtle); color: var(--bs-success-text-emphasis); border: 1px solid var(--bs-success-border-subtle); }
+        .badge.status-cancelada { background-color: var(--bs-secondary-bg-subtle); color: var(--bs-secondary-text-emphasis); border: 1px solid var(--bs-secondary-border-subtle); }
     </style>
 </head>
 <body>
@@ -62,36 +65,38 @@
                     <th style="width: 5%;">Id</th>
                     <th style="width: 25%;">Fornecedor</th>
                     <th style="width: 15%;">Data da Compra</th>
+                    <th style="width: 15%;">Tipo Pagamento</th>
+                    <th style="width: 15%;">Plano Pagamento</th>
+                    <th style="width: 15%;">Status</th>
                     <th class="text-end" style="width: 15%;">Valor Total</th>
                     <th style="width: 25%;">Observação</th>
                     <th style="min-width: 150px;">Opções</th>
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:if="${compraPage == null or compraPage.empty}">
+                <tr th:if="${compraPage == null or compraPage.isEmpty()}">
                     <td colspan="6" class="text-muted p-3">Nenhuma compra encontrada.</td>
                 </tr>
                 <tr th:each="comp : ${compraPage.content}">
                     <td th:text="${comp.id}"></td>
                     <td class="text-start-md"
                         th:text="${comp.fornecedor?.pesNome ?: (comp.fornecedor?.nome ?: 'N/A')}"></td>
-                    <td th:text="${comp.dataCompra != null ? #temporals.format(comp.dataCompra, 'dd/MM/yyyy') : 'N/A'}"></td>
+                    <td th:text="${comp.dataCompra != null ? #temporals.format(comp.dataCompra, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
+                    <td th:text="${comp.tipoPagamento.descricao}"></td>
+                    <td th:text="${comp.planoPagamento.descricao}"></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${#strings.equals(comp.statusCompra, 'ABERTA') ? 'status-aberta' :
+                                               (#strings.equals(comp.statusCompra, 'FINALIZADA') ? 'status-finalizada' :
+                                               (#strings.equals(comp.statusCompra, 'CANCELADA') ? 'status-cancelada' : 'bg-light text-dark'))}"
+                              th:text="${comp.statusCompra?.descricao ?: comp.statusCompra}">
+                        </span>
+                    </td>
                     <td class="text-end"
                         th:text="${comp.valorTotal != null ? #numbers.formatCurrency(comp.valorTotal) : 'R$ 0,00'}"></td>
                     <td th:text="${#strings.abbreviate(comp.observacao, 70)}"></td>
                     <td>
                         <div class="d-flex justify-content-center gap-1 action-button-wrapper">
-                            <form th:action="@{/compra/remover/{index}(index=${comp.id})}" method="post"
-                                  class="d-inline-block"
-                                  onsubmit="return confirm('Tem certeza que deseja remover esta compra? Esta ação não pode ser desfeita.');">
-                                <button class="btn btn-danger btn-sm" type="submit" title="Remover Compra">
-                                    <i class="bi bi-trash-fill"></i>
-                                </button>
-                            </form>
-                            <a th:href="@{/compra/editar/{index}(index=${comp.id})}" class="btn btn-light btn-sm"
-                               title="Editar Compra">
-                                <i class="bi bi-pencil-square"></i>
-                            </a>
                             <a th:href="@{/compra/visualizar/{index}(index=${comp.id})}" class="btn btn-light btn-sm"
                                title="Visualizar Compra">
                                 <i class="bi bi-eye-fill"></i>
