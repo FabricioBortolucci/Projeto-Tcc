@@ -3,6 +3,7 @@ package com.produto.oficina.dto;
 import com.produto.oficina.model.ItemCompra;
 import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.enums.PlanoPagamento;
+import com.produto.oficina.model.enums.StatusCompra;
 import com.produto.oficina.model.enums.TipoPagamento;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,6 +30,7 @@ public class CompraDTO implements Serializable {
     BigDecimal valorTotal;
     TipoPagamento tipoPagamento;
     PlanoPagamento planoPagamento;
+    StatusCompra statusCompra;
     String observacao;
     Integer totalParcelas = 1;
 
@@ -36,6 +38,7 @@ public class CompraDTO implements Serializable {
     BigDecimal valorUnitarioItens;
     BigDecimal valorTotalItens;
 
+    List<BigDecimal> parcelas = new ArrayList<>();
     List<ItemCompra> itemCompraList = new ArrayList<>();
 
     public CompraDTO() {

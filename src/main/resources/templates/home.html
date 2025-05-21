@@ -70,8 +70,7 @@
 <body>
 <div class="d-flex vh-100">
     <div th:insert="~{fragments/sidebar}"></div>
-
-    <main class="flex-grow-1 p-4 overflow-auto d-flex flex-column gap-4"
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4"
           th:classappend="${isDarkTheme ? 'main-content-dark' : ''}">
 
         <div class="mb-2"><h1 class="h2">Bem-vindo, <span th:text="${#authentication.name}">Usuário</span>!</h1>
@@ -141,8 +140,8 @@
                 <a th:href="@{/ordem-servico/cadastro}" class="btn btn-primary"> <i
                         class="bi bi-plus-circle-fill me-1"></i> Nova Ordem/Serviço
                 </a><a th:href="@{/compra/cadastro}" class="btn btn-secondary"> <i
-                        class="bi bi-cart-fill me-1"></i> Nova Compra
-                </a>
+                    class="bi bi-cart-fill me-1"></i> Nova Compra
+            </a>
                 <a th:href="@{/pessoa/cadastro}" class="btn btn-success">
                     <i class="bi bi-car me-1"></i> Novo Cliente
                 </a>

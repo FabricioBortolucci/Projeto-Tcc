@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -71,6 +72,9 @@ public class Pessoa {
 
     @Column(name = "pes_fsc_jrc")
     private String pesFisicoJuridico;
+
+    @Column(name = "pes_credito")
+    private BigDecimal pesCredito = BigDecimal.ZERO;
 
     public String getTelefonePrincipal() {
         return telefones != null && !telefones.isEmpty() ? Objects.requireNonNull(telefones.stream().filter(Telefone::isTelPrincipal)

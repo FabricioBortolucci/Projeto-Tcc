@@ -74,7 +74,16 @@ public class CompraController {
 
     @PostMapping("/cadastrar")
     public String compraSave(@ModelAttribute("compra") CompraDTO compraDTO,
-                             RedirectAttributes redirectAttributes) {
+                             RedirectAttributes redirectAttributes,
+                             Model model) {
+        if (compraDTO.getParcelas().isEmpty()) {
+            model.addAttribute("erros_fechamento", true);
+            model.addAttribute("mensagem", "A lista de parcelas está vazia.");
+            model.addAttribute("planos_pagamento", PlanoPagamento.values());
+            model.addAttribute("fornecedores_compra", pessoaService.buscaFornecedores());
+            model.addAttribute("produtos", produtoService.findAll());
+            return "compra/compraForm";
+        }
         compraService.save(compraDTO);
         redirectAttributes.addFlashAttribute("compra_cadastrada", true);
         return "redirect:/compra";
@@ -88,6 +97,37 @@ public class CompraController {
         HttpHeaders headers = new HttpHeaders();
         headers.add("HX-Redirect", "/compra");
         return new ResponseEntity<>(headers, HttpStatus.SEE_OTHER); // Redirect com HTMX
+    }
+
+    @GetMapping("/cancelamento/{index}")
+    public String compraCancelamento(@PathVariable Long index,
+                                     Model model) {
+        model.addAttribute("compra_cancelamento", compraService.findById(index));
+        return "compra/compraCancelamento";
+    }
+
+    @PostMapping("/cancelar-confirmado/{id}")
+    public String compraCancelarConfirmado(@PathVariable Long id, Model model) {
+        compraService.cancelarCompra(id);
+        return "redirect:/compra";
+    }
+
+
+    @PostMapping("/remover/{index}")
+    public String deleteCompraAberta(@PathVariable Long index,
+                                     RedirectAttributes redirectAttributes) {
+        compraService.deleteCompraAbertaById(index);
+        redirectAttributes.addFlashAttribute("compra_removida", true);
+        return "redirect:/compra";
+    }
+
+    @GetMapping("/editar/{index}")
+    public String compraEdit(@PathVariable Long index, Model model) {
+        model.addAttribute("compra", compraService.compraEdit(index));
+        model.addAttribute("planos_pagamento", PlanoPagamento.values());
+        model.addAttribute("fornecedores_compra", pessoaService.buscaFornecedores());
+        model.addAttribute("produtos", produtoService.findAll());
+        return "compra/compraForm";
     }
 
     @GetMapping("/visualizar/{index}")
@@ -157,11 +197,10 @@ public class CompraController {
         if (compraDTO.getTotalParcelas() < 1 || compraDTO.getTotalParcelas() > 12 || compraDTO.getCalculaValorTotalItens().compareTo(BigDecimal.ZERO) <= 0) {
             return "fragments/compraFrags/compraReplaces :: listaParcelas";
         }
-        List<String> parcelas = new ArrayList<>();
+        compraDTO.setParcelas(new ArrayList<>());
         for (int i = 1; i <= compraDTO.getTotalParcelas(); i++) {
-            parcelas.add(i + "x de " + JavaUtils.formatMonetaryString(compraDTO.getCalculaValorTotalItens().divide(BigDecimal.valueOf(compraDTO.getTotalParcelas()), RoundingMode.HALF_UP)));
+            compraDTO.getParcelas().add(compraDTO.getCalculaValorTotalItens().divide(BigDecimal.valueOf(compraDTO.getTotalParcelas()), RoundingMode.HALF_UP));
         }
-        model.addAttribute("parcelas", parcelas);
         return "fragments/compraFrags/compraReplaces :: listaParcelas";
     }
 

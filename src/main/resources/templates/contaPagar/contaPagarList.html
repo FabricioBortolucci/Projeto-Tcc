@@ -12,155 +12,192 @@
             vertical-align: middle;
             text-align: center;
         }
+
         .table-dark .badge a {
             color: inherit;
         }
+
         .table-dark .btn-light {
             /* color: #000; */ /* Ajuste de contraste se necessário */
         }
+
         .action-button-wrapper .btn {
             padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
         }
+
         .action-button-wrapper .bi {
             vertical-align: text-bottom;
         }
+
         .table td.text-start-md, .table th.text-start-md {
             text-align: center;
         }
+
         @media (min-width: 768px) {
             .table td.text-start-md, .table th.text-start-md {
                 text-align: left;
             }
         }
+
         /* Cores específicas para status de conta a pagar */
-        .badge.status-pendente { background-color: var(--bs-warning-bg-subtle); color: var(--bs-warning-text-emphasis); border: 1px solid var(--bs-warning-border-subtle); }
-        .badge.status-paga { background-color: var(--bs-success-bg-subtle); color: var(--bs-success-text-emphasis); border: 1px solid var(--bs-success-border-subtle); }
-        .badge.status-vencida { background-color: var(--bs-danger-bg-subtle); color: var(--bs-danger-text-emphasis); border: 1px solid var(--bs-danger-border-subtle); }
-        .badge.status-cancelada { background-color: var(--bs-secondary-bg-subtle); color: var(--bs-secondary-text-emphasis); border: 1px solid var(--bs-secondary-border-subtle); }
+        .badge.status-pendente {
+            background-color: var(--bs-warning-bg-subtle);
+            color: var(--bs-warning-text-emphasis);
+            border: 1px solid var(--bs-warning-border-subtle);
+        }
+
+        .badge.status-paga {
+            background-color: var(--bs-success-bg-subtle);
+            color: var(--bs-success-text-emphasis);
+            border: 1px solid var(--bs-success-border-subtle);
+        }
+
+        .badge.status-vencida {
+            background-color: var(--bs-danger-bg-subtle);
+            color: var(--bs-danger-text-emphasis);
+            border: 1px solid var(--bs-danger-border-subtle);
+        }
+
+        .badge.status-cancelada {
+            background-color: var(--bs-secondary-bg-subtle);
+            color: var(--bs-secondary-text-emphasis);
+            border: 1px solid var(--bs-secondary-border-subtle);
+        }
     </style>
 </head>
 <body>
 <div class="d-flex">
-    <div th:insert="~{fragments/sidebar}"></div> <main class="d-flex flex-column position-relative w-100 vh-100 p-4 overflow-auto">
-    <h1 class="h3 mb-4">Lista de Contas a Pagar</h1>
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
+        <h1 class="h3 mb-4">Lista de Contas a Pagar</h1>
 
-    <div th:if="${conta_paga_mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <span th:text="${conta_paga_mensagem}">Ação realizada com sucesso!</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-    </div>
+        <div th:if="${conta_paga_mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${conta_paga_mensagem}">Ação realizada com sucesso!</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
 
-    <div class="table-responsive">
-        <table id="contaPagarTableMain" class="table table-dark table-bordered table-hover table-striped caption-top">
-            <caption class="fs-6">Contas a pagar registradas no sistema</caption>
-            <thead>
-            <tr>
-                <th style="width: 5%;">Id</th>
-                <th class="text-start-md" style="width: 20%;">Fornecedor</th>
-                <th style="width: 10%;">Vencimento</th>
-                <th style="width: 10%;">Pagamento</th>
-                <th style="width: 10%;">Tipo de Pagamento</th>
-                <th class="text-end" style="width: 10%;">Valor</th>
-                <th style="width: 10%;">Status</th>
-                <th style="min-width: 180px;">Opções</th> </tr>
-            </thead>
-            <tbody>
-            <tr th:if="${contaPagarPage == null or contaPagarPage.isEmpty()}">
-                <td colspan="8" class="text-muted p-3">Nenhuma conta a pagar encontrada.</td>
-            </tr>
-            <tr th:each="conta : ${contaPagarPage.content}">
-                <td th:text="${conta.id}"></td>
-                <td class="text-start-md" th:text="${conta.fornecedor?.pesNome ?: 'N/A'}"></td>
-                <td th:text="${conta.dataVencimento != null ? #temporals.format(conta.dataVencimento, 'dd/MM/yy') : 'N/A'}"></td>
-                <td th:text="${conta.dataPagamento != null ? #temporals.format(conta.dataPagamento, 'dd/MM/yy') : '-'}"></td>
-                <td class="text-start-md" th:text="${conta.tipoPagamento?.descricao ?: 'N/A'}"></td>
-                <td class="text-end" th:text="${conta.valor != null ? #numbers.formatCurrency(conta.valor) : 'R$ 0,00'}"></td>
-                <td>
+        <div class="table-responsive">
+            <table id="contaPagarTableMain"
+                   class="table table-dark table-bordered table-hover table-striped caption-top">
+                <caption class="fs-6">Contas a pagar registradas no sistema</caption>
+                <thead>
+                <tr>
+                    <th style="width: 5%;">Id</th>
+                    <th class="text-start-md" style="width: 20%;">Fornecedor</th>
+                    <th style="width: 10%;">Vencimento</th>
+                    <th style="width: 10%;">Pagamento</th>
+                    <th style="width: 5%;">Compra Id</th>
+                    <th style="width: 10%;">Tipo de Pagamento</th>
+                    <th class="text-end" style="width: 10%;">Valor</th>
+                    <th style="width: 10%;">Status</th>
+                    <th style="min-width: 180px;">Opções</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${contaPagarPage == null or contaPagarPage.isEmpty()}">
+                    <td colspan="8" class="text-muted p-3">Nenhuma conta a pagar encontrada.</td>
+                </tr>
+                <tr th:each="conta : ${contaPagarPage.content}">
+                    <td th:text="${conta.id}"></td>
+                    <td class="text-start-md" th:text="${conta.fornecedor?.pesNome ?: 'N/A'}"></td>
+                    <td th:text="${conta.dataVencimento != null ? #temporals.format(conta.dataVencimento, 'dd/MM/yyyy') : 'N/A'}"></td>
+                    <td th:text="${conta.dataPagamento != null ? #temporals.format(conta.dataPagamento, 'dd/MM/yyyy') : '-'}"></td>
+                    <td th:text="${conta.compra.id}"></td>
+                    <td class="text-start-md" th:text="${conta.tipoPagamento?.descricao ?: 'N/A'}"></td>
+                    <td class="text-end"
+                        th:text="${conta.valor != null ? #numbers.formatCurrency(conta.valor) : 'R$ 0,00'}"></td>
+                    <td>
                         <span class="badge"
                               th:classappend="${#strings.equals(conta.status, 'PENDENTE') ? 'status-pendente' :
-                                               (#strings.equals(conta.status, 'PAGA') ? 'status-paga' :
-                                               (#strings.equals(conta.status, 'VENCIDA') ? 'status-vencida' :
-                                               (#strings.equals(conta.status, 'CANCELADA') ? 'status-cancelada' : 'bg-light text-dark')))}"
+                                               (#strings.equals(conta.status, 'PAGO') ? 'status-paga' :
+                                               (#strings.equals(conta.status, 'ATRASADO') ? 'status-vencida' :
+                                               (#strings.equals(conta.status, 'CANCELADO') ? 'status-cancelada' : 'bg-light text-dark')))}"
                               th:text="${conta.status?.descricao ?: conta.status}">
                         </span>
-                </td>
-                <td>
-                    <div class="d-flex justify-content-center gap-1 action-button-wrapper">
-                        <form th:if="${#strings.equals(conta.status, 'PENDENTE') or #strings.equals(conta.status, 'VENCIDA')}"
-                              th:action="@{/contas-pagar/registrar-pagamento/{id}(id=${conta.id})}" method="post" class="d-inline-block"
-                              onsubmit="return confirm('Confirmar pagamento desta conta?');">
-                            <button class="btn btn-success btn-sm" type="submit" title="Registrar Pagamento">
-                                <i class="bi bi-cash-coin"></i>
-                            </button>
-                        </form>
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                            <form th:if="${#strings.equals(conta.status, 'PENDENTE') or #strings.equals(conta.status, 'VENCIDA')}"
+                                  th:action="@{/contas-pagar/registrar-pagamento/{id}(id=${conta.id})}" method="post"
+                                  class="d-inline-block"
+                                  onsubmit="return confirm('Confirmar pagamento desta conta?');">
+                                <button class="btn btn-success btn-sm" type="submit" title="Registrar Pagamento">
+                                    <i class="bi bi-cash-coin"></i>
+                                </button>
+                            </form>
 
-                        <a th:href="@{/contas-pagar/visualizar/{id}(id=${conta.id})}" class="btn btn-light btn-sm" title="Visualizar Conta">
-                            <i class="bi bi-eye-fill"></i>
-                        </a>
-                        <form th:if="${#strings.equals(conta.status, 'PENDENTE')}"
-                              th:action="@{/contas-pagar/cancelar/{id}(id=${conta.id})}" method="post" class="d-inline-block"
-                              onsubmit="return confirm('Tem certeza que deseja CANCELAR esta conta a pagar?');">
-                            <button class="btn btn-danger btn-sm" type="submit" title="Cancelar Conta">
-                                <i class="bi bi-x-octagon-fill"></i>
-                            </button>
-                        </form>
+                            <a th:href="@{/contas-pagar/visualizar/{id}(id=${conta.id})}" class="btn btn-light btn-sm"
+                               title="Visualizar Conta">
+                                <i class="bi bi-eye-fill"></i>
+                            </a>
+                            <form th:if="${#strings.equals(conta.status, 'PENDENTE')}"
+                                  th:action="@{/contas-pagar/cancelar/{id}(id=${conta.id})}" method="post"
+                                  class="d-inline-block"
+                                  onsubmit="return confirm('Tem certeza que deseja CANCELAR esta conta a pagar?');">
+                                <button class="btn btn-danger btn-sm" type="submit" title="Cancelar Conta">
+                                    <i class="bi bi-x-octagon-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4" th:if="${contaPagarPage != null and contaPagarPage.totalPages > 1}">
+            <nav aria-label="Paginação da lista de contas a pagar">
+                <ul class="pagination justify-content-center">
+                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                        <a class="page-link"
+                           th:href="@{/contas-pagar(page=${currentPage - 1}, size=${contaPagarPage.size})}">Anterior</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, contaPagarPage.totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/contas-pagar(page=${i}, size=${contaPagarPage.size})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+                    <li th:classappend="${currentPage + 1 >= contaPagarPage.totalPages} ? 'disabled'" class="page-item">
+                        <a class="page-link"
+                           th:href="@{/contas-pagar(page=${currentPage + 1}, size=${contaPagarPage.size})}">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="mt-4">
+            <a class="btn btn-success" th:href="@{/contas-pagar/cadastro}">
+                <i class="bi bi-plus-circle"></i> Nova Conta a Pagar
+            </a>
+        </div>
+
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+             tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="staticBackdropLabel">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção: Caixa
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="mt-4" th:if="${contaPagarPage != null and contaPagarPage.totalPages > 1}">
-        <nav aria-label="Paginação da lista de contas a pagar">
-            <ul class="pagination justify-content-center">
-                <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/contas-pagar(page=${currentPage - 1}, size=${contaPagarPage.size})}">Anterior</a>
-                </li>
-                <li class="page-item"
-                    th:each="i : ${#numbers.sequence(0, contaPagarPage.totalPages - 1)}"
-                    th:classappend="${i == currentPage} ? 'active'">
-                    <a class="page-link" th:href="@{/contas-pagar(page=${i}, size=${contaPagarPage.size})}"
-                       th:text="${i + 1}"></a>
-                </li>
-                <li th:classappend="${currentPage + 1 >= contaPagarPage.totalPages} ? 'disabled'" class="page-item">
-                    <a class="page-link" th:href="@{/contas-pagar(page=${currentPage + 1}, size=${contaPagarPage.size})}">Próxima</a>
-                </li>
-            </ul>
-        </nav>
-    </div>
-
-    <div class="mt-4">
-        <a class="btn btn-success" th:href="@{/contas-pagar/cadastro}">
-            <i class="bi bi-plus-circle"></i> Nova Conta a Pagar
-        </a>
-    </div>
-
-    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
-         tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title" id="staticBackdropLabel">
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção: Caixa
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    Nenhum caixa aberto ou não há caixa aberto para a data de hoje.
-                    <br>
-                    Para registrar um pagamento, por favor, abra um caixa primeiro se necessário.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                    <a class="btn btn-primary" th:href="@{/caixa/cadastro}">
-                        <i class="bi bi-box-arrow-in-right me-1"></i>Abrir Caixa
-                    </a>
+                    <div class="modal-body">
+                        Nenhum caixa aberto ou não há caixa aberto para a data de hoje.
+                        <br>
+                        Para registrar um pagamento, por favor, abra um caixa primeiro se necessário.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        <a class="btn btn-primary" th:href="@{/caixa/cadastro}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Abrir Caixa
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</main>
+    </main>
 </div>
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>

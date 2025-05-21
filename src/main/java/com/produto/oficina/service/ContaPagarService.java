@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ContaPagarService {
 
@@ -21,5 +23,9 @@ public class ContaPagarService {
 
     public Page<ContaPagar> findAll(Pageable pageable) {
         return contaPagarRepository.findAll(pageable);
+    }
+
+    public List<ContaPagar> buscaContasByCompraId(Long id) {
+        return contaPagarRepository.findAllByCompra_Id(id);
     }
 }

@@ -73,7 +73,7 @@
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
-    <main class="d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-3">
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
         <h1 class="h3 mb-0">Registrar Nova Compra</h1>
 
         <ul class="nav nav-pills mb-3" id="myTab" role="tablist">
@@ -121,9 +121,11 @@
                                     </select>
                                 </div>
                                 <div class="col-md-5">
-                                    <label class="form-label" for="dataCompraInput">Data da Compra: <span
+                                    <label class="form-label" for="dataCompraInput">Data Abertura da Compra: <span
                                             class="text-danger">*</span></label>
-                                    <input type="datetime-local" class="form-control" id="dataCompraInput"
+                                    <input type="datetime-local"
+                                           class="form-control"
+                                           id="dataCompraInput"
                                            th:field="*{dataCompra}" required/>
                                 </div>
                             </div>
@@ -228,8 +230,8 @@
                                 <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
                                     <a class="btn btn-secondary"
                                        onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
-                                       th:hx-post="@{/compra/salvar-sem-finalizar}"> <i
-                                            class="bi bi-check-lg me-1"></i>Salvar sem finalizar
+                                       th:hx-post="@{/compra/salvar-sem-finalizar}">
+                                        <i class="bi bi-file-earmark me-1"></i>Salvar Rascunho
                                     </a>
                                     <a class="btn btn-danger" th:href="@{/compra}"> <i
                                             class="bi bi-x-circle me-1"></i>Cancelar
@@ -241,11 +243,13 @@
                 </div>
                 <div class="tab-pane fade" id="fechamentoTabPane" role="tabpanel" aria-labelledby="fechamentoTab-tab">
 
-                    <!--<div id="divErroParcelas" class="alert alert-danger alert-dismissible fade" role="alert">
-                        <strong>Erro!</strong> O número de parcelas deve ser entre 1 e 12, e o valor total da compra
-                        deve ser positivo.
+                    <div id="divErrosFechamento"
+                         th:if="${erros_fechamento}"
+                         class="alert alert-danger alert-dismissible"
+                         role="alert"
+                         th:text="${mensagem}">
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>-->
+                    </div>
 
                     <div class="card shadow-sm">
                         <div class="card-header bg-light py-3">
@@ -305,27 +309,12 @@
                                             type="button"
                                             onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
                                             th:hx-post="@{/compra/cadastro/gerar-parcelas}"
-
                                             hx-swap="innerHTML"
                                             hx-include="#numParcelas"
                                             hx-target="#parcelasGeradas">
                                         <i class="bi bi-check-lg me-1"></i>Gerar
                                     </button>
                                 </div>
-                                <!--_="on htmx:beforeRequest
-                                                                                    set valorNumerico to parseString(#valorTotalCompraTfoot.innerText)
-                                                                                    if (Number(#numParcelas.value) > 12) or
-                                                                                       (Number(#numParcelas.value) < 1) or
-                                                                                       (valorNumerico == 0) or
-                                                                                       (valorNumerico is NaN)
-                                                                                    then
-                                                                                        halt the event
-                                                                                        add .show to #divErroParcelas
-                                                                                        wait 2s
-                                                                                        remove .show from #divErroParcelas
-                                                                                    else
-                                                                                        remove .show from #divErroParcelas
-                                                                                    end"-->
                                 <div class="col-md-5">
                                     <label class="form-label" for="descProd">Observação:</label>
                                     <textarea class="form-control" style="resize: none;" id="descProd" rows="3"
@@ -338,10 +327,10 @@
                                         type="button"
                                         onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
                                         th:hx-post="@{/compra/salvar-sem-finalizar}">
-                                    <i class="bi bi-check-lg me-1"></i>Salvar sem finalizar
+                                    <i class="bi bi-file-earmark me-1"></i>Salvar Rascunho
                                 </button>
                                 <button class="btn btn-success"
-                                        onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
+                                        onclick="validaParcelas();"
                                         type="submit">
                                     <i class="bi bi-check-lg me-1"></i>Finalizar
                                 </button>
@@ -362,6 +351,17 @@
 <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
 <script src="https://unpkg.com/hyperscript.org@0.9.14"></script>
+<script th:if="${erros_fechamento}">
+    document.addEventListener('DOMContentLoaded', function () {
+        var myTab = new bootstrap.Tab(document.querySelector('#fechamentoTab-tab'));
+        myTab.show();
+        setTimeout(function () {
+            const alerta = document.querySelector('#divErrosFechamento');
+            if (alerta) alerta.remove();
+        }, 2000);
+    });
+</script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         aplicarMascaraValorCusto(); // Mantém para o campo valorCusto
@@ -420,6 +420,14 @@
             numParcelas.value = 1;
         }
         parcelas.innerHTML = '<option selected disabled>Parcelas...</option>';
+    }
+
+    function validaParcelas() {
+        formatarValorParaDecimal(document.getElementById('valorCusto'))
+        const parcelasGeradas = document.getElementById('parcelasGeradas');
+        if (parcelasGeradas.options.innerHTML === '<option selected disabled>Parcelas...</option>') {
+
+        }
     }
 
     function parseString(valorString) {

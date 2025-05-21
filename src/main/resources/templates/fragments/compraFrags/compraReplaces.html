@@ -5,8 +5,8 @@
 
 <!-- Lista de parcelas -->
 <option th:fragment="listaParcelas"
-        th:each="tipo : ${parcelas}"
-        th:text="${tipo}" selected disabled>
+        th:each="parcela, iter : ${compra.parcelas}"
+        th:text="${iter.count} + 'x' + ' de ' + ${#numbers.formatCurrency(parcela)}" selected disabled>
 </option>
 
 <!-- Lista de tipo de pagamento -->

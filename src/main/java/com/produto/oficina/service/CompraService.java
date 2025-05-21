@@ -2,10 +2,7 @@ package com.produto.oficina.service;
 
 import com.produto.oficina.dto.CompraDTO;
 import com.produto.oficina.model.*;
-import com.produto.oficina.model.enums.PlanoPagamento;
-import com.produto.oficina.model.enums.StatusCompra;
-import com.produto.oficina.model.enums.StatusConta;
-import com.produto.oficina.model.enums.TipoMovimentacao;
+import com.produto.oficina.model.enums.*;
 import com.produto.oficina.repository.CompraRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -29,12 +26,14 @@ public class CompraService {
     private final ProdutoService produtoService;
     private final CaixaService caixaService;
     private final ContaPagarService contaPagarService;
+    private final PessoaService pessoaService;
 
-    public CompraService(CompraRepository compraRepository, ProdutoService produtoService, CaixaService caixaService, ContaPagarService contaPagarService) {
+    public CompraService(CompraRepository compraRepository, ProdutoService produtoService, CaixaService caixaService, ContaPagarService contaPagarService, PessoaService pessoaService) {
         this.compraRepository = compraRepository;
         this.produtoService = produtoService;
         this.caixaService = caixaService;
         this.contaPagarService = contaPagarService;
+        this.pessoaService = pessoaService;
     }
 
     public Page<Compra> findAll(Pageable pageable) {
@@ -55,6 +54,7 @@ public class CompraService {
                     contaPagar.setCompra(novaCompra);
                     contaPagar.setFornecedor(novaCompra.getFornecedor());
                     contaPagar.setNumeroParcela(i);
+                    contaPagar.setTipoPagamento(novaCompra.getTipoPagamento());
                     contaPagar.setStatus(StatusConta.PENDENTE);
                     contaPagar.setTotalParcelas(novaCompra.getTotalParcelas());
                     contaPagar.setValorTotalOriginal(novaCompra.getValorTotal());
@@ -88,7 +88,7 @@ public class CompraService {
 
             novaCompra.setStatusCompra(StatusCompra.FINALIZADA);
             novaCompra.setDataCompraFinalizada(LocalDateTime.now());
-            compraRepository.save(novaCompra);
+            novaCompra = compraRepository.save(novaCompra);
 
             if (novaCompra.getPlanoPagamento().equals(PlanoPagamento.AVISTA)) {
                 MovimentacaoCaixa novoMovimento = new MovimentacaoCaixa();
@@ -108,6 +108,9 @@ public class CompraService {
 
     private Compra dtoToClass(CompraDTO compra) {
         Compra novaCompra = new Compra();
+        if (compra.getId() != null) {
+            novaCompra.setId(compra.getId());
+        }
         novaCompra.setDataCompra(compra.getDataCompra());
         novaCompra.setFornecedor(compra.getFornecedor());
         novaCompra.setPlanoPagamento(compra.getPlanoPagamento());
@@ -127,6 +130,29 @@ public class CompraService {
         Compra novaCompra = dtoToClass(compraDTO);
         novaCompra.setStatusCompra(StatusCompra.ABERTA);
         compraRepository.save(novaCompra);
+    }
+
+    public CompraDTO compraEdit(Long index) {
+        Optional<Compra> compraOptional = compraRepository.findById(index);
+        if (compraOptional.isPresent()) {
+            Compra compra = compraOptional.get();
+            CompraDTO compraDTO = new CompraDTO();
+            compraDTO.setId(compra.getId());
+            compraDTO.setDataCompra(compra.getDataCompra());
+            compraDTO.setFornecedor(compra.getFornecedor());
+            compraDTO.setPlanoPagamento(compra.getPlanoPagamento());
+            compraDTO.setTipoPagamento(compra.getTipoPagamento());
+            compraDTO.setValorTotal(compra.getValorTotal());
+            compraDTO.setObservacao(compra.getObservacao());
+            compraDTO.setStatusCompra(compra.getStatusCompra());
+            compraDTO.setItemCompraList(compra.getItens());
+            compraDTO.setTotalParcelas(compra.getTotalParcelas());
+            for (ItemCompra item : compra.getItens()) {
+                item.setCompra(compra);
+            }
+            return compraDTO;
+        }
+        return null;
     }
 
 
@@ -159,4 +185,54 @@ public class CompraService {
         compraDTO.getItemCompraList().add(novoItem);
     }
 
+    public void deleteCompraAbertaById(Long index) {
+        compraRepository.findById(index).ifPresent(compraRepository::delete);
+    }
+
+    @Transactional
+    public void cancelarCompra(Long id) {
+        compraRepository.findById(id).ifPresent(compra -> {
+            List<Produto> produtos = new ArrayList<>();
+            BigDecimal valorTotalMovCaixaCredito = BigDecimal.ZERO;
+            if (compra.getStatusCompra().equals(StatusCompra.FINALIZADA)) {
+                for (ContaPagar cp : compra.getContaPagars()) {
+                    if (cp.getStatus().equals(StatusConta.PAGO)) {
+                        if (cp.getTipoPagamento().equals(TipoPagamento.DINHEIRO) || cp.getTipoPagamento().equals(TipoPagamento.PIX)) {
+                            valorTotalMovCaixaCredito = valorTotalMovCaixaCredito.add(cp.getValor());
+                        }
+                    }
+                    cp.setStatus(StatusConta.CANCELADO);
+                }
+                for (ItemCompra item : compra.getItens()) {
+                    Produto prodAtual = produtoService.findById(item.getProduto().getId());
+                    prodAtual.setEstoque(prodAtual.getEstoque() - item.getQuantidade());
+                    produtos.add(prodAtual);
+                }
+            }
+            compra.getFornecedor().setPesCredito(compra.getFornecedor().getPesCredito().add(valorTotalMovCaixaCredito));
+            compra.setDataCompraCancelamento(LocalDateTime.now());
+            compra.setUsuarioCancelou(pessoaService.buscaUsuarioLogado());
+            compra.setStatusCompra(StatusCompra.CANCELADA);
+
+            produtoService.salvarTodos(produtos);
+            pessoaService.salvarEdit(compra.getFornecedor());
+            compraRepository.save(compra);
+            movimentaCaixaCompraCancelada(compra, valorTotalMovCaixaCredito);
+        });
+    }
+
+    public void movimentaCaixaCompraCancelada(Compra compra, BigDecimal valorTotalMovCaixa) {
+        Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
+        MovimentacaoCaixa mv = new MovimentacaoCaixa();
+        mv.setCaixa(caixaAtual);
+        mv.setTipo(TipoMovimentacao.ENTRADA);
+        mv.setValor(valorTotalMovCaixa);
+        mv.setDescricao("Devolução de crédito da compra de produtos realizada em " +
+                compra.getDataCompraFinalizada().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + ".");
+        mv.setDataMovimentacao(LocalDateTime.now());
+        mv.setOrigemId(compra.getId());
+        mv.setOrigemTipo("Cancelamento de compra de produtos.");
+        caixaAtual.getMovimentacoes().add(mv);
+        caixaService.salvarCaixaAposMovimento(caixaAtual);
+    }
 }

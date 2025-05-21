@@ -178,8 +178,8 @@ public class Caixa {
 
     public BigDecimal getCalculaSaldoEsperado() {
         BigDecimal saldoEsperado = this.getValorAbertura();
-        saldoEsperado = saldoEsperado.add(this.totalEntradasMovimentacoes);
-        saldoEsperado = saldoEsperado.subtract(this.totalSaidasMovimentacoes);
+        saldoEsperado = saldoEsperado.add(this.getValorTotalEntradas());
+        saldoEsperado = saldoEsperado.subtract(this.getValorTotalSaidas());
         return saldoEsperado;
     }
 

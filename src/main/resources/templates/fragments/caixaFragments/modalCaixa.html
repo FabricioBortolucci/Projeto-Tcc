@@ -23,7 +23,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form th:action="@{/caixa/cadastro/movimentarFundos}" method="post" th:object="${movimento}">
+                <form th:action="@{/caixa/editar/movimentarFundos}" method="post" th:object="${movimento}">
 
                     <div class="mb-3">
                         <label for="valorI" class="form-label" th:text="${modal_label ?: 'Valor:'}">Valor:</label>

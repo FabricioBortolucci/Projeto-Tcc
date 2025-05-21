@@ -57,7 +57,8 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
             "       p.pes_rg," +
             "       p.pes_genero," +
             "       p.pes_email," +
-            "       p.pes_fsc_jrc" +
+            "       p.pes_fsc_jrc," +
+            "       p.pes_credito" +
             " FROM pessoa p" +
             " WHERE p.pes_id = :id" +
             " ORDER BY p.pes_nome",

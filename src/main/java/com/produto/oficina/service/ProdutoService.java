@@ -51,4 +51,7 @@ public class ProdutoService {
         return produtoRepository.findByNomeContainingIgnoreCase(query);
     }
 
+    public void salvarTodos(List<Produto> produtos) {
+        produtoRepository.saveAll(produtos);
+    }
 }

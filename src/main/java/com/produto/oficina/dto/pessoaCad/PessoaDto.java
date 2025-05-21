@@ -7,6 +7,7 @@ import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -38,9 +39,11 @@ public class PessoaDto implements Serializable {
     @NotBlank(message = "O Email é obrigatório")
     String pesEmail;
     String pesFisicoJuridico;
+    BigDecimal pesCredito;
     List<EnderecoDto> enderecos;
     List<TelefoneDto> telefones;
 
+    // Listar Todos
     public PessoaDto(Long id, String pesNome, String pesCpfCnpj, String pesTipo, boolean pesAtivo, String pesEmail) {
         this.id = id;
         this.pesNome = pesNome;
@@ -50,7 +53,9 @@ public class PessoaDto implements Serializable {
         this.pesEmail = pesEmail;
     }
 
-    public PessoaDto(Long id, String pesNome, String pesCpfCnpj, String pesTipo, boolean pesAtivo, java.sql.Date pesDataNascimento, String pesRg, String pesGenero, String pesEmail, String pesFisicoJuridico) {
+
+    // Visualizacao
+    public PessoaDto(Long id, String pesNome, String pesCpfCnpj, String pesTipo, boolean pesAtivo, java.sql.Date pesDataNascimento, String pesRg, String pesGenero, String pesEmail, String pesFisicoJuridico, BigDecimal pesCredito) {
         this.id = id;
         this.pesNome = pesNome;
         this.pesCpfCnpj = pesCpfCnpj;
@@ -61,6 +66,7 @@ public class PessoaDto implements Serializable {
         this.pesGenero = pesGenero;
         this.pesEmail = pesEmail;
         this.pesFisicoJuridico = pesFisicoJuridico;
+        this.pesCredito = pesCredito;
     }
 
     public String getPesDataNascimentoFormatada() {

@@ -170,6 +170,14 @@ public class PessoaService {
         return null;
     }
 
+    public Usuario buscaUsuarioLogado() {
+        String username = getUsuarioLogadoUsername();
+        if (username != null) {
+            return usuarioRepository.findUsuarioByUsuNome(username);
+        }
+        return null;
+    }
+
     public Pessoa buscaPessoaLogada() {
         String username = getUsuarioLogadoUsername();
         if (username != null) {
@@ -180,5 +188,9 @@ public class PessoaService {
             }
         }
         return null;
+    }
+
+    public void salvarEdit(Pessoa pessoa) {
+        repository.save(pessoa);
     }
 }

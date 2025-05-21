@@ -8,6 +8,7 @@ import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,4 +82,13 @@ public class Compra {
         }
         return valorTotal;
     }
+
+    public List<BigDecimal> getValoresParcelas() {
+        List<BigDecimal> valoresParcelas = new ArrayList<>();
+        for (int i = 0; i < totalParcelas; i++) {
+            valoresParcelas.add(this.getValorTotalItens().divide(new BigDecimal(totalParcelas), RoundingMode.HALF_UP));
+        }
+        return valoresParcelas;
+    }
+
 }
