@@ -38,8 +38,8 @@
     <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
         <h1 class="h3 mb-4">Lista de Pessoas</h1>
 
-        <div th:if="${pessoa_cadastrada_mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${pessoa_cadastrada_mensagem}">Pessoa salva com sucesso!</span>
+        <div th:if="${pessoa_cadastrada}" class="alert alert-success alert-dismissible" role="alert">
+            Pessoa salva com sucesso!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
         <div class="table-responsive">

@@ -39,8 +39,9 @@
     <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
         <h1 class="h3 mb-4">Lista de Serviços</h1>
 
-        <div th:if="${servico_cadastrado_mensagem}" class="alert alert-success alert-dismissible fade show" role="alert"
-             th:text="${servico_cadastrado_mensagem}">
+        <div th:if="${service_cadastrado}" class="alert alert-success alert-dismissible" role="alert">
+            Serviço cadastrado com sucesso!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
 
         <div class="table-responsive">

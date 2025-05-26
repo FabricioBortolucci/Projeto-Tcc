@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class UsuarioController {
@@ -48,8 +49,9 @@ public class UsuarioController {
     }
 
     @PostMapping("usuario/cadastrar")
-    private String salvarUsuario(@ModelAttribute UsuarioDTO usuario) {
+    private String salvarUsuario(@ModelAttribute UsuarioDTO usuario, RedirectAttributes redirectAttributes) {
         usuarioService.cadastrarUsuario(usuario);
+        redirectAttributes.addFlashAttribute("usuario_cadastrado", true);
         return "redirect:/usuario";
     }
 

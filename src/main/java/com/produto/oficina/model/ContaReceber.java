@@ -27,6 +27,9 @@ public class ContaReceber {
     @Column(name = "conta_receber_valor")
     private BigDecimal valor;
 
+    @Column(name = "conta_receber_valorRecebido")
+    private BigDecimal valorRecebido;
+
     @Column(name = "conta_receber_data_vencimento")
     private LocalDate dataVencimento;
 
@@ -59,4 +62,7 @@ public class ContaReceber {
 
     @OneToMany(mappedBy = "contaReceber")
     private List<MovimentacaoCaixa> movimentacoes;
+
+    @Column(name = "cr_observacao")
+    private String observacao;
 }

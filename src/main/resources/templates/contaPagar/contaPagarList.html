@@ -73,7 +73,7 @@
         <h1 class="h3 mb-4">Lista de Contas a Pagar</h1>
 
         <div th:if="${conta_paga_mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${conta_paga_mensagem}">Ação realizada com sucesso!</span>
+            <span th:text="${mensagem}">Ação realizada com sucesso!</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
 
@@ -86,6 +86,7 @@
                     <th style="width: 5%;">Id</th>
                     <th class="text-start-md" style="width: 20%;">Fornecedor</th>
                     <th style="width: 10%;">Vencimento</th>
+                    <th style="width: 10%;">Número Parcela</th>
                     <th style="width: 10%;">Pagamento</th>
                     <th style="width: 5%;">Compra Id</th>
                     <th style="width: 10%;">Tipo de Pagamento</th>
@@ -102,6 +103,7 @@
                     <td th:text="${conta.id}"></td>
                     <td class="text-start-md" th:text="${conta.fornecedor?.pesNome ?: 'N/A'}"></td>
                     <td th:text="${conta.dataVencimento != null ? #temporals.format(conta.dataVencimento, 'dd/MM/yyyy') : 'N/A'}"></td>
+                    <td th:text="${conta.numeroParcela}"></td>
                     <td th:text="${conta.dataPagamento != null ? #temporals.format(conta.dataPagamento, 'dd/MM/yyyy') : '-'}"></td>
                     <td th:text="${conta.compra.id}"></td>
                     <td class="text-start-md" th:text="${conta.tipoPagamento?.descricao ?: 'N/A'}"></td>
@@ -119,9 +121,8 @@
                     <td>
                         <div class="d-flex justify-content-center gap-1 action-button-wrapper">
                             <form th:if="${#strings.equals(conta.status, 'PENDENTE') or #strings.equals(conta.status, 'VENCIDA')}"
-                                  th:action="@{/contas-pagar/registrar-pagamento/{id}(id=${conta.id})}" method="post"
-                                  class="d-inline-block"
-                                  onsubmit="return confirm('Confirmar pagamento desta conta?');">
+                                  th:action="@{/contas-pagar/registrar-pagamento/{id}(id=${conta.id})}" method="get"
+                                  class="d-inline-block">
                                 <button class="btn btn-success btn-sm" type="submit" title="Registrar Pagamento">
                                     <i class="bi bi-cash-coin"></i>
                                 </button>
@@ -197,13 +198,32 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="modalPagamento" data-bs-backdrop="static" data-bs-keyboard="false"
+             tabindex="-1" aria-labelledby="modalPagamentoLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="modalPagamentoLabel">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção: Parcela
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Parcela já paga ou a parcela anterior está com pendências de pagamento.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
 <script th:if="${mostrarModal}" th:inline="javascript">
-    /*<![CDATA[*/
     document.addEventListener("DOMContentLoaded", function () {
         var backdropModalElement = document.getElementById('staticBackdrop');
         if (backdropModalElement) {
@@ -211,7 +231,15 @@
             staticBackdropModal.show();
         }
     });
-    /*]]>*/
+</script>
+<script th:if="${mostrarModalPagamento}" th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function () {
+        let modal = document.getElementById('modalPagamento');
+        if (modal) {
+            let modalPag = new bootstrap.Modal(modal);
+            modalPag.show();
+        }
+    });
 </script>
 </body>
 </html>

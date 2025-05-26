@@ -110,7 +110,6 @@ public class PessoaService {
         pessoa.setPesTipo(pessoaDto.getPesTipo());
         pessoa.setPesAtivo(true);
         pessoa.setPesFisicoJuridico(pessoaDto.getPesFisicoJuridico());
-        pessoa.setPesRg(pessoaDto.getPesRg());
 
         return pessoa;
     }

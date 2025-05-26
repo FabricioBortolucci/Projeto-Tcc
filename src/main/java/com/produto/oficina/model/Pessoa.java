@@ -64,9 +64,6 @@ public class Pessoa {
     @Column(name = "pes_data_nascimento")
     private LocalDate pesDataNascimento;
 
-    @Column(name = "pes_rg", length = 20)
-    private String pesRg;
-
     @Column(name = "pes_genero")
     private String pesGenero;
 

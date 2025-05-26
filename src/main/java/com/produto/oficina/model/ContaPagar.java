@@ -4,6 +4,9 @@ import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoPagamento;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SortComparator;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -13,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-public class ContaPagar {
+public class ContaPagar implements Comparable<ContaPagar> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,6 +25,9 @@ public class ContaPagar {
 
     @Column(name = "conta_pagar_valor")
     private BigDecimal valor;
+
+    @Column(name = "conta_pagar_valorpago")
+    private BigDecimal valorPago;
 
     @Column(name = "conta_pagar_data_vencimento")
     private LocalDate dataVencimento;
@@ -55,4 +61,28 @@ public class ContaPagar {
 
     @OneToMany(mappedBy = "contaPagar", cascade = CascadeType.ALL)
     private List<MovimentacaoCaixa> movimentacoes;
+
+    @Column(name = "cp_observacao")
+    private String observacao;
+
+    public ContaPagar(Long id, BigDecimal valor, LocalDate dataVencimento, LocalDate dataPagamento, Integer numeroParcela, Integer totalParcelas, BigDecimal valorTotalOriginal, TipoPagamento tipoPagamento, StatusConta status, Pessoa fornecedor, Compra compra, String observacao) {
+        this.id = id;
+        this.valor = valor;
+        this.valorPago = valor;
+        this.dataVencimento = dataVencimento;
+        this.dataPagamento = dataPagamento;
+        this.numeroParcela = numeroParcela;
+        this.totalParcelas = totalParcelas;
+        this.valorTotalOriginal = valorTotalOriginal;
+        this.tipoPagamento = tipoPagamento;
+        this.status = status;
+        this.fornecedor = fornecedor;
+        this.compra = compra;
+        this.observacao = observacao;
+    }
+
+    @Override
+    public int compareTo(ContaPagar o) {
+        return 0;
+    }
 }

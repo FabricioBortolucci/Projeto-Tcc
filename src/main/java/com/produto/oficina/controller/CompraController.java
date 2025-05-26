@@ -1,6 +1,5 @@
 package com.produto.oficina.controller;
 
-import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.dto.CompraDTO;
 import com.produto.oficina.model.Compra;
 import com.produto.oficina.model.Produto;
@@ -10,7 +9,6 @@ import com.produto.oficina.service.CaixaService;
 import com.produto.oficina.service.CompraService;
 import com.produto.oficina.service.PessoaService;
 import com.produto.oficina.service.ProdutoService;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -25,7 +23,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.List;
 
 @Controller
 @RequestMapping("/compra")

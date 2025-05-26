@@ -54,7 +54,6 @@ public class CompraService {
                     contaPagar.setCompra(novaCompra);
                     contaPagar.setFornecedor(novaCompra.getFornecedor());
                     contaPagar.setNumeroParcela(i);
-                    contaPagar.setTipoPagamento(novaCompra.getTipoPagamento());
                     contaPagar.setStatus(StatusConta.PENDENTE);
                     contaPagar.setTotalParcelas(novaCompra.getTotalParcelas());
                     contaPagar.setValorTotalOriginal(novaCompra.getValorTotal());
@@ -70,7 +69,6 @@ public class CompraService {
                 contaPagar.setFornecedor(novaCompra.getFornecedor());
                 contaPagar.setNumeroParcela(1);
                 contaPagar.setStatus(StatusConta.PAGO);
-                contaPagar.setTipoPagamento(novaCompra.getTipoPagamento());
                 contaPagar.setTotalParcelas(novaCompra.getTotalParcelas());
                 contaPagar.setValorTotalOriginal(novaCompra.getValorTotal());
                 contaPagar.setValor(novaCompra.getValorTotal());
@@ -193,23 +191,26 @@ public class CompraService {
     public void cancelarCompra(Long id) {
         compraRepository.findById(id).ifPresent(compra -> {
             List<Produto> produtos = new ArrayList<>();
-            BigDecimal valorTotalMovCaixaCredito = BigDecimal.ZERO;
+            BigDecimal valorTotalCredito = BigDecimal.ZERO;
             if (compra.getStatusCompra().equals(StatusCompra.FINALIZADA)) {
                 for (ContaPagar cp : compra.getContaPagars()) {
                     if (cp.getStatus().equals(StatusConta.PAGO)) {
-                        if (cp.getTipoPagamento().equals(TipoPagamento.DINHEIRO) || cp.getTipoPagamento().equals(TipoPagamento.PIX)) {
-                            valorTotalMovCaixaCredito = valorTotalMovCaixaCredito.add(cp.getValor());
-                        }
+                        valorTotalCredito = valorTotalCredito.add(cp.getValor());
+                        cp.setStatus(StatusConta.CANCELADO_CREDITO);
+                    } else {
+                        cp.setStatus(StatusConta.CANCELADO);
                     }
-                    cp.setStatus(StatusConta.CANCELADO);
                 }
                 for (ItemCompra item : compra.getItens()) {
                     Produto prodAtual = produtoService.findById(item.getProduto().getId());
                     prodAtual.setEstoque(prodAtual.getEstoque() - item.getQuantidade());
+                    if (prodAtual.getEstoque() < 0) {
+                        prodAtual.setEstoque(0);
+                    }
                     produtos.add(prodAtual);
                 }
             }
-            compra.getFornecedor().setPesCredito(compra.getFornecedor().getPesCredito().add(valorTotalMovCaixaCredito));
+            compra.getFornecedor().setPesCredito(compra.getFornecedor().getPesCredito().add(valorTotalCredito));
             compra.setDataCompraCancelamento(LocalDateTime.now());
             compra.setUsuarioCancelou(pessoaService.buscaUsuarioLogado());
             compra.setStatusCompra(StatusCompra.CANCELADA);
@@ -217,22 +218,6 @@ public class CompraService {
             produtoService.salvarTodos(produtos);
             pessoaService.salvarEdit(compra.getFornecedor());
             compraRepository.save(compra);
-            movimentaCaixaCompraCancelada(compra, valorTotalMovCaixaCredito);
         });
-    }
-
-    public void movimentaCaixaCompraCancelada(Compra compra, BigDecimal valorTotalMovCaixa) {
-        Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
-        MovimentacaoCaixa mv = new MovimentacaoCaixa();
-        mv.setCaixa(caixaAtual);
-        mv.setTipo(TipoMovimentacao.ENTRADA);
-        mv.setValor(valorTotalMovCaixa);
-        mv.setDescricao("Devolução de crédito da compra de produtos realizada em " +
-                compra.getDataCompraFinalizada().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + ".");
-        mv.setDataMovimentacao(LocalDateTime.now());
-        mv.setOrigemId(compra.getId());
-        mv.setOrigemTipo("Cancelamento de compra de produtos.");
-        caixaAtual.getMovimentacoes().add(mv);
-        caixaService.salvarCaixaAposMovimento(caixaAtual);
     }
 }

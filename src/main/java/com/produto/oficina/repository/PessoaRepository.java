@@ -54,7 +54,6 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
             "       p.pes_tipo," +
             "       p.pes_ativo," +
             "       CAST(p.pes_data_nascimento AS date) as pes_data_nascimento," +
-            "       p.pes_rg," +
             "       p.pes_genero," +
             "       p.pes_email," +
             "       p.pes_fsc_jrc," +

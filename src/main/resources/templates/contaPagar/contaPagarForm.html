@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Nova Compra - Oficina</title>
+    <title th:text="'Registrar Pagamento - Conta #' + ${contaPagar?.id ?: ''} + ' - Oficina'">Registrar
+        Pagamento</title>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
-    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/base.min.css}"/>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/choices.min.css}"/>
     <style>
         body {
@@ -18,29 +18,22 @@
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
         }
 
-        .table th, .table td {
-            vertical-align: middle;
-            text-align: center;
+        .details-dl dt {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
-        .table-dark .badge.bg-light {
-            color: #000 !important;
+        @media (min-width: 576px) {
+            .details-dl dt {
+                margin-bottom: 0;
+            }
         }
 
-        .action-button-wrapper .btn {
-            padding: 0.25rem 0.5rem;
-            font-size: 0.875rem;
+        .details-dl dd {
+            margin-bottom: 0.75rem;
         }
 
-        .action-button-wrapper .bi {
-            vertical-align: text-bottom;
-        }
-
-        .tab-content > .tab-pane {
-            padding-top: 1.5rem;
-        }
-
-        /* Estilo para Choices.js se alinhar melhor com Bootstrap */
+        /* Estilos para Choices.js (se usado) */
         .choices {
             margin-bottom: 0;
         }
@@ -59,286 +52,146 @@
             box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
         }
 
-        .choices__list--dropdown {
-            background-color: var(--bs-body-bg);
-            border-color: var(--bs-border-color);
+        .status-pendente {
+            background-color: var(--bs-warning-bg-subtle) !important;
+            color: var(--bs-warning-text-emphasis) !important;
+            border: 1px solid var(--bs-warning-border-subtle) !important;
         }
 
-        .choices__item--choice {
-            padding: .5rem 1rem;
+        .status-vencida {
+            background-color: var(--bs-danger-bg-subtle) !important;
+            color: var(--bs-danger-text-emphasis) !important;
+            border: 1px solid var(--bs-danger-border-subtle) !important;
         }
+
     </style>
-
 </head>
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
-        <h1 class="h3 mb-0">Registrar Nova Compra</h1>
+        <div>
+            <h1 class="h3 mb-0"
+                th:text="'Registrar Pagamento da Conta a Pagar' + (${contaPagar?.id} ? ' #' + ${contaPagar.id} : '')"></h1>
+        </div>
 
-        <ul class="nav nav-pills mb-3" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="fornecedor-tab" data-bs-toggle="tab"
-                        data-bs-target="#fornecedorTabPane"
-                        type="button" role="tab" aria-controls="fornecedorTabPane" aria-selected="true">
-                    <i class="bi bi-truck me-1"></i> Fornecedor e Produtos
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="fechamentoTab-tab" data-bs-toggle="tab" data-bs-target="#fechamentoTabPane"
-                        type="button" role="tab" aria-controls="fechamentoTabPane" aria-selected="false"
-                        th:hx-get="@{/compra/cadastro/valor-total}"
-                        hx-trigger="click"
-                        hx-target="#valorTotal"
-                        hx-swap="outerHTML">
-                    <i class="bi bi-receipt-cutoff me-1"></i> Finalização
-                </button>
-            </li>
-        </ul>
-
-        <form th:action="@{/compra/cadastrar}" method="post" th:object="${compra}" id="formPrincipalCompra">
+        <form th:action="@{/contas-pagar/confirmar-pagamento}" method="post"
+              th:object="${contaPagar}" id="formRegistrarPagamento"
+              onsubmit="desmascararValoresPagamento(); return true;">
             <input type="hidden" th:field="*{id}"/>
-
-            <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade show active" id="fornecedorTabPane" role="tabpanel"
-                     aria-labelledby="fornecedor-tab">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-light py-3">
-                            <h5 class="mb-0 fw-semibold">Informações da Compra e Itens</h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <div class="row g-3">
-                                <div class="col-md-7">
-                                    <label class="form-label" for="fornecedorInput">Fornecedor:
-                                        <span class="text-danger">*</span></label>
-                                    <select class="form-select"
-                                            id="fornecedorInput"
-                                            th:field="*{fornecedor}" required>
-                                        <option value="" selected>Selecione um fornecedor...</option>
-                                        <option th:each="f : ${fornecedores_compra}"
-                                                th:value="${f.id}"
-                                                th:text="${f.pesNome}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-5">
-                                    <label class="form-label" for="dataCompraInput">Data da Compra: <span
-                                            class="text-danger">*</span></label>
-                                    <input type="datetime-local" class="form-control" id="dataCompraInput"
-                                           th:field="*{dataCompra}" required/>
-                                </div>
-                            </div>
-
-                            <hr class="my-4">
-                            <h6 class="mb-3 fw-semibold">Adicionar Produtos à Compra:</h6>
-                            <div class="row g-3">
-                                <div class="col-md-5">
-                                    <label for="prodSelect" class="form-label">Produto:</label>
-                                    <select id="prodSelect"
-                                            class="form-select"
-                                            name="prodId"
-                                            th:hx-get="@{/compra/produto/buscar-precoProd}"
-                                            hx-swap="outerHTML"
-                                            hx-target="#valorProduto">
-                                        <option value="" selected disabled>Selecione um produto...</option>
-                                        <option th:each="prod : ${produtos}"
-                                                th:value="${prod.id}"
-                                                th:text="${prod.nome}"></option>
-                                    </select>
-                                </div>
-                                <div id="valorProduto" class="col-md-3">
-                                    <label class="form-label" for="valorCusto">Valor Custo (Un.):</label>
-                                    <input type="text" class="form-control" id="valorCusto"
-                                           th:field="*{valorUnitarioItens}"
-                                           name="valorCusto"
-                                           placeholder="0,00">
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label" for="quantidade">Quantidade:</label>
-                                    <input type="number"
-                                           th:field="*{quantItens}"
-                                           class="form-control" id="quantidade" name="quantidade" required>
-                                </div>
-
-                                <div class="col-md-2 d-flex align-items-center" style="margin-top: 1.5rem;">
-                                    <button type="button"
-                                            class="btn btn-primary w-100"
-                                            id="btnAddProduto"
-                                            onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
-                                            th:hx-post="@{/compra/cadastro/adicionar-item}"
-                                            hx-include="#prodSelect, #quantidade, #valorCusto"
-                                            hx-swap="outerHTML"
-                                            hx-target="#prodTable"
-                                            _="on htmx:afterRequest set the innerHTML of #parcelasGeradas
-                                            to '<option selected disabled>Parcelas...</option>' then set the value of #numParcelas to 1">
-                                        <i class="bi bi-plus-circle-fill me-1"></i> Adicionar
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                            <div class="table-responsive mt-4">
-                                <table id="prodTable"
-                                       class="table table-dark table-striped table-hover table-bordered table-sm caption-top">
-                                    <caption class="fs-6">Produtos Adicionados à Compra</caption>
-                                    <thead>
-                                    <tr>
-                                        <th style="width:10%">Id Produto</th>
-                                        <th>Nome</th>
-                                        <th class="text-center">Preço Custo</th>
-                                        <th class="text-center">Quantidade</th>
-                                        <th class="text-center">Subtotal</th>
-                                        <th class="text-center">Opções</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr th:each="item : ${compra.itemCompraList}">
-                                        <td th:text="${item.id}"></td>
-                                        <td th:text="${item.produto.nome}"></td>
-                                        <td th:text="${#numbers.formatCurrency(item.valorUnitario)}"></td>
-                                        <td th:text="${item.quantidade}"></td>
-                                        <td th:text="${#numbers.formatCurrency(item.subTotal)}"></td>
-                                        <td>
-                                            <div class="d-flex justify-content-center gap-1 action-button-wrapper">
-                                                <button class="btn btn-danger btn-sm" title="Remover Item"
-                                                        th:hx-delete="@{/compra/cadastro/remover-item}"
-                                                        _="on htmx:afterRequest
-                                                            set the innerHTML of #parcelasGeradas to '<option selected disabled>Parcelas...</option>'
-                                                            then set the value of #numParcelas to 1"
-                                                        hx-target="#prodTable"
-                                                        hx-swap="outerHTML">
-                                                    <i class="bi bi-trash-fill"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    </tbody>
-                                    <tfoot>
-                                    <tr>
-                                        <td colspan="4" class="text-end fw-bold">Valor Total da Compra:</td>
-                                        <td id="valorTotalCompraTfoot" class="text-end fw-bold"
-                                            th:text="${compra.calculaValorTotalItens != null ?
-                                            #numbers.formatCurrency(compra.calculaValorTotalItens) : #numbers.formatCurrency(0.0)}">
-                                        </td>
-                                        <td></td>
-                                    </tr>
-                                    </tfoot>
-                                </table>
-
-                                <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                                    <a class="btn btn-secondary" th:href="@{/compra}"> <i
-                                            class="bi bi-x-circle me-1"></i>Cancelar
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0 fw-semibold">Detalhes da Conta a Ser Paga</h5>
                 </div>
-                <div class="tab-pane fade" id="fechamentoTabPane" role="tabpanel" aria-labelledby="fechamentoTab-tab">
+                <div class="card-body p-4">
+                    <dl class="row details-dl">
 
-                    <div id="divErroParcelas" class="alert alert-danger alert-dismissible fade" role="alert">
-                        <strong>Erro!</strong> O número de parcelas deve ser entre 1 e 12, e o valor total da compra
-                        deve ser positivo.
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <dt class="col-sm-3">Fornecedor:</dt>
+                        <dd class="col-sm-9" th:text="*{fornecedor?.pesNome ?: 'N/A'}"></dd>
+
+                        <dt class="col-sm-3">Data de Vencimento:</dt>
+                        <dd class="col-sm-9"
+                            th:text="*{dataVencimento != null ? #temporals.format(dataVencimento, 'dd/MM/yyyy') : 'N/A'}"></dd>
+
+                        <dt class="col-sm-3">Valor Original:</dt>
+                        <dd class="col-sm-9 fw-semibold"
+                            th:text="*{valor != null ? #numbers.formatCurrency(valor) : 'R$ 0,00'}"></dd>
+
+                        <th:block th:if="*{totalParcelas != null and totalParcelas > 0}">
+                            <dt class="col-sm-3">Parcela:</dt>
+                            <dd class="col-sm-9" th:text="*{numeroParcela + ' de ' + totalParcelas}"></dd>
+                        </th:block>
+
+                        <dt class="col-sm-3">Status Atual:</dt>
+                        <dd class="col-sm-9">
+                            <span class="fs-6" th:text="*{status?.descricao}"></span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white py-3"><h5 class="mb-0 fw-semibold"><i
+                        class="bi bi-credit-card-fill me-2"></i>Informações do Pagamento</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="dataPagamento" class="form-label">Data do Pagamento: <span
+                                    class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="dataPagamento" th:field="*{dataPagamento}"
+                                   required/>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('dataPagamento')}"
+                                 th:errors="*{dataPagamento}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="valorPago" class="form-label">Valor Pago:
+                                <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="text" class="form-control" id="valorPago" th:field="*{valorPago}"
+                                       placeholder="0,00" required/>
+                            </div>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('valorPago')}"
+                                 th:errors="*{valorPago}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="tipoPagamentoUtilizado" class="form-label">Tipo de Pagamento Utilizado:
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select id="tipoPagamentoUtilizado"
+                                    class="form-select"
+                                    th:field="*{tipoPagamento}"
+                                    required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option th:each="tp : ${tipoPagamento}"
+                                        th:value="${tp}" th:text="${tp.descricao}"></option>
+                            </select>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('tipoPagamento')}"
+                                 th:errors="*{tipoPagamento}"></div>
+                        </div>
+
+                        <div class="col-md-4" th:if="${caixaAberto != null}">
+                            <label for="caixaAbertoDisplay" class="form-label">
+                                Caixa Utilizado:
+                                <i class="bi bi-question-circle-fill ms-1 text-primary"
+                                   style="font-size: 0.9rem; cursor: help;"
+                                   data-bs-toggle="tooltip"
+                                   data-bs-placement="top"
+                                   title="O caixa é utilizado para registrar pagamentos em Dinheiro ou PIX diretamente. Para outros tipos, a conciliação pode ser bancária."></i>
+                            </label>
+                            <input type="text" class="form-control" id="caixaAbertoDisplay"
+                                   th:value="'Caixa #' + ${caixaAberto.id} + ' (Aberto em: ' + ${#temporals.format(caixaAberto.dataAbertura, 'dd/MM HH:mm')} + ')'"
+                                   disabled readonly />
+                            <input type="hidden" name="caixaId" id="hiddenCaixaId" th:if="${caixaAberto.id != null}" th:value="${caixaAberto.id}" />
+                        </div>
+                        <div class="col-md-4" th:if="${caixaAberto == null}">
+                            <label class="form-label">Caixa:</label>
+                            <input type="text" class="form-control" value="Nenhum caixa aberto" disabled readonly />
+                        </div>
+
+
+                        <div class="col-12">
+                            <label for="observacaoPagamento" class="form-label">Observações do Pagamento:</label>
+                            <textarea class="form-control"
+                                      id="observacaoPagamento"
+                                      th:field="*{observacao}"
+                                      rows="3"
+                                      style="resize: none;">
+                            </textarea>
+                        </div>
                     </div>
 
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-light py-3">
-                            <h5 class="mb-0 fw-semibold">Observações e Finalização</h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <h3 id="valorTotal"
-                                th:text="'Valor total da compra: ' +
-                            ${compra.calculaValorTotalItens != null
-                            ? #numbers.formatCurrency(compra.calculaValorTotalItens) : 'R$ 0,00'}"></h3>
-
-                            <hr class="my-4">
-                            <div class="row g-3">
-                                <div class="col-md-5">
-                                    <label for="planoPag" class="form-label">Plano Pagamento:</label>
-                                    <select id="planoPag"
-                                            class="form-select"
-                                            th:field="*{planoPagamento}"
-                                            th:hx-get="@{/compra/cadastro/buscar-planoPag}"
-                                            hx-on::after-request="alteraCampoTotalParcelas();"
-                                            hx-trigger="load, change"
-                                            hx-target="#tipoPag" required>
-                                        <option value="" selected disabled>Selecione um plano...</option>
-                                        <option th:each="plano : ${planos_pagamento}"
-                                                th:value="${plano}"
-                                                th:text="${plano.descricao}"></option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-4">
-                                    <label for="tipoPag" class="form-label">Tipo Pagamento:</label>
-                                    <select id="tipoPag"
-                                            class="form-select"
-                                            th:field="*{tipoPagamento}">
-                                        <option value="" selected disabled>Selecione um plano...</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label class="form-label" for="numParcelas">Número de parcelas:</label>
-                                    <input type="number"
-                                           th:field="*{totalParcelas}"
-                                           class="form-control" id="numParcelas" required>
-                                </div>
-
-
-                                <div class="col-md-2">
-                                    <label for="parcelasGeradas" class="form-label">Parcelas:</label>
-                                    <select id="parcelasGeradas"
-                                            class="form-select">
-                                        <option value="" selected disabled>Parcelas...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-1 d-flex align-items-center mt-0" style="height: 133px;">
-                                    <button id="botaoGerar"
-                                            class="btn btn-primary"
-                                            type="button"
-                                            onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
-                                            th:hx-post="@{/compra/cadastro/gerar-parcelas}"
-                                            _="on htmx:beforeRequest
-                                                    set valorNumerico to parseString(#valorTotalCompraTfoot.innerText)
-                                                    if (Number(#numParcelas.value) > 12) or
-                                                       (Number(#numParcelas.value) < 1) or
-                                                       (valorNumerico == 0) or
-                                                       (valorNumerico is NaN)
-                                                    then
-                                                        halt the event
-                                                        add .show to #divErroParcelas
-                                                        wait 2s
-                                                        remove .show from #divErroParcelas
-                                                    else
-                                                        remove .show from #divErroParcelas
-                                                    end"
-                                            hx-swap="innerHTML"
-                                            hx-include="#numParcelas"
-                                            hx-target="#parcelasGeradas">
-                                        <i class="bi bi-check-lg me-1"></i>Gerar
-                                    </button>
-                                </div>
-
-                                <div class="col-md-5">
-                                    <label class="form-label" for="descProd">Observação:</label>
-                                    <textarea class="form-control" style="resize: none;" id="descProd" rows="3"
-                                              th:field="*{observacao}"></textarea>
-                                </div>
-                            </div>
-
-                            <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                                <button class="btn btn-success"
-                                        onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
-                                        type="submit">
-                                    <i class="bi bi-check-lg me-1"></i>Salvar Compra
-                                </button>
-                                <a class="btn btn-secondary" th:href="@{/compra}">
-                                    <i class="bi bi-x-circle me-1"></i>Cancelar
-                                </a>
-                            </div>
-                        </div>
+                    <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                        <a class="btn btn-outline-secondary"
+                           th:href="@{/contas-pagar}">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar
+                        </a>
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-check-lg me-1"></i>Confirmar Pagamento
+                        </button>
                     </div>
                 </div>
             </div>
@@ -349,77 +202,62 @@
 <script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
-<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
-<script src="https://unpkg.com/hyperscript.org@0.9.14"></script>
-<script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function aplicarMascaraComVerificacao(elementId, options) {
+        const el = document.getElementById(elementId);
+        if (el && typeof VMasker === "function" && !el.classList.contains('vm-masked-payment')) {
+            VMasker(el).maskMoney(options || {unit: 'R$', precision: 2, thousands: '.', decimal: ','});
+            el.classList.add('vm-masked-payment');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-        aplicarMascaraValorCusto(); // Mantém para o campo valorCusto
-        const selectF = document.getElementById('fornecedorInput');
-        const choicesF = new Choices(selectF, {
-            searchEnabled: true,
-            itemSelectText: '',
-            placeholder: true,
-            searchPlaceholderValue: 'Buscar Fornecedor...'
-        });
-        const prodSelect = document.getElementById('prodSelect');
-        const prodSelectChoices = new Choices(prodSelect, {
-            searchEnabled: true,
-            itemSelectText: '',
-            placeholder: true,
-            placeholderValue: 'Selecione um produto',
+        aplicarMascaraComVerificacao('valorPago');
+        aplicarMascaraComVerificacao('jurosMulta');
+        aplicarMascaraComVerificacao('desconto');
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
 
-
-    });
-
-    function aplicarMascaraValorCusto() {
-        const valorCustoInput = document.getElementById('valorCusto');
-        if (valorCustoInput) {
-            VMasker(valorCustoInput).maskMoney({
-                unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',', // Ajustado para padrão brasileiro comum
-                delimiter: '.', affixesStay: false, allowZero: true, allowNegative: false, precision: 2 // allowNegative: false é mais comum para custo
+        // Inicializa Choices.js para selects, se presentes
+        const tipoPagSelect = document.getElementById('tipoPagamentoUtilizado');
+        if (tipoPagSelect && typeof Choices === "function") {
+            new Choices(tipoPagSelect, {searchEnabled: false, itemSelectText: ''});
+        }
+        const caixaSelect = document.getElementById('caixaPagamento');
+        if (caixaSelect && typeof Choices === "function") {
+            new Choices(caixaSelect, {
+                searchEnabled: true,
+                itemSelectText: '',
+                placeholder: true,
+                searchPlaceholderValue: 'Buscar Caixa...'
             });
         }
-    }
 
-    function formatarValorParaDecimal(inputValorCusto) {
-        if (inputValorCusto) {
-            // Remove tudo que não for dígito ou vírgula, depois substitui vírgula por ponto
-            let valor = inputValorCusto.value.replace('R$', '').trim(); // Remove R$ e espaços
-            valor = valor.replace(/\./g, ''); // Remove pontos (milhar)
-            valor = valor.replace(',', '.'); // Substitui vírgula (decimal) por ponto
-            inputValorCusto.value = valor;
-        }
-    }
-
-    document.body.addEventListener('htmx:afterSwap', function (evt) {
-        // Só reaplica se o campo de valorCusto foi o alvo ou parte de um swap maior que o inclua
-        // Melhor verificar se o elemento específico existe antes de tentar aplicar a máscara
-        if (document.getElementById('valorCusto')) {
-            aplicarMascaraValorCusto();
+        // Pré-preenche data do pagamento com hoje, se estiver vazia
+        const dataPagamentoInput = document.getElementById('dataPagamento');
+        if (dataPagamentoInput && !dataPagamentoInput.value) {
+            dataPagamentoInput.valueAsDate = new Date();
         }
     });
 
-    function alteraCampoTotalParcelas() {
-        const numParcelas = document.getElementById('numParcelas');
-        const planoPag = document.getElementById('planoPag');
-        const parcelas = document.getElementById('parcelasGeradas');
-        numParcelas.disabled = planoPag.value === 'AVISTA';
-        if (numParcelas.disabled) {
-            numParcelas.value = 1;
-        }
-        parcelas.innerHTML = '<option selected disabled>Parcelas...</option>';
+    function desmascararValoresPagamento() {
+        const camposMoeda = ['valorPago', 'jurosMulta', 'desconto'];
+        camposMoeda.forEach(id => {
+            const input = document.getElementById(id);
+            if (input && input.value) {
+                let valor = input.value.replace('R$', '').trim();
+                valor = valor.replace(/\./g, ''); // Remove pontos de milhar
+                valor = valor.replace(',', '.');   // Substitui vírgula decimal por ponto
+                input.value = valor; // Define o valor desmascarado para submissão
+            }
+        });
+        return true; // Permite a submissão do formulário
     }
 
-    function parseString(valorString) {
-        if (typeof valorString !== 'string') {
-            return NaN;
-        }
-        let numerico = valorString.replace(/R\$\s*/, '').trim();
-        numerico = numerico.replace(/\./g, '');
-        numerico = numerico.replace(/,/g, '.');
-        return parseFloat(numerico);
-    }
+    /*]]>*/
 </script>
 
 </body>

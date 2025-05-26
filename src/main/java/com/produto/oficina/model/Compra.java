@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -89,6 +90,11 @@ public class Compra {
             valoresParcelas.add(this.getValorTotalItens().divide(new BigDecimal(totalParcelas), RoundingMode.HALF_UP));
         }
         return valoresParcelas;
+    }
+
+    public List<ContaPagar> getContasPagar() {
+        this.contaPagars.sort(Comparator.comparing(ContaPagar::getNumeroParcela));
+        return this.contaPagars;
     }
 
 }
