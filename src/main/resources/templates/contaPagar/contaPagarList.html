@@ -136,7 +136,7 @@
                                   th:action="@{/contas-pagar/cancelar/{id}(id=${conta.id})}" method="post"
                                   class="d-inline-block">
                                 <button class="btn btn-danger btn-sm" type="submit"
-                                        th:title="${#strings.equals(conta.status, 'PENDENTE')} ? 'Remover Conta' : 'Cancelar Conta'">
+                                        title="Cancelar Conta">
                                     <i class="bi bi-x-octagon-fill"></i>
                                 </button>
                             </form>

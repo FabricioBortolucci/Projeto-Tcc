@@ -1,10 +1,7 @@
 package com.produto.oficina.service;
 
 import com.produto.oficina.Utils.JavaUtils;
-import com.produto.oficina.model.Caixa;
-import com.produto.oficina.model.Compra;
-import com.produto.oficina.model.ContaPagar;
-import com.produto.oficina.model.MovimentacaoCaixa;
+import com.produto.oficina.model.*;
 import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoMovimentacao;
 import com.produto.oficina.model.enums.TipoPagamento;
@@ -128,25 +125,33 @@ public class ContaPagarService {
         contaPagarRepository.findById(id).ifPresent(contaPagar -> {
             if (contaPagar.getStatus().equals(StatusConta.PENDENTE)) {
                 contaPagar.setStatus(StatusConta.CANCELADO);
+                String obsOriginalPendente = contaPagar.getObservacao() != null ? contaPagar.getObservacao() : "";
+                contaPagar.setObservacao(obsOriginalPendente + " [Cancelada em " +
+                        JavaUtils.formatLocalDate(LocalDate.now()) + " por " +
+                        pessoaService.buscaUsuarioLogado().getUsuNome() + "]");
+
             } else if (contaPagar.getStatus().equals(StatusConta.PAGO)) {
-                pessoaService.buscaFornecedorPorId(contaPagar.getFornecedor().getId()).ifPresent(fornecedor -> {
-                    BigDecimal valorEstornar = contaPagar.getValorPago() != null ? contaPagar.getValorPago() : BigDecimal.ZERO;
-                    BigDecimal valorCredito = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
-                    fornecedor.setPesCredito(valorCredito.add(valorEstornar));
+                Pessoa fornecedor = pessoaService.buscaFornecedorPorId(contaPagar.getFornecedor().getId()).get();
+                BigDecimal valorEstornar = contaPagar.getValorPago() != null ? contaPagar.getValorPago() : BigDecimal.ZERO;
+                BigDecimal valorCredito = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
+                fornecedor.setPesCredito(valorCredito.add(valorEstornar));
 
-                    contaPagar.setStatus(StatusConta.PENDENTE);
-                    contaPagar.setDataPagamento(null);
-                    contaPagar.setTipoPagamento(null);
-                    contaPagar.setValorPago(BigDecimal.ZERO);
+                String observacaoOriginal = contaPagar.getObservacao() != null ? contaPagar.getObservacao() : "";
+                String detalheEstorno = " [Pagamento de " +
+                        (contaPagar.getDataPagamento() != null ? JavaUtils.formatLocalDate(contaPagar.getDataPagamento()) : "data desconhecida") +
+                        " no valor de " + JavaUtils.formatMonetaryString(valorEstornar) +
+                        " estornado em " + JavaUtils.formatLocalDate(LocalDate.now()) +
+                        " por usuário " + pessoaService.buscaUsuarioLogado().getUsuNome() +
+                        ". Valor convertido em crédito com fornecedor.]";
 
-                    contaPagar.setObservacao(contaPagar.getObservacao().concat(" [Pagamento de " +
-                            JavaUtils.formatLocalDate(contaPagar.getDataPagamento()) +
-                            " no valor de " + JavaUtils.formatMonetaryString(valorEstornar) +
-                            " estornado em " + JavaUtils.formatLocalDate(LocalDate.now()) +
-                            " por usuário " + pessoaService.buscaUsuarioLogado().getUsuNome() +
-                            ". Valor convertido em crédito com fornecedor.]"));
-                    pessoaService.salvarEdit(fornecedor);
-                });
+                contaPagar.setObservacao(observacaoOriginal.isEmpty() ? detalheEstorno.trim() : observacaoOriginal + detalheEstorno);
+
+                contaPagar.setStatus(StatusConta.PENDENTE);
+                contaPagar.setDataPagamento(null);
+                contaPagar.setTipoPagamento(null);
+                contaPagar.setValorPago(BigDecimal.ZERO);
+
+                pessoaService.salvarEdit(fornecedor);
             }
             contaPagarRepository.save(contaPagar);
         });

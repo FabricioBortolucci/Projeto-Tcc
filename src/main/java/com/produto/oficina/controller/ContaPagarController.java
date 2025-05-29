@@ -2,6 +2,7 @@ package com.produto.oficina.controller;
 
 import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.ContaPagar;
+import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoPagamento;
 import com.produto.oficina.service.*;
 import org.springframework.data.domain.Page;
@@ -71,10 +72,16 @@ public class ContaPagarController {
     public String modalPagamento(@PathVariable Long id,
                                  RedirectAttributes redirectAttributes) {
         contaPagarService.cancelarContaPagar(id);
+        ContaPagar cp = contaPagarService.findCpById(id);
         redirectAttributes.addFlashAttribute("conta_paga_mensagem", true);
-        redirectAttributes.addFlashAttribute("mensagem", "Estorno do pagamento da parcela [" + id + "] realizado com sucesso." +
-                " Um total de " + JavaUtils.formatMonetaryString(contaPagarService.findCpById(id).getValor()) + " foi adicionado como crédito com o fornecedor." +
-                " A parcela agora consta como 'Pendente'.");
+        if (cp.getStatus().equals(StatusConta.PENDENTE)) {
+            redirectAttributes.addFlashAttribute("mensagem", "Estorno do pagamento da parcela [" + id + "] realizado com sucesso." +
+                    " Um total de " + JavaUtils.formatMonetaryString(cp.getValor()) + " foi adicionado como crédito com o fornecedor." +
+                    " A parcela agora consta como 'Pendente'.");
+        } else if (cp.getStatus().equals(StatusConta.CANCELADO)) {
+            redirectAttributes.addFlashAttribute("mensagem", "Parcela [" + id + "] cancelada com sucesso." +
+                    " A parcela agora consta como 'Cancelado'.");
+        }
         return "redirect:/contas-pagar";
     }
 
