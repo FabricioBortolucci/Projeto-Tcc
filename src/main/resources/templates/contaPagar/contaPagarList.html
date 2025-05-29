@@ -73,7 +73,7 @@
         <h1 class="h3 mb-4">Lista de Contas a Pagar</h1>
 
         <div th:if="${conta_paga_mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${mensagem}">Ação realizada com sucesso!</span>
+            <p th:text="${mensagem}"></p>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
 
@@ -132,11 +132,11 @@
                                title="Visualizar Conta">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
-                            <form th:if="${#strings.equals(conta.status, 'PENDENTE')}"
+                            <form th:if="${!#strings.equals(conta.status, 'CANCELADO') and !#strings.equals(conta.status, 'CANCELADO_CREDITO')}"
                                   th:action="@{/contas-pagar/cancelar/{id}(id=${conta.id})}" method="post"
-                                  class="d-inline-block"
-                                  onsubmit="return confirm('Tem certeza que deseja CANCELAR esta conta a pagar?');">
-                                <button class="btn btn-danger btn-sm" type="submit" title="Cancelar Conta">
+                                  class="d-inline-block">
+                                <button class="btn btn-danger btn-sm" type="submit"
+                                        th:title="${#strings.equals(conta.status, 'PENDENTE')} ? 'Remover Conta' : 'Cancelar Conta'">
                                     <i class="bi bi-x-octagon-fill"></i>
                                 </button>
                             </form>

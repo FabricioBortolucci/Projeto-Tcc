@@ -1,5 +1,6 @@
 package com.produto.oficina.service;
 
+import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.Caixa;
 import com.produto.oficina.model.Compra;
 import com.produto.oficina.model.ContaPagar;
@@ -27,11 +28,13 @@ public class ContaPagarService {
     private final ContaPagarRepository contaPagarRepository;
     private final CompraRepository compraRepository;
     private final CaixaService caixaService;
+    private final PessoaService pessoaService;
 
-    public ContaPagarService(ContaPagarRepository contaPagarRepository, CompraRepository compraRepository, CaixaService caixaService) {
+    public ContaPagarService(ContaPagarRepository contaPagarRepository, CompraRepository compraRepository, CaixaService caixaService, PessoaService pessoaService) {
         this.contaPagarRepository = contaPagarRepository;
         this.compraRepository = compraRepository;
         this.caixaService = caixaService;
+        this.pessoaService = pessoaService;
     }
 
     public void salvar(ContaPagar contaPagar) {
@@ -75,16 +78,14 @@ public class ContaPagarService {
         Optional<ContaPagar> opContaPagar = contaPagarRepository.findById(contaPagar.getId());
         if (opContaPagar.isPresent()) {
             ContaPagar cp = opContaPagar.get();
-            if (contaPagar.getValorPago().compareTo(cp.getValor()) == 0) {
-                cp.setDataPagamento(contaPagar.getDataPagamento());
-                cp.setValorPago(contaPagar.getValorPago());
-                cp.setTipoPagamento(contaPagar.getTipoPagamento());
-                cp.setObservacao(contaPagar.getObservacao());
-                cp.setStatus(StatusConta.PAGO);
-                cp = contaPagarRepository.save(cp);
-                if (cp.getTipoPagamento().equals(TipoPagamento.PIX) || cp.getTipoPagamento().equals(TipoPagamento.DINHEIRO)) {
-                    movimentaCaixaContaPagar(cp);
-                }
+            cp.setDataPagamento(contaPagar.getDataPagamento());
+            cp.setValorPago(contaPagar.getValorPago());
+            cp.setTipoPagamento(contaPagar.getTipoPagamento());
+            cp.setObservacao(contaPagar.getObservacao());
+            cp.setStatus(StatusConta.PAGO);
+            cp = contaPagarRepository.save(cp);
+            if (cp.getTipoPagamento().equals(TipoPagamento.PIX) || cp.getTipoPagamento().equals(TipoPagamento.DINHEIRO)) {
+                movimentaCaixaContaPagar(cp);
             }
         }
     }
@@ -106,6 +107,7 @@ public class ContaPagarService {
         return false;
     }
 
+    @Transactional
     public void movimentaCaixaContaPagar(ContaPagar contaPagar) {
         MovimentacaoCaixa mv = new MovimentacaoCaixa();
         Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
@@ -119,5 +121,34 @@ public class ContaPagarService {
         mv.setDescricao("Pagamento da Conta a Pagar ID " + contaPagar.getId() + ", Fornecedor " + contaPagar.getFornecedor().getPesNome());
         caixaAtual.getMovimentacoes().add(mv);
         caixaService.salvarCaixaAposMovimento(caixaAtual);
+    }
+
+    @Transactional
+    public void cancelarContaPagar(Long id) {
+        contaPagarRepository.findById(id).ifPresent(contaPagar -> {
+            if (contaPagar.getStatus().equals(StatusConta.PENDENTE)) {
+                contaPagar.setStatus(StatusConta.CANCELADO);
+            } else if (contaPagar.getStatus().equals(StatusConta.PAGO)) {
+                pessoaService.buscaFornecedorPorId(contaPagar.getFornecedor().getId()).ifPresent(fornecedor -> {
+                    BigDecimal valorEstornar = contaPagar.getValorPago() != null ? contaPagar.getValorPago() : BigDecimal.ZERO;
+                    BigDecimal valorCredito = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
+                    fornecedor.setPesCredito(valorCredito.add(valorEstornar));
+
+                    contaPagar.setStatus(StatusConta.PENDENTE);
+                    contaPagar.setDataPagamento(null);
+                    contaPagar.setTipoPagamento(null);
+                    contaPagar.setValorPago(BigDecimal.ZERO);
+
+                    contaPagar.setObservacao(contaPagar.getObservacao().concat(" [Pagamento de " +
+                            JavaUtils.formatLocalDate(contaPagar.getDataPagamento()) +
+                            " no valor de " + JavaUtils.formatMonetaryString(valorEstornar) +
+                            " estornado em " + JavaUtils.formatLocalDate(LocalDate.now()) +
+                            " por usuário " + pessoaService.buscaUsuarioLogado().getUsuNome() +
+                            ". Valor convertido em crédito com fornecedor.]"));
+                    pessoaService.salvarEdit(fornecedor);
+                });
+            }
+            contaPagarRepository.save(contaPagar);
+        });
     }
 }

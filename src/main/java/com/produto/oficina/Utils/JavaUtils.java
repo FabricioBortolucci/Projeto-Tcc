@@ -5,12 +5,19 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 @Component
 public class JavaUtils {
 
-
+    public static String formatLocalDate(LocalDate date) {
+        if (date == null) {
+            return null;
+        }
+        return date.format(DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.of("pt", "BR")));
+    }
 
     public static BigDecimal parseBigDecimal(String valor) {
         try {

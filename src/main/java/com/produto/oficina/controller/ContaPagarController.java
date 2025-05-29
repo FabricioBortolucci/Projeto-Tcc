@@ -67,10 +67,15 @@ public class ContaPagarController {
         return "redirect:/contas-pagar";
     }
 
-    @GetMapping("/modal-pagamento")
-    public String modalPagamento(Model model) {
-
-        return "fragments/contaPagarFrags/contaPagarReplaces :: modalPagamento";
+    @PostMapping("/cancelar/{id}")
+    public String modalPagamento(@PathVariable Long id,
+                                 RedirectAttributes redirectAttributes) {
+        contaPagarService.cancelarContaPagar(id);
+        redirectAttributes.addFlashAttribute("conta_paga_mensagem", true);
+        redirectAttributes.addFlashAttribute("mensagem", "Estorno do pagamento da parcela [" + id + "] realizado com sucesso." +
+                " Um total de " + JavaUtils.formatMonetaryString(contaPagarService.findCpById(id).getValor()) + " foi adicionado como crédito com o fornecedor." +
+                " A parcela agora consta como 'Pendente'.");
+        return "redirect:/contas-pagar";
     }
 
 }

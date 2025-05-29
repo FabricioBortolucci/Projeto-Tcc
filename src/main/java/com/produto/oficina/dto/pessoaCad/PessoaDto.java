@@ -58,7 +58,7 @@ public class PessoaDto implements Serializable {
     public PessoaDto(Long id, String pesNome, String pesCpfCnpj, String pesTipo, boolean pesAtivo, java.sql.Date pesDataNascimento, String pesGenero, String pesEmail, String pesFisicoJuridico, BigDecimal pesCredito) {
         this.id = id;
         this.pesNome = pesNome;
-        this.pesCpfCnpj = pesCpfCnpj;
+        this.pesCpfCnpj = formatCpf(pesCpfCnpj);
         this.pesTipo = PesTipo.fromString(pesTipo);
         this.pesAtivo = pesAtivo;
         this.pesDataNascimento = pesDataNascimento != null ? pesDataNascimento.toLocalDate() : null;
