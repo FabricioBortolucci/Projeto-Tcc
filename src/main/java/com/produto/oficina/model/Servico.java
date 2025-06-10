@@ -1,12 +1,13 @@
 package com.produto.oficina.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 
@@ -24,9 +25,12 @@ public class Servico {
     private Long id;
 
     @Column(name = "serv_preco")
+    @NotNull(message = "O preço é obrigatório.")
+    @DecimalMin(value = "0.01", message = "O preço deve ser maior que zero.")
     private BigDecimal precoTotal;
 
     @Column(name = "serv_desc")
+    @NotBlank(message = "A descrição do serviço é obrigatória.")
     private String descricao;
 
     @Column(name = "serv_ativo")

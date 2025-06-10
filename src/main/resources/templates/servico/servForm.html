@@ -35,23 +35,33 @@
                 <h5 class="mb-0 fw-semibold">Dados do Serviço</h5>
             </div>
             <div class="card-body p-4">
-                <form th:action="@{/servico/cadastrar}" method="post" th:object="${servico}"
+                <form th:hx-post="@{/servico/cadastrar}" hx-target="#form-container" hx-swap="outerHTML"
+                      id="form-container" method="post" th:object="${servico}"
+                      hx-on:htmx:before-cleanup-element="formatMoney()"
                       onsubmit="formatarEEnviarServico(); return true;">
                     <input type="hidden" th:field="*{id}"/>
+
+                    <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger">
+                        Por favor, corrija os erros abaixo.
+                    </div>
 
                     <div class="row g-3">
                         <div class="col-md-8">
                             <label class="form-label" for="desc">Descrição do Serviço <span class="text-danger">*</span></label>
-                            <input class="form-control" id="desc" type="text" th:field="*{descricao}" required/>
+                            <input class="form-control" id="desc" type="text" th:field="*{descricao}"/>
+                            <span th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}"
+                                  class="text-danger"></span>
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label" for="preco">Preço <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">R$</span>
-                                <input class="form-control" id="preco" type="text" th:field="*{precoTotal}" required
+                                <input class="form-control" id="preco" type="text" th:field="*{precoTotal}"
                                        placeholder="0,00"/>
                             </div>
+                            <span th:if="${#fields.hasErrors('precoTotal')}" th:errors="*{precoTotal}"
+                                  class="text-danger"></span>
                         </div>
 
                         <div class="col-12">
@@ -65,7 +75,8 @@
                     </div>
 
                     <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                        <a class="btn btn-outline-secondary" th:href="@{/servico}"> <i class="bi bi-x-circle me-1"></i>Cancelar
+                        <a class="btn btn-outline-secondary" th:href="@{/servico}">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar
                         </a>
                         <button class="btn btn-success" type="submit">
                             <i class="bi bi-check-lg me-1"></i>Salvar Serviço
@@ -81,30 +92,28 @@
 <script th:src="@{/js/htmx/htmx.min.js}"></script>
 <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
 <script>
+    function formatMoney() {
+        const precoInputInitial = document.getElementById('preco');
+        VMasker(precoInputInitial).maskMoney({
+            unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
+            delimiter: '.', affixesStay: false, allowZero: true, allowNegative: true, precision: 2
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
-        const precoInput = document.getElementById('preco');
-        if (precoInput) { // Verifica se o elemento existe
-            VMasker(precoInput).maskMoney({
-                unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
-                delimiter: '.', affixesStay: false, allowZero: true, allowNegative: true, precision: 2
-            });
-        }
+        formatMoney();
     });
 
-    // Função para formatar o campo de preço antes da submissão
     function formatarCampoPrecoServico() {
         const precoInput = document.getElementById('preco');
         if (precoInput && precoInput.value) {
-            // Remove tudo que não for dígito ou vírgula, depois troca vírgula por ponto
             precoInput.value = precoInput.value.replace(/[^\d,]/g, '').replace(',', '.');
         }
     }
 
-    // Função a ser chamada no onsubmit do formulário
     function formatarEEnviarServico() {
         formatarCampoPrecoServico();
-        // Se houver outros campos para formatar, chame as funções aqui
-        return true; // Permite a submissão do formulário
+        return true;
     }
 
 </script>

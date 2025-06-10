@@ -2,16 +2,18 @@ package com.produto.oficina.controller;
 
 import com.produto.oficina.model.Servico;
 import com.produto.oficina.service.ServicoService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping("/servico")
-public class ServicoController {
+public class ServicoController extends AbstractController {
 
     private final ServicoService servicoService;
 
@@ -36,10 +38,18 @@ public class ServicoController {
     }
 
     @PostMapping("/cadastrar")
-    public String servicoSave(@ModelAttribute Servico servico, RedirectAttributes redirectAttributes) {
+    public Object servicoSave(@Valid @ModelAttribute("servico") Servico servico,
+                              BindingResult result,
+                              RedirectAttributes redirectAttributes,
+                              Model model) {
+        if (result.hasErrors()) {
+            return "servico/servForm :: #form-container";
+        }
+
         servicoService.salvar(servico);
         redirectAttributes.addFlashAttribute("servico_cadastrado", true);
-        return "redirect:/servico";
+
+        return htmxRedirect("/servico");
     }
 
     @GetMapping("/editar/{index}")

@@ -22,7 +22,7 @@ import java.util.ArrayList;
 
 @Controller
 @RequestMapping("/caixa")
-public class CaixaController {
+public class CaixaController extends AbstractController {
 
     private final CaixaService caixaService;
     private final PessoaService pessoaService;
