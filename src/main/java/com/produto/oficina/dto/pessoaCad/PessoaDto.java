@@ -30,11 +30,9 @@ public class PessoaDto implements Serializable {
     PesTipo pesTipo;
     boolean pesAtivo = true;
 
-    @NotNull(message = "A Data é obrigatório")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     LocalDate pesDataNascimento;
     String pesRg;
-    @NotNull(message = "O Genero é obrigatório")
     String pesGenero;
     @NotBlank(message = "O Email é obrigatório")
     String pesEmail;

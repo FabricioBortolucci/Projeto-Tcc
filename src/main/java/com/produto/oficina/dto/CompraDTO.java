@@ -2,6 +2,7 @@ package com.produto.oficina.dto;
 
 import com.produto.oficina.model.ItemCompra;
 import com.produto.oficina.model.Pessoa;
+import com.produto.oficina.model.Produto;
 import com.produto.oficina.model.enums.PlanoPagamento;
 import com.produto.oficina.model.enums.StatusCompra;
 import com.produto.oficina.model.enums.TipoPagamento;

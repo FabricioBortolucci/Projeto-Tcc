@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title th:text="'Registrar Pagamento - Conta #' + ${contaPagar?.id ?: ''} + ' - Oficina'">Registrar
+        Pagamento</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/choices.min.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .form-control:focus, .form-select:focus, .choices__input:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .details-dl dt {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (min-width: 576px) {
+            .details-dl dt {
+                margin-bottom: 0;
+            }
+        }
+
+        .details-dl dd {
+            margin-bottom: 0.75rem;
+        }
+
+        /* Estilos para Choices.js (se usado) */
+        .choices {
+            margin-bottom: 0;
+        }
+
+        .choices__inner {
+            background-color: var(--bs-body-bg);
+            border: var(--bs-border-width) solid var(--bs-border-color);
+            border-radius: var(--bs-border-radius);
+            font-size: 1rem;
+            min-height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+        }
+
+        .choices.is-focused .choices__inner, .choices.is-open .choices__inner {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .status-pendente {
+            background-color: var(--bs-warning-bg-subtle) !important;
+            color: var(--bs-warning-text-emphasis) !important;
+            border: 1px solid var(--bs-warning-border-subtle) !important;
+        }
+
+        .status-vencida {
+            background-color: var(--bs-danger-bg-subtle) !important;
+            color: var(--bs-danger-text-emphasis) !important;
+            border: 1px solid var(--bs-danger-border-subtle) !important;
+        }
+
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
+        <div>
+            <h1 class="h3 mb-0"
+                th:text="'Registrar Pagamento da Conta a Pagar' + (${contaPagar?.id} ? ' #' + ${contaPagar.id} : '')"></h1>
+        </div>
+
+        <form th:action="@{/contas-pagar/confirmar-pagamento}" method="post"
+              th:object="${contaPagar}" id="formRegistrarPagamento"
+              onsubmit="desmascararValoresPagamento(); return true;">
+            <input type="hidden" th:field="*{id}"/>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0 fw-semibold">Detalhes da Conta a Ser Paga</h5>
+                </div>
+                <div class="card-body p-4">
+                    <dl class="row details-dl">
+
+                        <dt class="col-sm-3">Fornecedor:</dt>
+                        <dd class="col-sm-9" th:text="*{fornecedor?.pesNome ?: 'N/A'}"></dd>
+
+                        <dt class="col-sm-3">Data de Vencimento:</dt>
+                        <dd class="col-sm-9"
+                            th:text="*{dataVencimento != null ? #temporals.format(dataVencimento, 'dd/MM/yyyy') : 'N/A'}"></dd>
+
+                        <dt class="col-sm-3">Valor Original:</dt>
+                        <dd class="col-sm-9 fw-semibold"
+                            th:text="*{valor != null ? #numbers.formatCurrency(valor) : 'R$ 0,00'}"></dd>
+
+                        <th:block th:if="*{totalParcelas != null and totalParcelas > 0}">
+                            <dt class="col-sm-3">Parcela:</dt>
+                            <dd class="col-sm-9" th:text="*{numeroParcela + ' de ' + totalParcelas}"></dd>
+                        </th:block>
+
+                        <dt class="col-sm-3">Status Atual:</dt>
+                        <dd class="col-sm-9">
+                            <span class="fs-6" th:text="*{status?.descricao}"></span>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white py-3"><h5 class="mb-0 fw-semibold"><i
+                        class="bi bi-credit-card-fill me-2"></i>Informações do Pagamento</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="dataPagamento" class="form-label">Data do Pagamento: <span
+                                    class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="dataPagamento" th:field="*{dataPagamento}"
+                                   required/>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('dataPagamento')}"
+                                 th:errors="*{dataPagamento}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="valorPago" class="form-label">Valor Pago:
+                                <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="text" class="form-control" id="valorPago" th:field="*{valorPago}"
+                                       placeholder="0,00" required/>
+                            </div>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('valorPago')}"
+                                 th:errors="*{valorPago}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="tipoPagamentoUtilizado" class="form-label">Tipo de Pagamento Utilizado:
+                                <span class="text-danger">*</span>
+                            </label>
+                            <select id="tipoPagamentoUtilizado"
+                                    class="form-select"
+                                    th:field="*{tipoPagamento}"
+                                    required>
+                                <option value="" disabled selected>Selecione...</option>
+                                <option th:each="tp : ${tipoPagamento}"
+                                        th:value="${tp}" th:text="${tp.descricao}"></option>
+                            </select>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('tipoPagamento')}"
+                                 th:errors="*{tipoPagamento}"></div>
+                        </div>
+
+                        <div class="col-md-4" th:if="${caixaAberto != null}">
+                            <label for="caixaAbertoDisplay" class="form-label">
+                                Caixa Utilizado:
+                                <i class="bi bi-question-circle-fill ms-1 text-primary"
+                                   style="font-size: 0.9rem; cursor: help;"
+                                   data-bs-toggle="tooltip"
+                                   data-bs-placement="top"
+                                   title="O caixa é utilizado para registrar pagamentos em Dinheiro ou PIX diretamente. Para outros tipos, a conciliação pode ser bancária."></i>
+                            </label>
+                            <input type="text" class="form-control" id="caixaAbertoDisplay"
+                                   th:value="'Caixa #' + ${caixaAberto.id} + ' (Aberto em: ' + ${#temporals.format(caixaAberto.dataAbertura, 'dd/MM HH:mm')} + ')'"
+                                   disabled readonly />
+                            <input type="hidden" name="caixaId" id="hiddenCaixaId" th:if="${caixaAberto.id != null}" th:value="${caixaAberto.id}" />
+                        </div>
+                        <div class="col-md-4" th:if="${caixaAberto == null}">
+                            <label class="form-label">Caixa:</label>
+                            <input type="text" class="form-control" value="Nenhum caixa aberto" disabled readonly />
+                        </div>
+
+
+                        <div class="col-12">
+                            <label for="observacaoPagamento" class="form-label">Observações do Pagamento:</label>
+                            <textarea class="form-control"
+                                      id="observacaoPagamento"
+                                      th:field="*{observacao}"
+                                      rows="3"
+                                      style="resize: none;">
+                            </textarea>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                        <a class="btn btn-outline-secondary"
+                           th:href="@{/contas-pagar}">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar
+                        </a>
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-check-lg me-1"></i>Confirmar Pagamento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function aplicarMascaraComVerificacao(elementId, options) {
+        const el = document.getElementById(elementId);
+        if (el && typeof VMasker === "function" && !el.classList.contains('vm-masked-payment')) {
+            VMasker(el).maskMoney(options || {unit: 'R$', precision: 2, thousands: '.', decimal: ','});
+            el.classList.add('vm-masked-payment');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        aplicarMascaraComVerificacao('valorPago');
+        aplicarMascaraComVerificacao('jurosMulta');
+        aplicarMascaraComVerificacao('desconto');
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Inicializa Choices.js para selects, se presentes
+        const tipoPagSelect = document.getElementById('tipoPagamentoUtilizado');
+        if (tipoPagSelect && typeof Choices === "function") {
+            new Choices(tipoPagSelect, {searchEnabled: false, itemSelectText: ''});
+        }
+        const caixaSelect = document.getElementById('caixaPagamento');
+        if (caixaSelect && typeof Choices === "function") {
+            new Choices(caixaSelect, {
+                searchEnabled: true,
+                itemSelectText: '',
+                placeholder: true,
+                searchPlaceholderValue: 'Buscar Caixa...'
+            });
+        }
+
+        // Pré-preenche data do pagamento com hoje, se estiver vazia
+        const dataPagamentoInput = document.getElementById('dataPagamento');
+        if (dataPagamentoInput && !dataPagamentoInput.value) {
+            dataPagamentoInput.valueAsDate = new Date();
+        }
+    });
+
+    function desmascararValoresPagamento() {
+        const camposMoeda = ['valorPago', 'jurosMulta', 'desconto'];
+        camposMoeda.forEach(id => {
+            const input = document.getElementById(id);
+            if (input && input.value) {
+                let valor = input.value.replace('R$', '').trim();
+                valor = valor.replace(/\./g, ''); // Remove pontos de milhar
+                valor = valor.replace(',', '.');   // Substitui vírgula decimal por ponto
+                input.value = valor; // Define o valor desmascarado para submissão
+            }
+        });
+        return true; // Permite a submissão do formulário
+    }
+
+    /*]]>*/
+</script>
+
+</body>
+</html>

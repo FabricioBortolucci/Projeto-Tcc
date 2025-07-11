@@ -20,4 +20,6 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
     @Query("SELECT p FROM Produto p WHERE p.estoque <= 3 ORDER BY p.estoque DESC, p.nome ASC")
     List<Produto> findProdutosComEstoqueBaixo(Pageable topAlertas);
+
+    List<Produto> findAllByAtivo(Boolean ativo);
 }

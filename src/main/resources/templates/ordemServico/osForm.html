@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Nova Ordem de Serviço - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/choices.min.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table-dark .btn-light { /* Contraste para botões */
+        }
+
+        .tab-content > .tab-pane {
+            padding-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
+        <h1 class="h3 mb-0">Registrar Nova Ordem de Serviço</h1>
+
+        <ul class="nav nav-pills mb-3" id="osTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="cliente-dados-tab" data-bs-toggle="tab"
+                        data-bs-target="#clienteDadosPane"
+                        type="button" role="tab" aria-controls="clienteDadosPane" aria-selected="true">
+                    <i class="bi bi-file-person me-1"></i> Cliente e Dados Iniciais
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="servicos-pecas-tab" data-bs-toggle="tab"
+                        data-bs-target="#servicosPecasPane"
+                        type="button" role="tab" aria-controls="servicosPecasPane" aria-selected="false">
+                    <i class="bi bi-wrench-adjustable-circle me-1"></i> Serviços e Peças
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="finalizacao-os-tab" data-bs-toggle="tab"
+                        data-bs-target="#finalizacaoOsPane"
+                        type="button" role="tab" aria-controls="finalizacaoOsPane" aria-selected="false">
+                    <i class="bi bi-receipt-cutoff me-1"></i> Finalização e Pagamento
+                </button>
+            </li>
+        </ul>
+
+        <form th:action="@{/ordem-servico/cadastrar}" method="post" th:object="${os}" id="formPrincipalOS">
+            <input type="hidden" th:field="*{id}"/>
+
+            <div class="tab-content" id="osTabContent">
+                <div class="tab-pane fade show active" id="clienteDadosPane" role="tabpanel"
+                     aria-labelledby="cliente-dados-tab">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light py-3">
+                            <h5 class="mb-0 fw-semibold">Informações Iniciais da O.S.</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="clienteSelect">Cliente: <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select"
+                                            id="clienteSelect"
+                                            th:field="*{cliente.id}"
+                                            required>
+                                        <option th:each="c : ${clientes}" th:value="${c.id}"
+                                                th:text="${c.pesNome}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="funcionarioSelect">Funcionário Responsável: <span
+                                            class="text-danger">*</span></label>
+                                    <select class="form-select"
+                                            id="funcionarioSelect"
+                                            th:field="*{funcionario.id}"
+                                            required>
+                                        <option th:each="f : ${funcionarios}" th:value="${f.id}"
+                                                th:text="${f.pesNome}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="dataAberturaInput">Data de Abertura: <span
+                                            class="text-danger">*</span></label>
+                                    <input type="datetime-local"
+                                           class="form-control"
+                                           id="dataAberturaInput"
+                                           th:field="*{dataAbertura}"
+                                           disabled/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="servicosPecasPane" role="tabpanel" aria-labelledby="servicos-pecas-tab">
+
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-semibold">Adicionar Serviço à O.S.</h6>
+                        </div>
+                        <div class="card-body p-4">
+
+                            <div class="row g-3 align-items-end">
+
+                                <div class="col-lg-5 col-md-12">
+                                    <label for="servicosList" class="form-label">Serviço:</label>
+                                    <select class="form-select"
+                                            id="servicosList"
+                                            th:field="*{idServico}"
+                                            th:hx-get="@{/ordem-servico/cadastro/busca-preco-servico}"
+                                            hx-target="#valorUnitarioServico"
+                                            hx-swap="outerHTML"
+                                            required>
+                                        <option value="" disabled selected>Selecione um serviço...</option>
+                                        <option th:each="serv : ${servicos}" th:value="${serv.id}"
+                                                th:text="${serv.descricao}"></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-lg-3 col-md-5">
+                                    <label for="valorUnitarioServico" class="form-label">Valor (Unit.):</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        <input th:fragment="valorUnitarioServicoFrag"
+                                               id="valorUnitarioServico"
+                                               name="valorUnitarioServico"
+                                               th:value="${servicoSelected?.precoTotal}"
+                                               hx-on::load="aplicarMascaraValorCusto()"
+                                               class="form-control"
+                                               type="text"
+                                               placeholder="0,00">
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-2 col-md-4">
+                                    <label for="quantServico" class="form-label">Qtd.:</label>
+                                    <input id="quantServico"
+                                           name="quantidadeServicoName"
+                                           class="form-control" type="number" min="1" value="1">
+                                </div>
+
+                                <div class="col-lg-2 col-md-3">
+                                    <button type="button"
+                                            th:hx-post="@{/ordem-servico/cadastro/adicionar-servico-lista}"
+                                            hx-include="#quantServico, #valorUnitarioServico"
+                                            hx-target="#divTabelaServicos"
+                                            hx-swap="innerHTML"
+                                            onclick="formatarValorParaDecimal(document.getElementById('valorUnitarioServico'))"
+                                            hx-on::after-request="aplicarMascaraValorCusto()"
+                                            class="btn btn-primary w-100"
+                                            id="btnAdicionarServico">
+                                        <i class="bi bi-plus-lg me-1"></i> Adicionar
+                                    </button>
+                                </div>
+
+                            </div>
+                            <div id="divTabelaServicos" class="table-responsive mt-4">
+                                <table th:fragment="tabelaServicos"
+                                       class="table table-dark table-striped table-bordered table-sm caption-top">
+                                    <caption class="fs-6">Serviços Adicionados</caption>
+                                    <thead>
+                                    <tr>
+                                        <th style="width:10%">Id Serv.</th>
+                                        <th class="text-start-md">Descrição</th>
+                                        <th class="text-end" style="width:10%">Qtd.</th>
+                                        <th class="text-end" style="width:15%">Vlr. Unit.</th>
+                                        <th class="text-end" style="width:15%">Subtotal</th>
+                                        <th style="width:10%">Opções</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tabela-servicos-body">
+                                    <tr th:if="${os == null or #lists.isEmpty(os.itensServico)}">
+                                        <td colspan="6" class="text-white-50 p-2">Nenhum serviço adicionado.</td>
+                                    </tr>
+                                    <tr th:each="itemServ : ${os?.itensServico}">
+                                        <td th:text="${itemServ.servico?.id}"></td>
+                                        <td class="text-start-md" th:text="${itemServ.servico?.descricao}"></td>
+                                        <td class="text-end" th:text="${itemServ.quantidade}"></td>
+                                        <td class="text-end"
+                                            th:text="${#numbers.formatCurrency(itemServ.valorUnitario)}"></td>
+                                        <td class="text-end"
+                                            th:text="${#numbers.formatCurrency(itemServ.subTotal)}"></td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                                                <button class="btn btn-danger btn-sm"
+                                                        type="button"
+                                                        title="Remover Item">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                    <tfoot th:if="${os != null and os.calculaTotalServicoItens != null}">
+                                    <tr>
+                                        <td colspan="4" class="text-end fw-bold">Valor Total dos Serviços:</td>
+                                        <td id="valorTotalServicosTfoot" class="text-end fw-bold"
+                                            th:text="${#numbers.formatCurrency(os.calculaTotalServicoItens)}">
+                                        </td>
+                                        <td></td>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light py-3">
+                            <h6 class="mb-0 fw-semibold">Adicionar Peça/Produto à O.S.</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- <p class="small text-muted">Aqui você adicionará a lógica para selecionar uma peça, definir
+                                 a quantidade e adicioná-la à tabela abaixo.</p>
+                             <div class="table-responsive mt-3">
+                                 <table class="table table-dark table-striped table-bordered table-sm">
+                                     <thead>
+                                     <tr>
+                                         <th>Produto</th>
+                                         <th>Qtd.</th>
+                                         <th>Vlr. Unit.</th>
+                                         <th>Subtotal</th>
+                                         <th>Opções</th>
+                                     </tr>
+                                     </thead>
+                                     <tbody id="tabela-pecas-body">
+                                     <tr th:if="${#lists.isEmpty(ordemServico.pecasUsadas)}">
+                                         <td colspan="5" class="text-muted p-2">Nenhuma peça adicionada.</td>
+                                     </tr>
+                                     <tr th:each="itemPeca : ${ordemServico.pecasUsadas}"></tr>
+                                     </tbody>
+                                 </table>
+                             </div>-->
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="tab-pane fade" id="finalizacaoOsPane" role="tabpanel" aria-labelledby="finalizacao-os-tab">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light py-3">
+                            <h5 class="mb-0 fw-semibold">Finalização e Pagamento da O.S.</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <h3 class="text-end">Valor Total da O.S.:
+                                <span id="valorTotalFinalOs"
+                                      th:text="${#numbers.formatCurrency(os.valorTotal)}">R$ 0,00</span>
+                            </h3>
+                            <hr class="my-4">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="osPlanoPagamento" class="form-label">Plano Pagamento:</label>
+                                    <select id="osPlanoPagamento"
+                                            class="form-select"
+                                            th:field="*{planoPagamento}"
+                                            th:hx-get="@{/ordem-servico/cadastro/buscar-planoPag}"
+                                            hx-trigger="load, change"
+                                            hx-target="#osTipoPagamento">
+                                        <option value="" selected disabled>Selecione um plano...</option>
+                                        <option th:each="plano : ${planos_pagamento}" th:value="${plano}"
+                                                th:text="${plano.descricao}"></option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="osTipoPagamento" class="form-label">Tipo Pagamento:</label>
+                                    <select id="osTipoPagamento" class="form-select" th:field="*{tipoPagamento}">
+                                        <option value="" selected disabled>Selecione um tipo...</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="osObservacao">Observações Finais:</label>
+                                    <textarea class="form-control" style="resize: vertical;" id="osObservacao" rows="3"
+                                              th:field="*{observacao}"></textarea>
+                                </div>
+                            </div>
+
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                <button class="btn btn-secondary text-white" type="submit" name="action" value="rascunho">
+                    <i class="bi bi-file-earmark me-1"></i>Salvar Rascunho
+                </button>
+                <button class="btn btn-success" type="submit" name="action" value="finalizar">
+                    <i class="bi bi-check-lg me-1"></i>Finalizar O.S.
+                </button>
+                <a class="btn btn-outline-secondary" th:href="@{/ordem-servico}">
+                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                </a>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const clienteSelect = document.getElementById('clienteSelect');
+        const clienteSelectchoices = new Choices(clienteSelect, {
+            searchEnabled: true,
+            itemSelectText: '',
+            placeholder: true,
+            placeholderValue: 'Selecione o Fornecedor...'
+        });
+        const funcionarioSelect = document.getElementById('funcionarioSelect');
+        const funcionarioSelectChoices = new Choices(funcionarioSelect, {
+            searchEnabled: true,
+            itemSelectText: '',
+            placeholder: true,
+            placeholderValue: 'Selecione o Funcionário...',
+        });
+    });
+
+    function aplicarMascaraValorCusto() {
+        const valorCustoInput = document.getElementById('valorUnitarioServico');
+        if (valorCustoInput) {
+            VMasker(valorCustoInput).maskMoney({
+                unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
+                delimiter: '.', affixesStay: false, allowZero: true, allowNegative: false, precision: 2
+            });
+        }
+    }
+
+    function formatarValorParaDecimal(inputValorCusto) {
+        if (inputValorCusto) {
+            // Remove tudo que não for dígito ou vírgula, depois substitui vírgula por ponto
+            let valor = inputValorCusto.value.replace('R$', '').trim(); // Remove R$ e espaços
+            valor = valor.replace(/\./g, ''); // Remove pontos (milhar)
+            valor = valor.replace(',', '.'); // Substitui vírgula (decimal) por ponto
+            inputValorCusto.value = valor;
+        }
+    }
+</script>
+</body>
+</html>

@@ -192,4 +192,12 @@ public class PessoaService {
     public void salvarEdit(Pessoa pessoa) {
         repository.save(pessoa);
     }
+
+    public List<Pessoa> buscaClientes() {
+        return repository.findAllByPesAtivoAndPesTipo(true, PesTipo.CLIENTE);
+    }
+
+    public List<Pessoa> buscaFuncionarios() {
+        return repository.findAllByPesAtivoAndPesTipo(true, PesTipo.FUNCIONARIO);
+    }
 }

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Ordens de Serviço - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        /* Estilos padrão reutilizados */
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table-dark .badge a {
+            color: inherit;
+        }
+
+        .table-dark .btn-light {
+            /* Ajustes de contraste se necessário */
+        }
+
+        .action-button-wrapper .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .action-button-wrapper .bi {
+            vertical-align: text-bottom;
+        }
+
+        .table td.text-start-md, .table th.text-start-md {
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .table td.text-start-md, .table th.text-start-md {
+                text-align: left;
+            }
+        }
+
+        /* Cores para status de O.S. */
+        .badge.status-aberta {
+            background-color: var(--bs-info-bg-subtle);
+            color: var(--bs-info-text-emphasis);
+            border: 1px solid var(--bs-info-border-subtle);
+        }
+
+        .badge.status-andamento {
+            background-color: var(--bs-warning-bg-subtle);
+            color: var(--bs-warning-text-emphasis);
+            border: 1px solid var(--bs-warning-border-subtle);
+        }
+
+        .badge.status-finalizada {
+            background-color: var(--bs-success-bg-subtle);
+            color: var(--bs-success-text-emphasis);
+            border: 1px solid var(--bs-success-border-subtle);
+        }
+
+        .badge.status-cancelada {
+            background-color: var(--bs-danger-bg-subtle);
+            color: var(--bs-danger-text-emphasis);
+            border: 1px solid var(--bs-danger-border-subtle);
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
+        <h1 class="h3 mb-4">Lista de Ordens de Serviço</h1>
+
+        <div th:if="${os_mensagem_sucesso}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${os_mensagem_sucesso}">Ação realizada com sucesso!</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+
+        <div class="table-responsive">
+            <table id="osTableMain" class="table table-dark table-bordered table-hover table-striped caption-top">
+                <caption class="fs-6">Ordens de Serviço registradas no sistema</caption>
+                <thead>
+                <tr>
+                    <th style="width: 5%;">Nº O.S.</th>
+                    <th class="text-start-md" style="width: 25%;">Cliente</th>
+                    <th class="text-start-md" style="width: 20%;">Funcionário Resp.</th>
+                    <th style="width: 15%;">Data Abertura</th>
+                    <th style="width: 15%;">Data Fechamento</th>
+                    <th class="text-center" style="width: 10%;">Valor Total</th>
+                    <th style="width: 10%;">Status</th>
+                    <th style="min-width: 150px;">Opções</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${ordemServicoPage == null or ordemServicoPage.isEmpty()}">
+                    <td colspan="8" class="text-muted p-3">Nenhuma Ordem de Serviço encontrada.</td>
+                </tr>
+                <tr th:each="os : ${ordemServicoPage.content}">
+                    <td th:text="${os.id}"></td>
+                    <td class="text-start-md" th:text="${os.cliente?.pesNome ?: 'N/A'}"></td>
+                    <td class="text-start-md" th:text="${os.funcionario?.pesNome ?: 'N/A'}"></td>
+                    <td th:text="${os.dataAbertura != null ? #temporals.format(os.dataAbertura, 'dd/MM/yy HH:mm') : 'N/A'}"></td>
+                    <td th:text="${os.dataFechamento != null ? #temporals.format(os.dataFechamento, 'dd/MM/yy HH:mm') : '-'}"></td>
+                    <td class="text-end"
+                        th:text="${os.valorTotal != null ? #numbers.formatCurrency(os.valorTotal) : 'R$ 0,00'}"></td>
+                    <td>
+                        <span th:text="${os.status?.descricao ?: os.status}"> </span>
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                            <a th:href="@{/ordem-servico/visualizar/{id}(id=${os.id})}" class="btn btn-light btn-sm"
+                               title="Visualizar O.S.">
+                                <i class="bi bi-eye-fill"></i>
+                            </a>
+                            <a th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO'}"
+                               th:href="@{/ordem-servico/editar/{id}(id=${os.id})}" class="btn btn-light btn-sm"
+                               title="Editar O.S.">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO'}"
+                               th:href="@{/ordem-servico/finalizar/{id}(id=${os.id})}" class="btn btn-success btn-sm"
+                               title="Finalizar/Faturar O.S.">
+                                <i class="bi bi-check2-circle"></i>
+                            </a>
+                            <form th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO'}"
+                                  th:action="@{/ordem-servico/cancelar/{id}(id=${os.id})}" method="post"
+                                  class="d-inline-block"
+                                  onsubmit="return confirm('Tem certeza que deseja CANCELAR esta Ordem de Serviço?');">
+                                <button class="btn btn-danger btn-sm" type="submit" title="Cancelar O.S.">
+                                    <i class="bi bi-x-octagon-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4" th:if="${ordemServicoPage != null and ordemServicoPage.totalPages > 1}">
+            <nav aria-label="Paginação da lista de Ordens de Serviço">
+                <ul class="pagination justify-content-center">
+                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                        <a class="page-link"
+                           th:href="@{/ordem-servico(page=${currentPage - 1}, size=${ordemServicoPage.size})}">Anterior</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, ordemServicoPage.totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/ordem-servico(page=${i}, size=${ordemServicoPage.size})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+                    <li th:classappend="${currentPage + 1 >= ordemServicoPage.totalPages} ? 'disabled'"
+                        class="page-item">
+                        <a class="page-link"
+                           th:href="@{/ordem-servico(page=${currentPage + 1}, size=${ordemServicoPage.size})}">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="mt-4">
+            <a class="btn btn-success" th:href="@{/ordem-servico/cadastro}">
+                <i class="bi bi-plus-circle"></i> Nova Ordem de Serviço
+            </a>
+        </div>
+
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+             tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark"><h5 class="modal-title" id="staticBackdropLabel">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção: Caixa
+                    </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Nenhum caixa aberto para a data de hoje.
+                        <br>
+                        Para faturar ou receber pagamentos de uma O.S., por favor, abra um caixa.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        <a class="btn btn-primary" th:href="@{/caixa/cadastro}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Abrir Caixa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:if="${mostrarModal}" th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener("DOMContentLoaded", function () {
+        var backdropModalElement = document.getElementById('staticBackdrop');
+        if (backdropModalElement) {
+            var staticBackdropModal = new bootstrap.Modal(backdropModalElement);
+            staticBackdropModal.show();
+        }
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

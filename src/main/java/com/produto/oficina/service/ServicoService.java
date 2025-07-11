@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ServicoService {
 
@@ -31,5 +33,9 @@ public class ServicoService {
         Servico servico = servicoRepository.findById(index).get();
         servico.setAtivo(false);
         servicoRepository.saveAndFlush(servico);
+    }
+
+    public List<Servico> buscaServicos() {
+        return servicoRepository.findAllByAtivo(true);
     }
 }

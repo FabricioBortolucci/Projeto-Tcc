@@ -25,6 +25,10 @@ public class ProdutoService {
         return produtoRepository.findAll();
     }
 
+    public List<Produto> buscaProdutosAtivos() {
+        return produtoRepository.findAllByAtivo(true);
+    }
+
     public void save(Produto produto) {
         produtoRepository.saveAndFlush(produto);
     }

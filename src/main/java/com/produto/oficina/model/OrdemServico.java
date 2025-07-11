@@ -6,9 +6,11 @@ import com.produto.oficina.model.enums.TipoPagamento;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,7 +29,8 @@ public class OrdemServico {
     private Long id;
 
     @Column(name = "os_data_abertura")
-    private LocalDateTime dataAbertura;
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm")
+    private LocalDateTime dataAbertura = LocalDateTime.now();
 
     @Column(name = "os_data_fechamento")
     private LocalDateTime dataFechamento;
@@ -53,15 +56,15 @@ public class OrdemServico {
 
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<OrdemServicoItem> itensServico;
+    private List<OrdemServicoItem> itensServico = new ArrayList<>();
 
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<OrdemServicoPeca> pecasUsadas;
+    private List<OrdemServicoPeca> pecasUsadas = new ArrayList<>();
 
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<ContaReceber> contaRecebers;
+    private List<ContaReceber> contaRecebers = new ArrayList<>();
 
     @Column(name = "os_status")
     private StatusOS status;
@@ -72,6 +75,19 @@ public class OrdemServico {
     @Column(name = "os_mp_desperdicio")
     private BigDecimal desperdicio;
 
+    @Transient
+    private Long idServico;
+
+
+    public BigDecimal getCalculaTotalServicoItens() {
+        BigDecimal valorTotalServicosItens = BigDecimal.ZERO;
+        if (itensServico != null) {
+            for (OrdemServicoItem ordemServicoItem : itensServico) {
+                valorTotalServicosItens = valorTotalServicosItens.add(ordemServicoItem.getSubTotal());
+            }
+        }
+        return valorTotalServicosItens;
+    }
 
     @Override
     public final boolean equals(Object o) {

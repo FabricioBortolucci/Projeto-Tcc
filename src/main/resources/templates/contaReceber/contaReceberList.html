@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Contas a Receber - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        /* Estilos padrão reutilizados e adaptados */
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table-dark .badge a {
+            color: inherit;
+        }
+
+        .table-dark .btn-light {
+            /* Ajuste de contraste se necessário */
+        }
+
+        .action-button-wrapper .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .action-button-wrapper .bi {
+            vertical-align: text-bottom;
+        }
+
+        .table td.text-start-md, .table th.text-start-md {
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .table td.text-start-md, .table th.text-start-md {
+                text-align: left;
+            }
+        }
+
+        /* Cores específicas para status de conta a receber */
+        .badge.status-pendente {
+            background-color: var(--bs-warning-bg-subtle);
+            color: var(--bs-warning-text-emphasis);
+            border: 1px solid var(--bs-warning-border-subtle);
+        }
+
+        .badge.status-recebida, .badge.status-paga {
+            background-color: var(--bs-success-bg-subtle);
+            color: var(--bs-success-text-emphasis);
+            border: 1px solid var(--bs-success-border-subtle);
+        }
+
+        .badge.status-vencida, .badge.status-atrasado {
+            background-color: var(--bs-danger-bg-subtle);
+            color: var(--bs-danger-text-emphasis);
+            border: 1px solid var(--bs-danger-border-subtle);
+        }
+
+        .badge.status-cancelada, .badge.status-cancelado {
+            background-color: var(--bs-secondary-bg-subtle);
+            color: var(--bs-secondary-text-emphasis);
+            border: 1px solid var(--bs-secondary-border-subtle);
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
+        <h1 class="h3 mb-4">Lista de Contas a Receber</h1>
+
+        <div th:if="${conta_recebida_mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${conta_recebida_mensagem}">Ação realizada com sucesso!</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
+        </div>
+
+        <div class="table-responsive">
+            <table id="contaReceberTableMain"
+                   class="table table-dark table-bordered table-hover table-striped caption-top">
+                <caption class="fs-6">Contas a receber registradas no sistema</caption>
+                <thead>
+                <tr>
+                    <th style="width: 5%;">Id</th>
+                    <th class="text-start-md" style="width: 25%;">Cliente</th>
+                    <th style="width: 10%;">O.S. Origem</th>
+                    <th style="width: 10%;">Vencimento</th>
+                    <th style="width: 10%;">Recebimento</th>
+                    <th class="text-center" style="width: 10%;">Valor</th>
+                    <th style="width: 10%;">Status</th>
+                    <th style="min-width: 150px;">Opções</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${contaReceberPage == null or contaReceberPage.isEmpty()}">
+                    <td colspan="8" class="text-muted p-3">Nenhuma conta a receber encontrada.</td>
+                </tr>
+                <tr th:each="conta : ${contaReceberPage.content}">
+                    <td th:text="${conta.id}"></td>
+                    <td class="text-start-md" th:text="${conta.cliente?.pesNome ?: 'N/A'}"></td>
+                    <td>
+                        <a th:if="${conta.ordemServico?.id != null}"
+                           th:href="@{/ordem-servico/visualizar/{id}(id=${conta.ordemServico.id})}"
+                           th:text="'#' + ${conta.ordemServico.id}"
+                           class="link-light"></a>
+                        <span th:if="${conta.ordemServico == null}">N/A</span>
+                    </td>
+                    <td th:text="${conta.dataVencimento != null ? #temporals.format(conta.dataVencimento, 'dd/MM/yy') : 'N/A'}"></td>
+                    <td th:text="${conta.dataRecebimento != null ? #temporals.format(conta.dataRecebimento, 'dd/MM/yy') : '-'}"></td>
+                    <td class="text-end"
+                        th:text="${conta.valor != null ? #numbers.formatCurrency(conta.valor) : 'R$ 0,00'}"></td>
+                    <td>
+                        <span class="badge"
+                              th:classappend="${#strings.equals(conta.status, 'PENDENTE') ? 'status-pendente' :
+                                               (#strings.equals(conta.status, 'RECEBIDA') ? 'status-paga' :
+                                               (#strings.equals(conta.status, 'VENCIDA') ? 'status-vencida' :
+                                               (#strings.equals(conta.status, 'CANCELADA') ? 'status-cancelada' : 'bg-light text-dark')))}"
+                              th:text="${conta.status?.descricao ?: conta.status}">
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                            <a th:if="${#strings.equals(conta.status, 'PENDENTE') or #strings.equals(conta.status, 'VENCIDA')}"
+                               th:href="@{/contas-receber/registrar-recebimento/{id}(id=${conta.id})}"
+                               class="btn btn-success btn-sm" title="Registrar Recebimento">
+                                <i class="bi bi-cash-coin"></i>
+                            </a>
+
+                            <a th:href="@{/contas-receber/visualizar/{id}(id=${conta.id})}" class="btn btn-light btn-sm"
+                               title="Visualizar Conta">
+                                <i class="bi bi-eye-fill"></i>
+                            </a>
+                            <form th:if="${#strings.equals(conta.status, 'PENDENTE')}"
+                                  th:action="@{/contas-receber/cancelar/{id}(id=${conta.id})}" method="post"
+                                  class="d-inline-block"
+                                  onsubmit="return confirm('Tem certeza que deseja CANCELAR esta conta a receber?');">
+                                <button class="btn btn-danger btn-sm" type="submit" title="Cancelar Conta">
+                                    <i class="bi bi-x-octagon-fill"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-4" th:if="${contaReceberPage != null and contaReceberPage.totalPages > 1}">
+            <nav aria-label="Paginação da lista de contas a receber">
+                <ul class="pagination justify-content-center">
+                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+                        <a class="page-link"
+                           th:href="@{/contas-receber(page=${currentPage - 1}, size=${contaReceberPage.size})}">Anterior</a>
+                    </li>
+                    <li class="page-item"
+                        th:each="i : ${#numbers.sequence(0, contaReceberPage.totalPages - 1)}"
+                        th:classappend="${i == currentPage} ? 'active'">
+                        <a class="page-link" th:href="@{/contas-receber(page=${i}, size=${contaReceberPage.size})}"
+                           th:text="${i + 1}"></a>
+                    </li>
+                    <li th:classappend="${currentPage + 1 >= contaReceberPage.totalPages} ? 'disabled'"
+                        class="page-item">
+                        <a class="page-link"
+                           th:href="@{/contas-receber(page=${currentPage + 1}, size=${contaReceberPage.size})}">Próxima</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <div class="mt-4">
+            <a class="btn btn-success" th:href="@{/contas-receber/cadastro}">
+                <i class="bi bi-plus-circle"></i> Nova Conta a Receber
+            </a>
+        </div>
+
+        <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+             tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="staticBackdropLabel">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção: Caixa
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Nenhum caixa aberto para a data de hoje.
+                        <br>
+                        Para registrar um recebimento, por favor, abra um caixa.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                        <a class="btn btn-primary" th:href="@{/caixa/cadastro}">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Abrir Caixa
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="modalRecebimento" data-bs-backdrop="static" data-bs-keyboard="false"
+             tabindex="-1" aria-labelledby="modalRecebimentoLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="modalRecebimentoLabel">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>Atenção: Parcela
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        Esta parcela já foi recebida ou a parcela anterior está pendente.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:if="${mostrarModalPagamento}" th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener("DOMContentLoaded", function () {
+        let modal = document.getElementById('modalRecebimento'); // ID do modal de recebimento
+        if (modal) {
+            let modalInst = new bootstrap.Modal(modal);
+            modalInst.show();
+        }
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

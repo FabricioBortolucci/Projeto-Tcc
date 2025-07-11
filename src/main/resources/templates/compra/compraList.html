@@ -127,19 +127,45 @@
         </div>
 
         <div class="mt-4" th:if="${compraPage != null and compraPage.totalPages > 1}">
-            <nav aria-label="Paginação da lista de compras">
+            <nav aria-label="Paginação da lista de contas a pagar" th:if="${compraPage.totalPages > 1}">
                 <ul class="pagination justify-content-center">
-                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
-                        <a class="page-link" th:href="@{/compra(page=${currentPage - 1}, size=${compraPage.size})}">Anterior</a>
+
+                    <li class="page-item" th:classappend="${compraPage.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/compra(page=${currentPage - 1}, size=${compraPage.size})}"
+                           aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
                     </li>
-                    <li class="page-item"
-                        th:each="i : ${#numbers.sequence(0, compraPage.totalPages - 1)}"
-                        th:classappend="${i == currentPage} ? 'active'">
-                        <a class="page-link" th:href="@{/compra(page=${i}, size=${compraPage.size})}"
-                           th:text="${i + 1}"></a>
-                    </li>
-                    <li th:classappend="${currentPage + 1 >= compraPage.totalPages} ? 'disabled'" class="page-item">
-                        <a class="page-link" th:href="@{/compra(page=${currentPage + 1}, size=${compraPage.size})}">Próxima</a>
+
+                    <th:block th:with="totalPages=${compraPage.totalPages},
+                           currentPage=${currentPage},
+                           windowSize=2">
+                        <th:block th:each="pageNumber : ${#numbers.sequence(0, totalPages - 1)}">
+                            <li class="page-item"
+                                th:if="${pageNumber == 0 or
+                           pageNumber == totalPages - 1 or
+                           (pageNumber >= currentPage - windowSize and pageNumber <= currentPage + windowSize)}"
+                                th:classappend="${pageNumber == currentPage} ? 'active'">
+                                <a class="page-link"
+                                   th:href="@{/compra(page=${pageNumber}, size=${compraPage.size})}"
+                                   th:text="${pageNumber + 1}"></a>
+                            </li>
+
+                            <li class="page-item disabled"
+                                th:if="${(pageNumber == 1 and currentPage > windowSize + 1) or
+                           (pageNumber == totalPages - 2 and currentPage < totalPages - windowSize - 2)}">
+                                <span class="page-link">...</span>
+                            </li>
+                        </th:block>
+                    </th:block>
+
+                    <li class="page-item" th:classappend="${compraPage.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/compra(page=${currentPage + 1}, size=${compraPage.size})}"
+                           aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
                     </li>
                 </ul>
             </nav>

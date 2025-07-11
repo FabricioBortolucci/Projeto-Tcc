@@ -65,7 +65,7 @@ public class CompraController {
         model.addAttribute("compra", new CompraDTO());
         model.addAttribute("planos_pagamento", PlanoPagamento.values());
         model.addAttribute("fornecedores_compra", pessoaService.buscaFornecedores());
-        model.addAttribute("produtos", produtoService.findAll());
+        model.addAttribute("produtos", produtoService.buscaProdutosAtivos());
         return "compra/compraForm";
     }
 
@@ -78,7 +78,7 @@ public class CompraController {
             model.addAttribute("mensagem", "A lista de parcelas está vazia.");
             model.addAttribute("planos_pagamento", PlanoPagamento.values());
             model.addAttribute("fornecedores_compra", pessoaService.buscaFornecedores());
-            model.addAttribute("produtos", produtoService.findAll());
+            model.addAttribute("produtos", produtoService.buscaProdutosAtivos());
             return "compra/compraForm";
         }
         compraService.save(compraDTO);
@@ -123,7 +123,7 @@ public class CompraController {
         model.addAttribute("compra", compraService.compraEdit(index));
         model.addAttribute("planos_pagamento", PlanoPagamento.values());
         model.addAttribute("fornecedores_compra", pessoaService.buscaFornecedores());
-        model.addAttribute("produtos", produtoService.findAll());
+        model.addAttribute("produtos", produtoService.buscaProdutosAtivos());
         return "compra/compraForm";
     }
 
@@ -135,13 +135,12 @@ public class CompraController {
 
 
     @GetMapping("/produto/buscar-precoProd")
-    public String buscarPrecoProduto(@ModelAttribute("compra") CompraDTO compraDTO,
-                                     @RequestParam("prodId") Long produtoId,
+    public String buscarPrecoProduto(@RequestParam("prodId") Long produtoId,
                                      Model model) {
         Produto produto = produtoService.findById(produtoId);
-        compraDTO.setValorUnitarioItens(produto.getPrecoCusto());
-
-        model.addAttribute("compra", compraDTO);
+        if (produto != null) {
+            model.addAttribute("valorUnitarioItens", produto.getPrecoCusto());
+        }
         return "fragments/compraFrags/compraReplaces :: detalhesItem";
     }
 
@@ -149,14 +148,14 @@ public class CompraController {
     public String adicionarItem(@ModelAttribute("compra") CompraDTO compraDTO,
                                 @RequestParam("prodId") Long produtoId,
                                 @RequestParam("quantItens") Integer quantidade,
-                                @RequestParam("valorUnitarioItens") BigDecimal valorCusto,
+                                @RequestParam("valorCusto") BigDecimal valorCusto,
                                 Model model) {
         compraService.adicionarItemCompra(compraDTO, produtoId, quantidade, valorCusto);
         model.addAttribute("compra", compraDTO);
-        return "fragments/compraFrags/compraReplaces :: itensCompraTable";
+        return "compra/compraForm :: #prodTable";
     }
 
-    @DeleteMapping("/cadastro/remover-item/{index}")
+    @PostMapping("/cadastro/remover-item/{index}")
     public String removerItem(@PathVariable("index") int index,
                               @ModelAttribute("compra") CompraDTO compraDTO,
                               Model model) {
@@ -164,7 +163,7 @@ public class CompraController {
             compraDTO.getItemCompraList().remove(index);
         }
         model.addAttribute("compra", compraDTO);
-        return "fragments/compraFrags/compraReplaces :: itensCompraTable";
+        return "compra/compraForm :: #prodTable";
     }
 
     @GetMapping("/cadastro/buscar-planoPag")
@@ -199,6 +198,12 @@ public class CompraController {
             compraDTO.getParcelas().add(compraDTO.getCalculaValorTotalItens().divide(BigDecimal.valueOf(compraDTO.getTotalParcelas()), RoundingMode.HALF_UP));
         }
         return "fragments/compraFrags/compraReplaces :: listaParcelas";
+    }
+
+    @GetMapping("/cadastro/limpar-produto")
+    public String limpaCamposProduto(Model model) {
+        model.addAttribute("produtos", produtoService.buscaProdutosAtivos());
+        return "compra/compraForm :: #updateTable";
     }
 
 }

@@ -69,4 +69,6 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     Pessoa findPessoaByUsuario(Usuario usuario);
 
     List<Pessoa> findAllByPesAtivoAndPesTipo(Boolean pesAtivo, PesTipo pesTipo);
+
+    long countPessoaByPesAtivoAndPesTipo(Boolean pesAtivo, PesTipo pesTipo);
 }

@@ -40,6 +40,10 @@ public class OrdemServicoItem {
     private BigDecimal valorTotal;
 
 
+    public BigDecimal getSubTotal() {
+        return valorUnitario.multiply(BigDecimal.valueOf(quantidade));
+    }
+
 
     @Override
     public final boolean equals(Object o) {

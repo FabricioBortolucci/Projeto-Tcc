@@ -4,6 +4,8 @@ import com.produto.oficina.dto.AtividadeRecenteDTO;
 import com.produto.oficina.dto.DashboardPageDTO;
 import com.produto.oficina.dto.DashboardStatsDTO;
 import com.produto.oficina.model.Produto;
+import com.produto.oficina.model.enums.PesTipo;
+import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +24,7 @@ public class DashBoardService {
 
 
     private final ProdutoRepository produtoRepository;
+    private final PessoaRepository pessoaRepository;
 
     // Injete outros repositórios aqui conforme necessário
     // private final OrdemServicoRepository ordemServicoRepository;
@@ -40,7 +43,7 @@ public class DashBoardService {
 
         // Dados Mockados (substitua com chamadas reais)
         long ordensAbertasMock = 12L;
-        long clientesAtivosMock = 152L;
+        long clientesAtivosMock = pessoaRepository.countPessoaByPesAtivoAndPesTipo(true, PesTipo.CLIENTE);
         String faturamentoMesMock = "R$ 12.345,67"; // Mantenha ou substitua
 
         return new DashboardStatsDTO(

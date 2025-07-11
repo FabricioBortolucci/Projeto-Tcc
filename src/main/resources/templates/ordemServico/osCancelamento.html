@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title th:text="'Detalhes da Compra #' + ${compra?.id ?: ''} + ' - Oficina'">Visualização de Compra -
-        Oficina</title>
+    <title th:text="'Cancelar Compra #' + ${compra?.id ?: ''} + ' - Oficina'">Cancelar Compra - Oficina</title>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
     <style>
@@ -18,6 +17,7 @@
         }
 
         @media (min-width: 576px) {
+            /* sm breakpoint */
             .details-dl dt {
                 margin-bottom: 0;
             }
@@ -41,94 +41,101 @@
         }
 
         @media (min-width: 768px) {
+            /* md breakpoint */
             .table td.text-start-md, .table th.text-start-md {
                 text-align: left;
             }
-        }
-
-        .card-body > .border-top:first-child:last-child { /* Remove borda se for o único elemento após dl */
-            border-top: none !important;
-            margin-top: 0 !important; /* Ajustado de 0 para preservar o espaçamento do mt-4 do container do botão */
-        }
-
-        .card-body > .border-top.d-flex { /* Garante que mt-4 do container do botão seja respeitado */
-            margin-top: 1.5rem !important; /* Padrão do Bootstrap para mt-4 */
         }
 
         /* Espaçamento para o conteúdo da aba */
         .tab-content > .tab-pane {
             padding-top: 1.5rem;
         }
+
+
+
+        .sidebar-fixed {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 280px;
+            height: 100vh;
+            z-index: 1030;
+            overflow-y: auto;
+            /* Mantenha as classes originais da sua sidebar para aparência (ex: text-bg-dark p-3) */
+        }
+
+        .main-content-옆-sidebar-fixed { /* Renomeie esta classe se desejar */
+            margin-left: 280px;
+        }
+
+        /* ... outros estilos da sua página ... */
     </style>
 </head>
 <body>
 <div class="d-flex">
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
+
         <div>
-            <h1 class="h3" th:text="'Detalhes da Compra' + (${compra?.id} ? ' #' + ${compra.id} : '')"></h1>
+            <h1 class="h3" th:text="'Cancelar Compra' + (${compra_cancelamento?.id} ? ' #' + ${compra_cancelamento.id} : '')"></h1>
+            <p class="lead text-danger fw-semibold">Atenção: Revise os dados da compra abaixo antes de confirmar o
+                cancelamento. Esta ação não poderá ser desfeita.</p>
         </div>
 
-        <div th:if="${compra != null}">
-            <ul class="nav nav-pills mb-3" id="compraDetailsTab" role="tablist">
+        <div th:if="${compra_cancelamento != null}">
+            <ul class="nav nav-pills mb-3" id="compraCancelTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="detalhes-compra-tab" data-bs-toggle="tab"
-                            data-bs-target="#detalhes-compra-pane"
-                            type="button" role="tab" aria-controls="detalhes-compra-pane" aria-selected="true">
+                    <button class="nav-link active" id="cancel-detalhes-tab" data-bs-toggle="tab"
+                            data-bs-target="#cancel-detalhes-pane"
+                            type="button" role="tab" aria-controls="cancel-detalhes-pane" aria-selected="true">
                         <i class="bi bi-file-earmark-text-fill me-1"></i> Detalhes da Compra
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="itens-compra-tab" data-bs-toggle="tab"
-                            data-bs-target="#itens-compra-pane"
-                            type="button" role="tab" aria-controls="itens-compra-pane" aria-selected="false">
+                    <button class="nav-link" id="cancel-itens-tab" data-bs-toggle="tab"
+                            data-bs-target="#cancel-itens-pane"
+                            type="button" role="tab" aria-controls="cancel-itens-pane" aria-selected="false">
                         <i class="bi bi-list-stars me-1"></i> Itens da Compra
-                        <span th:if="${compra.itens != null and not #lists.isEmpty(compra.itens)}"
+                        <span th:if="${compra_cancelamento.itens != null and not #lists.isEmpty(compra_cancelamento.itens)}"
                               class="badge rounded-pill bg-secondary ms-1"
-                              th:text="${#lists.size(compra.itens)}"></span>
+                              th:text="${#lists.size(compra_cancelamento.itens)}"></span>
                     </button>
                 </li>
             </ul>
 
-            <div class="tab-content" id="compraDetailsTabContent">
-                <div class="tab-pane fade show active" id="detalhes-compra-pane" role="tabpanel"
-                     aria-labelledby="detalhes-compra-tab" th:object="${compra}">
+            <div class="tab-content" id="compraCancelTabContent">
+                <div class="tab-pane fade show active" id="cancel-detalhes-pane" role="tabpanel"
+                     aria-labelledby="cancel-detalhes-tab" th:object="${compra_cancelamento}">
                     <div class="card shadow-sm">
                         <div class="card-header bg-light py-3">
-                            <h5 class="mb-0 fw-semibold">Informações Gerais da Compra</h5>
+                            <h5 class="mb-0 fw-semibold">Revisar Informações Gerais</h5>
                         </div>
                         <div class="card-body p-4">
                             <dl class="row details-dl">
                                 <dt class="col-sm-3">ID da Compra:</dt>
                                 <dd class="col-sm-9" th:text="*{id ?: 'N/A'}"></dd>
-
                                 <dt class="col-sm-3">Fornecedor:</dt>
                                 <dd class="col-sm-9"
                                     th:text="*{fornecedor?.pesNome ?: (fornecedor?.nome ?: 'N/A')}"></dd>
-
                                 <dt class="col-sm-3">Data da Compra:</dt>
                                 <dd class="col-sm-9"
                                     th:text="*{dataCompra != null ? #temporals.format(dataCompra, 'dd/MM/yyyy HH:mm') : 'N/A'}"></dd>
-
                                 <dt class="col-sm-3">Plano de Pagamento:</dt>
                                 <dd class="col-sm-9" th:text="*{planoPagamento?.descricao ?: 'N/A'}"></dd>
-
                                 <dt class="col-sm-3">Tipo de Pagamento:</dt>
                                 <dd class="col-sm-9" th:text="*{tipoPagamento?.descricao ?: 'N/A'}"></dd>
-
                                 <dt class="col-sm-3">Status da Compra:</dt>
-                                <dd class="col-sm-9" th:text="*{statusCompra?.descricao ?: 'N/A'}"></dd>
-
+                                <dd class="col-sm-9"><span class="badge fs-6"
+                                                           th:classappend="*{statusCompra?.getBootstrapBadgeClass() ?: 'bg-secondary'}"
+                                                           th:text="*{statusCompra?.descricao ?: 'N/A'}"></span></dd>
                                 <th:block th:if="*{totalParcelas != null and totalParcelas > 1}">
                                     <dt class="col-sm-3">Total de Parcelas:</dt>
                                     <dd class="col-sm-9" th:text="*{totalParcelas}"></dd>
-
                                     <dt class="col-sm-3">Valor das Parcelas:</dt>
                                     <dd class="col-sm-9"
                                         th:text="*{#numbers.formatCurrency(valorTotal.divide(totalParcelas))}"></dd>
                                 </th:block>
-
-
                                 <dt class="col-sm-3">Observação:</dt>
                                 <dd class="col-sm-9">
                                     <p th:if="*{observacao != null and !observacao.isEmpty()}" th:text="*{observacao}"
@@ -136,29 +143,17 @@
                                     <p th:if="*{observacao == null or observacao.isEmpty()}"
                                        class="text-muted fst-italic mb-0">Sem observações.</p>
                                 </dd>
-
                                 <dt class="col-sm-3">Valor Total da Compra:</dt>
                                 <dd class="col-sm-9 fw-bold"
                                     th:text="*{valorTotal != null ? #numbers.formatCurrency(valorTotal) : 'R$ 0,00'}"></dd>
                             </dl>
-
-                            <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                                <a class="btn btn-outline-secondary" th:href="@{/compra}">
-                                    <i class="bi bi-arrow-left-circle me-1"></i> Voltar para Lista
-                                </a>
-                                <a class="btn btn-danger"
-                                   th:if="${!#strings.equals(compra.statusCompra, 'CANCELADA') and !#strings.equals(compra.statusCompra, 'ABERTA')}"
-                                   th:href="@{/compra/cancelamento/{index}(index=${compra.id})}">
-                                    <i class="bi bi-trash-fill me-1"></i> Cancelamento
-                                </a>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="itens-compra-pane" role="tabpanel" aria-labelledby="itens-compra-tab">
-                    <h5 class="mb-3 fw-semibold">Itens Registrados na Compra</h5>
-                    <div th:if="${compra.itens != null and not #lists.isEmpty(compra.itens)}" class="table-responsive">
+                <div class="tab-pane fade" id="cancel-itens-pane" role="tabpanel" aria-labelledby="cancel-itens-tab">
+                    <h5 class="mb-3 fw-semibold">Revisar Itens Registrados na Compra</h5>
+                    <div th:if="${compra_cancelamento.itens != null and not #lists.isEmpty(compra_cancelamento.itens)}" class="table-responsive">
                         <table class="table table-dark table-bordered table-hover table-striped table-sm caption-top">
                             <caption class="fs-6">Lista de Itens</caption>
                             <thead>
@@ -171,7 +166,7 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="item : ${compra.itens}">
+                            <tr th:each="item : ${compra_cancelamento.itens}">
                                 <td class="text-start-md" th:text="${item.produto?.id ?: 'N/A'}"></td>
                                 <td class="text-start-md" th:text="${item.produto?.nome ?: 'N/A'}"></td>
                                 <td class="text-end" th:text="${item.quantidade ?: 0}"></td>
@@ -181,25 +176,54 @@
                                     th:text="${item.subTotal != null ? #numbers.formatCurrency(item.subTotal) : 'R$ 0,00'}"></td>
                             </tr>
                             </tbody>
-                            <tfoot th:if="${compra.valorTotalItens != null}">
+                            <tfoot th:if="${compra_cancelamento.valorTotalItens != null}">
                             <tr>
                                 <td colspan="4" class="text-end fw-bold">Total dos Itens:</td>
                                 <td class="text-end fw-bold"
-                                    th:text="${#numbers.formatCurrency(compra.valorTotalItens)}"></td>
+                                    th:text="${#numbers.formatCurrency(compra_cancelamento.valorTotalItens)}"></td>
                             </tr>
                             </tfoot>
                         </table>
                     </div>
-                    <div th:if="${compra.itens == null or #lists.isEmpty(compra.itens)}"
+                    <div th:if="${compra_cancelamento.itens == null or #lists.isEmpty(compra_cancelamento.itens)}"
                          class="alert alert-light border" role="alert">
                         Nenhum item registrado nesta compra.
                     </div>
                 </div>
             </div>
-        </div>
+            <div class="card shadow-sm mt-4 border-danger">
+                <div class="card-header bg-danger text-white py-3">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-exclamation-octagon-fill me-2"></i>Confirmar Ação de
+                        Cancelamento</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form th:action="@{/compra/cancelar-confirmado/{id}(id=${compra_cancelamento.id})}" method="post"
+                          th:object="${compra_cancelamento}">
+                        <div class="mb-3">
+                            <label for="motivoCancelamento" class="form-label">Motivo do Cancelamento
+                                (Opcional):</label>
+                            <textarea class="form-control" id="motivoCancelamento" name="motivoCancelamento"
+                                      th:field="*{observacaoCancelamento}"
+                                      style="resize: none;"
+                                      rows="3"
+                                      placeholder="Descreva o motivo do cancelamento..."></textarea>
+                        </div>
+                        <p class="text-muted small">Ao confirmar, a compra será marcada como cancelada.</p>
+                        <div class="pt-3 mt-3 border-top d-flex justify-content-end gap-2">
+                            <a class="btn btn-outline-secondary" th:href="@{/compra/visualizar/{id}(id=${compra.id})}">
+                                <i class="bi bi-x-circle me-1"></i> Não, Manter Compra
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash-fill me-1"></i> Sim, Confirmar Cancelamento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-        <div th:unless="${compra != null}" class="alert alert-warning mt-4" role="alert">
-            Compra não encontrada ou não disponível.
+        </div>
+        <div th:unless="${compra_cancelamento != null}" class="alert alert-warning mt-4" role="alert">
+            Compra não encontrada ou não disponível para cancelamento.
         </div>
     </main>
 </div>

@@ -121,44 +121,56 @@
                                     </select>
                                 </div>
                                 <div class="col-md-5">
-                                    <label class="form-label" for="dataCompraInput">Data Abertura da Compra: <span
-                                            class="text-danger">*</span></label>
+                                    <label class="form-label" for="dataCompraInput">Data Abertura da Compra:
+                                        <span class="text-danger">*</span></label>
                                     <input type="datetime-local"
                                            class="form-control"
                                            id="dataCompraInput"
-                                           th:field="*{dataCompra}" required/>
+                                           th:field="*{dataCompra}" disabled/>
                                 </div>
                             </div>
 
                             <hr class="my-4">
                             <h6 class="mb-3 fw-semibold">Adicionar Produtos à Compra:</h6>
-                            <div class="row g-3">
+                            <div class="row g-3"
+                                 id="updateTable"
+                                 th:hx-get="@{/compra/cadastro/limpar-produto}"
+                                 hx-on::before-cleanup-element="atualizaSelectProduto()"
+                                 hx-target="#updateTable"
+                                 hx-swap="outerHTML"
+                                 hx-trigger="click from:#btnAddProduto">
+
                                 <div class="col-md-5">
                                     <label for="prodSelect" class="form-label">Produto:</label>
                                     <select id="prodSelect"
                                             class="form-select"
                                             name="prodId"
                                             th:hx-get="@{/compra/produto/buscar-precoProd}"
+                                            hx-trigger="change"
                                             hx-swap="outerHTML"
                                             hx-target="#valorProduto">
-                                        <option value="" selected disabled>Selecione um produto...</option>
                                         <option th:each="prod : ${produtos}"
                                                 th:value="${prod.id}"
-                                                th:text="${prod.nome}"></option>
+                                                th:text="${prod.nome}">
+                                        </option>
                                     </select>
                                 </div>
+
                                 <div id="valorProduto" class="col-md-3">
                                     <label class="form-label" for="valorCusto">Valor Custo (Un.):</label>
                                     <input type="text" class="form-control" id="valorCusto"
-                                           th:field="*{valorUnitarioItens}"
                                            name="valorCusto"
                                            placeholder="0,00">
                                 </div>
-                                <div class="col-md-2">
+
+                                <div id="quantidadeProduto" class="col-md-2">
                                     <label class="form-label" for="quantidade">Quantidade:</label>
                                     <input type="number"
-                                           th:field="*{quantItens}"
-                                           class="form-control" id="quantidade" name="quantidade" required>
+                                           name="quantItens"
+                                           class="form-control"
+                                           value="1"
+                                           min="1"
+                                           id="quantidade" required>
                                 </div>
 
                                 <div class="col-md-2 d-flex align-items-center" style="margin-top: 1.5rem;">
@@ -174,9 +186,7 @@
                                             to '<option selected disabled>Parcelas...</option>' then set the value of #numParcelas to 1">
                                         <i class="bi bi-plus-circle-fill me-1"></i> Adicionar
                                     </button>
-
                                 </div>
-
                             </div>
 
                             <div class="table-responsive mt-4">
@@ -194,8 +204,8 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr th:each="item : ${compra.itemCompraList}">
-                                        <td th:text="${item.id}"></td>
+                                    <tr th:each="item, iter : ${compra.itemCompraList}">
+                                        <td th:text="${item.produto.id}"></td>
                                         <td th:text="${item.produto.nome}"></td>
                                         <td th:text="${#numbers.formatCurrency(item.valorUnitario)}"></td>
                                         <td th:text="${item.quantidade}"></td>
@@ -203,7 +213,8 @@
                                         <td>
                                             <div class="d-flex justify-content-center gap-1 action-button-wrapper">
                                                 <button class="btn btn-danger btn-sm" title="Remover Item"
-                                                        th:hx-delete="@{/compra/cadastro/remover-item}"
+                                                        th:hx-post="@{/compra/cadastro/remover-item/{index}(index=${iter.index})}"
+                                                        onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
                                                         _="on htmx:afterRequest
                                                             set the innerHTML of #parcelasGeradas to '<option selected disabled>Parcelas...</option>'
                                                             then set the value of #numParcelas to 1"
@@ -372,6 +383,10 @@
             placeholder: true,
             searchPlaceholderValue: 'Buscar Fornecedor...'
         });
+        atualizaSelectProduto();
+    });
+
+    function atualizaSelectProduto() {
         const prodSelect = document.getElementById('prodSelect');
         const prodSelectChoices = new Choices(prodSelect, {
             searchEnabled: true,
@@ -379,9 +394,7 @@
             placeholder: true,
             placeholderValue: 'Selecione um produto',
         });
-
-
-    });
+    }
 
     function aplicarMascaraValorCusto() {
         const valorCustoInput = document.getElementById('valorCusto');
