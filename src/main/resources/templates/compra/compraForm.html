@@ -306,22 +306,29 @@
                                            class="form-control" id="numParcelas" required>
                                 </div>
 
+                                <div class="col-md-3">
+                                    <label class="form-label" for="numIntDias">Intervalo de dias:</label>
+                                    <input type="number"
+                                           class="form-control"
+                                           th:field="*{numIntDias}"
+                                           id="numIntDias" required>
+                                </div>
 
-                                <div class="col-md-2">
+                                <div class="col-md-3">
                                     <label for="parcelasGeradas" class="form-label">Parcelas:</label>
                                     <select id="parcelasGeradas"
                                             class="form-select">
                                         <option value="" selected disabled>Parcelas...</option>
                                     </select>
                                 </div>
-                                <div class="col-md-1 d-flex align-items-center mt-0" style="height: 133px;">
+                                <div class="col-md-2 d-flex align-items-center mt-0" style="height: 133px;">
                                     <button id="botaoGerar"
                                             class="btn btn-primary"
                                             type="button"
                                             onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
                                             th:hx-post="@{/compra/cadastro/gerar-parcelas}"
                                             hx-swap="innerHTML"
-                                            hx-include="#numParcelas"
+                                            hx-include="#numParcelas ,#numIntDias"
                                             hx-target="#parcelasGeradas">
                                         <i class="bi bi-check-lg me-1"></i>Gerar
                                     </button>
@@ -426,11 +433,18 @@
 
     function alteraCampoTotalParcelas() {
         const numParcelas = document.getElementById('numParcelas');
+        const numIntDias = document.getElementById('numIntDias');
         const planoPag = document.getElementById('planoPag');
         const parcelas = document.getElementById('parcelasGeradas');
-        numParcelas.disabled = planoPag.value === 'AVISTA';
-        if (numParcelas.disabled) {
+        if (planoPag.value === 'AVISTA') {
             numParcelas.value = 1;
+            numIntDias.value = 1;
+            numIntDias.disabled = true;
+            numParcelas.disabled = true;
+        } else {
+            numIntDias.disabled = false;
+            numParcelas.disabled = false;
+            numIntDias.value = 30;
         }
         parcelas.innerHTML = '<option selected disabled>Parcelas...</option>';
     }

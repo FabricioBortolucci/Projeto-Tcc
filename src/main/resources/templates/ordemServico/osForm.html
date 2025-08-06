@@ -60,7 +60,7 @@
             </li>
         </ul>
 
-        <form th:action="@{/ordem-servico/cadastrar}" method="post" th:object="${os}" id="formPrincipalOS">
+        <form th:object="${os}" id="formPrincipalOS">
             <input type="hidden" th:field="*{id}"/>
 
             <div class="tab-content" id="osTabContent">
@@ -127,7 +127,6 @@
                                             hx-target="#valorUnitarioServico"
                                             hx-swap="outerHTML"
                                             required>
-                                        <option value="" disabled selected>Selecione um serviço...</option>
                                         <option th:each="serv : ${servicos}" th:value="${serv.id}"
                                                 th:text="${serv.descricao}"></option>
                                     </select>
@@ -137,8 +136,7 @@
                                     <label for="valorUnitarioServico" class="form-label">Valor (Unit.):</label>
                                     <div class="input-group">
                                         <span class="input-group-text">R$</span>
-                                        <input th:fragment="valorUnitarioServicoFrag"
-                                               id="valorUnitarioServico"
+                                        <input id="valorUnitarioServico"
                                                name="valorUnitarioServico"
                                                th:value="${servicoSelected?.precoTotal}"
                                                hx-on::load="aplicarMascaraValorCusto()"
@@ -188,7 +186,7 @@
                                     <tr th:if="${os == null or #lists.isEmpty(os.itensServico)}">
                                         <td colspan="6" class="text-white-50 p-2">Nenhum serviço adicionado.</td>
                                     </tr>
-                                    <tr th:each="itemServ : ${os?.itensServico}">
+                                    <tr th:each="itemServ, iter : ${os?.itensServico}">
                                         <td th:text="${itemServ.servico?.id}"></td>
                                         <td class="text-start-md" th:text="${itemServ.servico?.descricao}"></td>
                                         <td class="text-end" th:text="${itemServ.quantidade}"></td>
@@ -200,7 +198,11 @@
                                             <div class="d-flex justify-content-center gap-1 action-button-wrapper">
                                                 <button class="btn btn-danger btn-sm"
                                                         type="button"
-                                                        title="Remover Item">
+                                                        title="Remover Item"
+                                                        th:hx-delete="@{/ordem-servico/cadastro/remover-servico-lista/{index}(index=${iter.index})}"
+                                                        hx-target="#divTabelaServicos"
+                                                        hx-trigger="click"
+                                                        hx-swap="innerHTML">
                                                     <i class="bi bi-trash-fill"></i>
                                                 </button>
                                             </div>
@@ -209,11 +211,10 @@
                                     </tbody>
                                     <tfoot th:if="${os != null and os.calculaTotalServicoItens != null}">
                                     <tr>
-                                        <td colspan="4" class="text-end fw-bold">Valor Total dos Serviços:</td>
+                                        <td colspan="5" class="text-end fw-bold">Valor Total dos Serviços:</td>
                                         <td id="valorTotalServicosTfoot" class="text-end fw-bold"
                                             th:text="${#numbers.formatCurrency(os.calculaTotalServicoItens)}">
                                         </td>
-                                        <td></td>
                                     </tr>
                                     </tfoot>
                                 </table>
@@ -222,32 +223,117 @@
                     </div>
 
 
-                    <div class="card shadow-sm">
+                    <div class="card shadow-sm mb-4">
                         <div class="card-header bg-light py-3">
                             <h6 class="mb-0 fw-semibold">Adicionar Peça/Produto à O.S.</h6>
                         </div>
                         <div class="card-body p-4">
-                            <!-- <p class="small text-muted">Aqui você adicionará a lógica para selecionar uma peça, definir
-                                 a quantidade e adicioná-la à tabela abaixo.</p>
-                             <div class="table-responsive mt-3">
-                                 <table class="table table-dark table-striped table-bordered table-sm">
-                                     <thead>
-                                     <tr>
-                                         <th>Produto</th>
-                                         <th>Qtd.</th>
-                                         <th>Vlr. Unit.</th>
-                                         <th>Subtotal</th>
-                                         <th>Opções</th>
-                                     </tr>
-                                     </thead>
-                                     <tbody id="tabela-pecas-body">
-                                     <tr th:if="${#lists.isEmpty(ordemServico.pecasUsadas)}">
-                                         <td colspan="5" class="text-muted p-2">Nenhuma peça adicionada.</td>
-                                     </tr>
-                                     <tr th:each="itemPeca : ${ordemServico.pecasUsadas}"></tr>
-                                     </tbody>
-                                 </table>
-                             </div>-->
+
+                            <div class="row g-3 align-items-end">
+
+                                <div class="col-lg-5 col-md-12">
+                                    <label for="prodList" class="form-label">Produto/Peça:</label>
+                                    <select class="form-select"
+                                            id="prodList"
+                                            th:field="*{idProds}"
+                                            th:hx-get="@{/ordem-servico/cadastro/busca-preco-prods}"
+                                            hx-target="#valorUnitarioProd"
+                                            hx-swap="outerHTML"
+                                            required>
+                                        <option th:each="prod : ${produtos}" th:value="${prod.id}"
+                                                th:text="${prod.getNome()}"></option>
+                                    </select>
+                                </div>
+
+                                <div class="col-lg-3 col-md-5">
+                                    <label for="valorUnitarioProd" class="form-label">Valor (Unit.):</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">R$</span>
+                                        <input id="valorUnitarioProd"
+                                               name="valorUnitarioProd"
+                                               th:value="${prodSelected?.precoUnitario}"
+                                               hx-on::load="aplicarMascaraValorCusto()"
+                                               class="form-control"
+                                               type="text"
+                                               placeholder="0,00">
+                                    </div>
+                                </div>
+
+                                <div class="col-lg-2 col-md-4">
+                                    <label for="quantProd" class="form-label">Qtd.:</label>
+                                    <input id="quantProd"
+                                           name="quantidadeProdName"
+                                           class="form-control" type="number" min="1" value="1">
+                                </div>
+
+                                <div class="col-lg-2 col-md-3">
+                                    <button type="button"
+                                            th:hx-post="@{/ordem-servico/cadastro/adicionar-produto-lista}"
+                                            hx-include="#quantProd, #valorUnitarioProd"
+                                            hx-target="#divTabelaProdutos"
+                                            hx-swap="innerHTML"
+                                            onclick="formatarValorParaDecimal(document.getElementById('valorUnitarioProd'))"
+                                            hx-on::after-request="aplicarMascaraValorCusto()"
+                                            class="btn btn-primary w-100"
+                                            id="btnAdicionarProd">
+                                        <i class="bi bi-plus-lg me-1"></i> Adicionar
+                                    </button>
+                                </div>
+
+                            </div>
+                            <div id="divTabelaProdutos" class="table-responsive mt-4">
+                                <table th:fragment="tabelaProdutos"
+                                       class="table table-dark table-striped table-bordered table-sm caption-top">
+                                    <caption class="fs-6">Produtos Adicionados</caption>
+                                    <thead>
+                                    <tr>
+                                        <th style="width:10%">Id</th>
+                                        <th class="text-start-md">Nome</th>
+                                        <th class="text-start-md">Descrição</th>
+                                        <th class="text-end" style="width:10%">Qtd.</th>
+                                        <th class="text-end" style="width:15%">Vlr. Unit.</th>
+                                        <th class="text-end" style="width:15%">Subtotal</th>
+                                        <th style="width:10%">Opções</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tabela-prod-body">
+                                    <tr th:if="${os == null or #lists.isEmpty(os.pecasUsadas)}">
+                                        <td colspan="7" class="text-white-50 p-2">Nenhum produto/peça adicionado.</td>
+                                    </tr>
+                                    <tr th:each="itemProd, iter : ${os?.pecasUsadas}">
+                                        <td th:text="${itemProd.produto.id}"></td>
+                                        <td class="text-start-md" th:text="${itemProd.produto.nome}"></td>
+                                        <td class="text-start-md" th:text="${itemProd.produto.descricao}"></td>
+                                        <td class="text-end" th:text="${itemProd.quantidade}"></td>
+                                        <td class="text-end"
+                                            th:text="${#numbers.formatCurrency(itemProd.valorUnitario)}"></td>
+                                        <td class="text-end"
+                                            th:text="${#numbers.formatCurrency(itemProd.subTotal)}"></td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-1 action-button-wrapper">
+                                                <button class="btn btn-danger btn-sm"
+                                                        type="button"
+                                                        title="Remover Item"
+                                                        th:hx-delete="@{/ordem-servico/cadastro/remover-produto-lista/{index}(index=${iter.index})}"
+                                                        hx-target="#divTabelaProdutos"
+                                                        hx-trigger="click"
+                                                        hx-swap="innerHTML">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                    <tfoot th:if="${os != null and os.calculaTotalProdsItens != null}">
+                                    <tr>
+                                        <td colspan="6" class="text-end fw-bold">Valor Total dos Produtos/Peças:</td>
+                                        <td id="valorTotalProdutosTfoot" class="text-end fw-bold"
+                                            th:text="${#numbers.formatCurrency(os.calculaTotalProdsItens)}">
+                                        </td>
+                                    </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -259,18 +345,19 @@
                             <h5 class="mb-0 fw-semibold">Finalização e Pagamento da O.S.</h5>
                         </div>
                         <div class="card-body p-4">
-                            <h3 class="text-end">Valor Total da O.S.:
+                            <h3 class="text-start">Valor Total da O.S.:
                                 <span id="valorTotalFinalOs"
                                       th:text="${#numbers.formatCurrency(os.valorTotal)}">R$ 0,00</span>
                             </h3>
                             <hr class="my-4">
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-5">
                                     <label for="osPlanoPagamento" class="form-label">Plano Pagamento:</label>
                                     <select id="osPlanoPagamento"
                                             class="form-select"
                                             th:field="*{planoPagamento}"
                                             th:hx-get="@{/ordem-servico/cadastro/buscar-planoPag}"
+                                            hx-on::after-request="alteraCampoTotalParcelas();"
                                             hx-trigger="load, change"
                                             hx-target="#osTipoPagamento">
                                         <option value="" selected disabled>Selecione um plano...</option>
@@ -278,26 +365,62 @@
                                                 th:text="${plano.descricao}"></option>
                                     </select>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label for="osTipoPagamento" class="form-label">Tipo Pagamento:</label>
                                     <select id="osTipoPagamento" class="form-select" th:field="*{tipoPagamento}">
                                         <option value="" selected disabled>Selecione um tipo...</option>
                                     </select>
                                 </div>
-                                <div class="col-12">
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="numParcelas">Número de parcelas:</label>
+                                    <input type="number"
+                                           th:field="*{quantParcelas}"
+                                           class="form-control" id="numParcelas" required>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label" for="numIntDias">Intervalo de dias:</label>
+                                    <input type="number"
+                                           class="form-control"
+                                           th:field="*{intDias}"
+                                           id="numIntDias" required>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label for="parcelasGeradas" class="form-label">Parcelas:</label>
+                                    <select id="parcelasGeradas"
+                                            class="form-select">
+                                        <option value="" selected disabled>Parcelas...</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-center mt-0" style="height: 133px;">
+                                    <button id="botaoGerar"
+                                            class="btn btn-primary"
+                                            type="button"
+                                            onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
+                                            th:hx-post="@{/ordem-servico/cadastro/gerar-parcelas}"
+                                            hx-swap="innerHTML"
+                                            hx-include="#numParcelas ,#numIntDias"
+                                            hx-target="#parcelasGeradas">
+                                        <i class="bi bi-check-lg me-1"></i>Gerar
+                                    </button>
+                                </div>
+                                <div class="col-md-5">
                                     <label class="form-label" for="osObservacao">Observações Finais:</label>
-                                    <textarea class="form-control" style="resize: vertical;" id="osObservacao" rows="3"
+                                    <textarea class="form-control" style="resize: none;" id="osObservacao" rows="3"
                                               th:field="*{observacao}"></textarea>
                                 </div>
                             </div>
-
-
                         </div>
                     </div>
                 </div>
             </div>
             <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                <button class="btn btn-secondary text-white" type="submit" name="action" value="rascunho">
+                <button class="btn btn-secondary text-white"
+                        type="button"
+                        value="rascunho"
+                        th:hx-post="@{/ordem-servico/cadastro/salvar-rascunho}">
                     <i class="bi bi-file-earmark me-1"></i>Salvar Rascunho
                 </button>
                 <button class="btn btn-success" type="submit" name="action" value="finalizar">
@@ -332,12 +455,35 @@
             placeholder: true,
             placeholderValue: 'Selecione o Funcionário...',
         });
+        const servSelect = document.getElementById('servicosList');
+        const servSelectChoices = new Choices(servSelect, {
+            searchEnabled: true,
+            itemSelectText: '',
+            placeholder: true,
+            placeholderValue: 'Selecione um Serviço...',
+        });
+        const prodSelect = document.getElementById('prodList');
+        const prodSelectChoices = new Choices(prodSelect, {
+            searchEnabled: true,
+            itemSelectText: '',
+            placeholder: true,
+            placeholderValue: 'Selecione um Produto/Peça...',
+        });
+
+        alteraCampoTotalParcelas();
     });
 
     function aplicarMascaraValorCusto() {
-        const valorCustoInput = document.getElementById('valorUnitarioServico');
-        if (valorCustoInput) {
-            VMasker(valorCustoInput).maskMoney({
+        const valorCustoServInput = document.getElementById('valorUnitarioServico');
+        const valorCustoProdInput = document.getElementById('valorUnitarioProd');
+        if (valorCustoServInput) {
+            VMasker(valorCustoServInput).maskMoney({
+                unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
+                delimiter: '.', affixesStay: false, allowZero: true, allowNegative: false, precision: 2
+            });
+        }
+        if (valorCustoProdInput) {
+            VMasker(valorCustoProdInput).maskMoney({
                 unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
                 delimiter: '.', affixesStay: false, allowZero: true, allowNegative: false, precision: 2
             });
@@ -353,6 +499,25 @@
             inputValorCusto.value = valor;
         }
     }
+
+    function alteraCampoTotalParcelas() {
+        const numParcelas = document.getElementById('numParcelas');
+        const numIntDias = document.getElementById('numIntDias');
+        const planoPag = document.getElementById('osPlanoPagamento');
+        const parcelas = document.getElementById('parcelasGeradas');
+        if (planoPag.value === 'AVISTA') {
+            numParcelas.value = 1;
+            numIntDias.value = 1;
+            numIntDias.disabled = true;
+            numParcelas.disabled = true;
+        } else {
+            numIntDias.disabled = false;
+            numParcelas.disabled = false;
+            numIntDias.value = 30;
+        }
+        parcelas.innerHTML = '<option selected disabled>Parcelas...</option>';
+    }
+
 </script>
 </body>
 </html>

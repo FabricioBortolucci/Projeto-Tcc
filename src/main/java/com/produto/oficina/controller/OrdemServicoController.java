@@ -1,6 +1,8 @@
 package com.produto.oficina.controller;
 
+import com.produto.oficina.dto.CompraDTO;
 import com.produto.oficina.model.OrdemServico;
+import com.produto.oficina.model.Produto;
 import com.produto.oficina.model.Servico;
 import com.produto.oficina.model.enums.PlanoPagamento;
 import com.produto.oficina.model.enums.TipoPagamento;
@@ -8,6 +10,8 @@ import com.produto.oficina.service.OrdemServicoService;
 import com.produto.oficina.service.PessoaService;
 import com.produto.oficina.service.ProdutoService;
 import com.produto.oficina.service.ServicoService;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -16,11 +20,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/ordem-servico")
 @SessionAttributes("os")
-public class OrdemServicoController {
+public class OrdemServicoController extends AbstractController {
 
     private final OrdemServicoService osService;
     private final PessoaService pessoaService;
@@ -56,6 +63,7 @@ public class OrdemServicoController {
         model.addAttribute("clientes", pessoaService.buscaClientes());
         model.addAttribute("funcionarios", pessoaService.buscaFuncionarios());
         model.addAttribute("servicos", servicoService.buscaServicos());
+        model.addAttribute("produtos", produtoService.buscaProdutosAtivos());
         return "ordemServico/osForm";
     }
 
@@ -79,7 +87,15 @@ public class OrdemServicoController {
                                     @RequestParam("idServico") Long idServico) {
         Servico serv = servicoService.buscaServico(idServico);
         model.addAttribute("servicoSelected", serv);
-        return "ordemServico/osForm :: valorUnitarioServicoFrag";
+        return "ordemServico/osForm :: #valorUnitarioServico";
+    }
+
+    @GetMapping("/cadastro/busca-preco-prods")
+    public String buscaPrecoProds(Model model,
+                                  @RequestParam("idProds") Long idProd) {
+        Produto prod = produtoService.findById(idProd);
+        model.addAttribute("prodSelected", prod);
+        return "ordemServico/osForm :: #valorUnitarioProd";
     }
 
     @PostMapping("/cadastro/adicionar-servico-lista")
@@ -92,4 +108,58 @@ public class OrdemServicoController {
         model.addAttribute("os", ordemServico);
         return "ordemServico/osForm :: tabelaServicos";
     }
+
+    @PostMapping("/cadastro/adicionar-produto-lista")
+    public String adicionaProdLista(@ModelAttribute("os") OrdemServico ordemServico,
+                                    @RequestParam("valorUnitarioProd") BigDecimal valorProduto,
+                                    @RequestParam("quantidadeProdName") Integer qtdProduto,
+                                    @RequestParam("idProds") Long idProd,
+                                    Model model) {
+        osService.adicionaProdutoLista(valorProduto, qtdProduto, ordemServico, idProd);
+        model.addAttribute("os", ordemServico);
+        return "ordemServico/osForm :: tabelaProdutos";
+    }
+
+    @DeleteMapping("/cadastro/remover-servico-lista/{index}")
+    public String removerServicoLista(@ModelAttribute("os") OrdemServico ordemServico,
+                                      @PathVariable int index,
+                                      Model model) {
+        ordemServico.getItensServico().remove(index);
+        model.addAttribute("os", ordemServico);
+        return "ordemServico/osForm :: tabelaServicos";
+    }
+
+    @DeleteMapping("/cadastro/remover-produto-lista/{index}")
+    public String removerProdutoLista(@ModelAttribute("os") OrdemServico ordemServico,
+                                      @PathVariable int index,
+                                      Model model) {
+        ordemServico.getPecasUsadas().remove(index);
+        model.addAttribute("os", ordemServico);
+        return "ordemServico/osForm :: tabelaProdutos";
+    }
+
+    @PostMapping("/cadastro/salvar-rascunho")
+    public Object salvarOsRascunho(@ModelAttribute("os") OrdemServico ordemServico) {
+        osService.salvarRascunho(ordemServico);
+        return htmxRedirect("/ordem-servico");
+    }
+
+    @GetMapping("/cancelar/{id}")
+    public String cancelarOs(@PathVariable Long id, Model model) {
+        osService.cancelarOS(id);
+        return "redirect:/ordem-servico";
+    }
+
+    @PostMapping("/cadastro/gerar-parcelas")
+    public String gerarPagamentos(@ModelAttribute("os") OrdemServico ordemServico, Model model) {
+        if (ordemServico.getQuantParcelas() < 1 || ordemServico.getQuantParcelas() > 12 || ordemServico.getCalculaTotalProdsItens().add(ordemServico.getCalculaTotalServicoItens()).compareTo(BigDecimal.ZERO) <= 0) {
+            return "fragments/ordemServicoFragments/osReplace :: listaParcelas";
+        }
+        ordemServico.setParcelas(new ArrayList<>());
+        for (int i = 1; i <= ordemServico.getQuantParcelas(); i++) {
+            ordemServico.getParcelas().add((ordemServico.getCalculaTotalProdsItens().add(ordemServico.getCalculaTotalServicoItens())).divide(BigDecimal.valueOf(ordemServico.getQuantParcelas()), RoundingMode.HALF_UP));
+        }
+        return "fragments/ordemServicoFragments/osReplace :: listaParcelas";
+    }
+
 }

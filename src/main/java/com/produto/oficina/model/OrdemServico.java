@@ -9,6 +9,7 @@ import org.hibernate.proxy.HibernateProxy;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,9 @@ public class OrdemServico {
     @Enumerated(EnumType.STRING)
     private PlanoPagamento planoPagamento;
 
+    @Column(name = "os_int_dias")
+    private Integer intDias;
+
     @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<OrdemServicoItem> itensServico = new ArrayList<>();
@@ -75,8 +79,17 @@ public class OrdemServico {
     @Column(name = "os_mp_desperdicio")
     private BigDecimal desperdicio;
 
+    @Column(name = "os_quantParcelas")
+    private Integer quantParcelas;
+
     @Transient
     private Long idServico;
+
+    @Transient
+    private Long idProds;
+
+    @Transient
+    private List<BigDecimal> parcelas = new ArrayList<>();
 
 
     public BigDecimal getCalculaTotalServicoItens() {
@@ -87,6 +100,24 @@ public class OrdemServico {
             }
         }
         return valorTotalServicosItens;
+    }
+
+    public BigDecimal getCalculaTotalProdsItens() {
+        BigDecimal valorTotalProdsItens = BigDecimal.ZERO;
+        if (pecasUsadas != null) {
+            for (OrdemServicoPeca ordemServicoPeca : pecasUsadas) {
+                valorTotalProdsItens = valorTotalProdsItens.add(ordemServicoPeca.getSubTotal());
+            }
+        }
+        return valorTotalProdsItens;
+    }
+
+    public List<BigDecimal> getValoresParcelas() {
+        List<BigDecimal> valoresParcelas = new ArrayList<>();
+        for (int i = 0; i < quantParcelas; i++) {
+            valoresParcelas.add((this.getCalculaTotalProdsItens().add(this.getCalculaTotalServicoItens())).divide(new BigDecimal(quantParcelas), RoundingMode.HALF_UP));
+        }
+        return valoresParcelas;
     }
 
     @Override

@@ -5,6 +5,7 @@ import com.produto.oficina.dto.DashboardPageDTO;
 import com.produto.oficina.dto.DashboardStatsDTO;
 import com.produto.oficina.model.Produto;
 import com.produto.oficina.model.enums.PesTipo;
+import com.produto.oficina.repository.OrdemServicoRepository;
 import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +26,8 @@ public class DashBoardService {
 
     private final ProdutoRepository produtoRepository;
     private final PessoaRepository pessoaRepository;
+    private final OrdemServicoRepository ordemServicoRepository;
 
-    // Injete outros repositórios aqui conforme necessário
-    // private final OrdemServicoRepository ordemServicoRepository;
-    // private final PessoaRepository pessoaRepository;
 
     public DashboardPageDTO getDashboardPageData() {
         DashboardStatsDTO stats = getDashboardStats();
@@ -42,7 +41,7 @@ public class DashBoardService {
         long produtosBaixoEstoqueCount = produtoRepository.countProdutosEmEstoqueBaixo();
 
         // Dados Mockados (substitua com chamadas reais)
-        long ordensAbertasMock = 12L;
+        long ordensAbertasMock = ordemServicoRepository.count();
         long clientesAtivosMock = pessoaRepository.countPessoaByPesAtivoAndPesTipo(true, PesTipo.CLIENTE);
         String faturamentoMesMock = "R$ 12.345,67"; // Mantenha ou substitua
 

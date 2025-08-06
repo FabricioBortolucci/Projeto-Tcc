@@ -70,6 +70,9 @@ public class Compra {
     @Column(name = "total_parcelas")
     private Integer totalParcelas;
 
+    @Column(name = "comp_int_dias")
+    private Integer intDias;
+
     @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL)
     private List<ItemCompra> itens = new ArrayList<>();
 

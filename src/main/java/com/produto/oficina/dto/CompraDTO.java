@@ -34,6 +34,7 @@ public class CompraDTO implements Serializable {
     StatusCompra statusCompra;
     String observacao;
     Integer totalParcelas = 1;
+    Integer numIntDias;
 
     Integer quantItens = 1;
     BigDecimal valorUnitarioItens;

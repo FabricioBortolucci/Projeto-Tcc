@@ -105,7 +105,12 @@
                     <td class="text-end"
                         th:text="${os.valorTotal != null ? #numbers.formatCurrency(os.valorTotal) : 'R$ 0,00'}"></td>
                     <td>
-                        <span th:text="${os.status?.descricao ?: os.status}"> </span>
+                        <span class="badge"
+                              th:classappend="${#strings.equals(os.status, 'ABERTA') ? 'bg-warning text-dark' :
+                                               (#strings.equals(os.status, 'FINALIZADA') ? 'bg-success text-dark' :
+                                               (#strings.equals(os.status, 'CANCELADA') ? 'bg-light text-dark' : 'bg-light text-dark'))}"
+                              th:text="${os.status?.descricao ?: os.status}">
+                        </span>
                     </td>
                     <td>
                         <div class="d-flex justify-content-center gap-1 action-button-wrapper">
@@ -123,14 +128,11 @@
                                title="Finalizar/Faturar O.S.">
                                 <i class="bi bi-check2-circle"></i>
                             </a>
-                            <form th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO'}"
-                                  th:action="@{/ordem-servico/cancelar/{id}(id=${os.id})}" method="post"
-                                  class="d-inline-block"
-                                  onsubmit="return confirm('Tem certeza que deseja CANCELAR esta Ordem de Serviço?');">
-                                <button class="btn btn-danger btn-sm" type="submit" title="Cancelar O.S.">
-                                    <i class="bi bi-x-octagon-fill"></i>
-                                </button>
-                            </form>
+                            <a th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO'}"
+                               th:href="@{/ordem-servico/cancelar/{id}(id=${os.id})}" class="btn btn-danger btn-sm"
+                               title="Cancelar O.S.">
+                                <i class="bi bi-x-octagon-fill"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>

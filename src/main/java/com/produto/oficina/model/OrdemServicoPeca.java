@@ -38,7 +38,9 @@ public class OrdemServicoPeca {
     @Column(name = "ost_valor_total")
     private BigDecimal valorTotal;
 
-
+    public BigDecimal getSubTotal() {
+        return valorUnitario.multiply(quantidade);
+    }
 
     @Override
     public final boolean equals(Object o) {

@@ -58,7 +58,7 @@ public class CompraService {
                     contaPagar.setTotalParcelas(novaCompra.getTotalParcelas());
                     contaPagar.setValorTotalOriginal(novaCompra.getValorTotal());
                     contaPagar.setValor(novaCompra.getValorTotal().divide(BigDecimal.valueOf(novaCompra.getTotalParcelas()), RoundingMode.HALF_UP));
-                    LocalDate dataVencimento = dataCompra.plusMonths(i - 1);
+                    LocalDate dataVencimento = dataCompra.plusDays(novaCompra.getIntDias()).plusMonths(i - 1);
                     contaPagar.setDataVencimento(dataVencimento);
                     contasPagar.add(contaPagar);
                 }
@@ -72,7 +72,7 @@ public class CompraService {
                 contaPagar.setTotalParcelas(novaCompra.getTotalParcelas());
                 contaPagar.setValorTotalOriginal(novaCompra.getValorTotal());
                 contaPagar.setValor(novaCompra.getValorTotal());
-                contaPagar.setDataVencimento(novaCompra.getDataCompra().toLocalDate());
+                contaPagar.setDataVencimento(novaCompra.getDataCompra().toLocalDate().plusDays(novaCompra.getIntDias()));
                 contaPagar.setDataPagamento(LocalDate.now());
                 contasPagar.add(contaPagar);
                 novaCompra.setContaPagars(contasPagar);
@@ -118,6 +118,7 @@ public class CompraService {
         novaCompra.setItens(compra.getItemCompraList());
         novaCompra.setDataCompraFinalizada(LocalDateTime.now());
         novaCompra.setTotalParcelas(compra.getTotalParcelas());
+        novaCompra.setIntDias(compra.getNumIntDias());
         for (ItemCompra item : novaCompra.getItens()) {
             item.setCompra(novaCompra);
         }

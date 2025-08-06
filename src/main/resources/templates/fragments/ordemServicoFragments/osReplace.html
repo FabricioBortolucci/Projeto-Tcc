@@ -1,0 +1,4 @@
+<option th:fragment="listaParcelas"
+        th:each="parcela, iter : ${os.parcelas}"
+        th:text="${iter.count} + 'x' + ' de ' + ${#numbers.formatCurrency(parcela)}" selected disabled>
+</option>
