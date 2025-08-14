@@ -1,6 +1,5 @@
 package com.produto.oficina.controller;
 
-import com.produto.oficina.dto.CompraDTO;
 import com.produto.oficina.model.OrdemServico;
 import com.produto.oficina.model.Produto;
 import com.produto.oficina.model.Servico;
@@ -10,8 +9,7 @@ import com.produto.oficina.service.OrdemServicoService;
 import com.produto.oficina.service.PessoaService;
 import com.produto.oficina.service.ProdutoService;
 import com.produto.oficina.service.ServicoService;
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -59,12 +57,73 @@ public class OrdemServicoController extends AbstractController {
     @GetMapping("/cadastro")
     public String cadastro(Model model) {
         model.addAttribute("os", new OrdemServico());
-        model.addAttribute("planos_pagamento", PlanoPagamento.values());
         model.addAttribute("clientes", pessoaService.buscaClientes());
         model.addAttribute("funcionarios", pessoaService.buscaFuncionarios());
         model.addAttribute("servicos", servicoService.buscaServicos());
         model.addAttribute("produtos", produtoService.buscaProdutosAtivos());
         return "ordemServico/osForm";
+    }
+
+    @GetMapping("/editar/{id}")
+    public String cadastro(@PathVariable Long id,
+                           Model model) {
+        model.addAttribute("os", osService.findById(id));
+        model.addAttribute("clientes", pessoaService.buscaClientes());
+        model.addAttribute("funcionarios", pessoaService.buscaFuncionarios());
+        model.addAttribute("servicos", servicoService.buscaServicos());
+        model.addAttribute("produtos", produtoService.buscaProdutosAtivos());
+        return "ordemServico/osForm";
+    }
+
+    @GetMapping("/visualizar/{id}")
+    public String visualizar(Model model, @PathVariable Long id) {
+        model.addAttribute("os", osService.findById(id));
+        return "ordemServico/osVisu";
+    }
+
+    @PostMapping("/cadastro/validar-finalizacao")
+    public Object validarParaFinalizacao(
+            @ModelAttribute("os") OrdemServico ordemServico,
+            Model model) {
+
+        List<String> erros = new ArrayList<>();
+
+        if (ordemServico.getCliente() == null || ordemServico.getCliente().getId() == null) {
+            erros.add("É necessário selecionar um Cliente.");
+        }
+        if (ordemServico.getFuncionario() == null || ordemServico.getFuncionario().getId() == null) {
+            erros.add("É necessário selecionar um Funcionário Responsável.");
+        }
+        if (ordemServico.getItensServico() == null || ordemServico.getItensServico().isEmpty()) {
+            erros.add("A Ordem de Serviço deve conter pelo menos um serviço prestado.");
+        }
+        if (ordemServico.getPecasUsadas() == null || ordemServico.getPecasUsadas().isEmpty()) {
+            erros.add("A Ordem de Serviço deve conter pelo menos uma peça/produto utilizado.");
+        }
+
+        if (erros.isEmpty()) {
+            return htmxRedirect("/ordem-servico/finalizar-os");
+        } else {
+            model.addAttribute("errosValidacao", erros);
+            return "fragments/modals/validacaoFinalizacaoModal :: modalContent";
+        }
+    }
+
+    @GetMapping("/finalizar-os")
+    public String preparafinalizarOs(@ModelAttribute("os") OrdemServico ordemServico,
+                              Model model) {
+        model.addAttribute("os", osService.preparaFinalizacao(ordemServico));
+        model.addAttribute("planos_pagamento", PlanoPagamento.values());
+        return "ordemServico/osFinalizacao";
+    }
+
+    @GetMapping("/finalizar-view/{id}")
+    public String preparafinalizarOsView(@PathVariable Long id,
+                                  @ModelAttribute("os") OrdemServico ordemServico,
+                                  Model model) {
+        model.addAttribute("os", osService.preparaFinalizacaoView(id));
+        model.addAttribute("planos_pagamento", PlanoPagamento.values());
+        return "ordemServico/osFinalizacao";
     }
 
     @GetMapping("/cadastro/buscar-planoPag")
@@ -150,7 +209,7 @@ public class OrdemServicoController extends AbstractController {
         return "redirect:/ordem-servico";
     }
 
-    @PostMapping("/cadastro/gerar-parcelas")
+    @GetMapping("/gerar-parcelas")
     public String gerarPagamentos(@ModelAttribute("os") OrdemServico ordemServico, Model model) {
         if (ordemServico.getQuantParcelas() < 1 || ordemServico.getQuantParcelas() > 12 || ordemServico.getCalculaTotalProdsItens().add(ordemServico.getCalculaTotalServicoItens()).compareTo(BigDecimal.ZERO) <= 0) {
             return "fragments/ordemServicoFragments/osReplace :: listaParcelas";
@@ -159,6 +218,7 @@ public class OrdemServicoController extends AbstractController {
         for (int i = 1; i <= ordemServico.getQuantParcelas(); i++) {
             ordemServico.getParcelas().add((ordemServico.getCalculaTotalProdsItens().add(ordemServico.getCalculaTotalServicoItens())).divide(BigDecimal.valueOf(ordemServico.getQuantParcelas()), RoundingMode.HALF_UP));
         }
+        model.addAttribute("os", ordemServico);
         return "fragments/ordemServicoFragments/osReplace :: listaParcelas";
     }
 

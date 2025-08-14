@@ -51,13 +51,6 @@
                     <i class="bi bi-wrench-adjustable-circle me-1"></i> Serviços e Peças
                 </button>
             </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="finalizacao-os-tab" data-bs-toggle="tab"
-                        data-bs-target="#finalizacaoOsPane"
-                        type="button" role="tab" aria-controls="finalizacaoOsPane" aria-selected="false">
-                    <i class="bi bi-receipt-cutoff me-1"></i> Finalização e Pagamento
-                </button>
-            </li>
         </ul>
 
         <form th:object="${os}" id="formPrincipalOS">
@@ -79,6 +72,7 @@
                                             id="clienteSelect"
                                             th:field="*{cliente.id}"
                                             required>
+                                        <option value="">Selecione o Cliente...</option>
                                         <option th:each="c : ${clientes}" th:value="${c.id}"
                                                 th:text="${c.pesNome}"></option>
                                     </select>
@@ -90,6 +84,7 @@
                                             id="funcionarioSelect"
                                             th:field="*{funcionario.id}"
                                             required>
+                                        <option value="">Selecione o Funcionário...</option>
                                         <option th:each="f : ${funcionarios}" th:value="${f.id}"
                                                 th:text="${f.pesNome}"></option>
                                     </select>
@@ -337,84 +332,6 @@
                         </div>
                     </div>
                 </div>
-
-
-                <div class="tab-pane fade" id="finalizacaoOsPane" role="tabpanel" aria-labelledby="finalizacao-os-tab">
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-light py-3">
-                            <h5 class="mb-0 fw-semibold">Finalização e Pagamento da O.S.</h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <h3 class="text-start">Valor Total da O.S.:
-                                <span id="valorTotalFinalOs"
-                                      th:text="${#numbers.formatCurrency(os.valorTotal)}">R$ 0,00</span>
-                            </h3>
-                            <hr class="my-4">
-                            <div class="row g-3">
-                                <div class="col-md-5">
-                                    <label for="osPlanoPagamento" class="form-label">Plano Pagamento:</label>
-                                    <select id="osPlanoPagamento"
-                                            class="form-select"
-                                            th:field="*{planoPagamento}"
-                                            th:hx-get="@{/ordem-servico/cadastro/buscar-planoPag}"
-                                            hx-on::after-request="alteraCampoTotalParcelas();"
-                                            hx-trigger="load, change"
-                                            hx-target="#osTipoPagamento">
-                                        <option value="" selected disabled>Selecione um plano...</option>
-                                        <option th:each="plano : ${planos_pagamento}" th:value="${plano}"
-                                                th:text="${plano.descricao}"></option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="osTipoPagamento" class="form-label">Tipo Pagamento:</label>
-                                    <select id="osTipoPagamento" class="form-select" th:field="*{tipoPagamento}">
-                                        <option value="" selected disabled>Selecione um tipo...</option>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label class="form-label" for="numParcelas">Número de parcelas:</label>
-                                    <input type="number"
-                                           th:field="*{quantParcelas}"
-                                           class="form-control" id="numParcelas" required>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label class="form-label" for="numIntDias">Intervalo de dias:</label>
-                                    <input type="number"
-                                           class="form-control"
-                                           th:field="*{intDias}"
-                                           id="numIntDias" required>
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label for="parcelasGeradas" class="form-label">Parcelas:</label>
-                                    <select id="parcelasGeradas"
-                                            class="form-select">
-                                        <option value="" selected disabled>Parcelas...</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2 d-flex align-items-center mt-0" style="height: 133px;">
-                                    <button id="botaoGerar"
-                                            class="btn btn-primary"
-                                            type="button"
-                                            onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
-                                            th:hx-post="@{/ordem-servico/cadastro/gerar-parcelas}"
-                                            hx-swap="innerHTML"
-                                            hx-include="#numParcelas ,#numIntDias"
-                                            hx-target="#parcelasGeradas">
-                                        <i class="bi bi-check-lg me-1"></i>Gerar
-                                    </button>
-                                </div>
-                                <div class="col-md-5">
-                                    <label class="form-label" for="osObservacao">Observações Finais:</label>
-                                    <textarea class="form-control" style="resize: none;" id="osObservacao" rows="3"
-                                              th:field="*{observacao}"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
                 <button class="btn btn-secondary text-white"
@@ -423,14 +340,20 @@
                         th:hx-post="@{/ordem-servico/cadastro/salvar-rascunho}">
                     <i class="bi bi-file-earmark me-1"></i>Salvar Rascunho
                 </button>
-                <button class="btn btn-success" type="submit" name="action" value="finalizar">
+                <button type="button" class="btn btn-success"
+                        th:hx-post="@{/ordem-servico/cadastro/validar-finalizacao}"
+                        hx-target="#modalPlaceholder"
+                        hx-swap="innerHTML"
+                        hx-indicator="#loadingFinalizar">
                     <i class="bi bi-check-lg me-1"></i>Finalizar O.S.
+                    <span id="loadingFinalizar" class="htmx-indicator spinner-border spinner-border-sm ms-1"></span>
                 </button>
                 <a class="btn btn-outline-secondary" th:href="@{/ordem-servico}">
                     <i class="bi bi-x-circle me-1"></i>Cancelar
                 </a>
             </div>
         </form>
+        <div id="modalPlaceholder"></div>
     </main>
 </div>
 
@@ -444,33 +367,28 @@
         const clienteSelect = document.getElementById('clienteSelect');
         const clienteSelectchoices = new Choices(clienteSelect, {
             searchEnabled: true,
-            itemSelectText: '',
             placeholder: true,
             placeholderValue: 'Selecione o Fornecedor...'
         });
         const funcionarioSelect = document.getElementById('funcionarioSelect');
         const funcionarioSelectChoices = new Choices(funcionarioSelect, {
             searchEnabled: true,
-            itemSelectText: '',
             placeholder: true,
             placeholderValue: 'Selecione o Funcionário...',
         });
         const servSelect = document.getElementById('servicosList');
         const servSelectChoices = new Choices(servSelect, {
             searchEnabled: true,
-            itemSelectText: '',
             placeholder: true,
             placeholderValue: 'Selecione um Serviço...',
         });
         const prodSelect = document.getElementById('prodList');
         const prodSelectChoices = new Choices(prodSelect, {
             searchEnabled: true,
-            itemSelectText: '',
             placeholder: true,
             placeholderValue: 'Selecione um Produto/Peça...',
         });
 
-        alteraCampoTotalParcelas();
     });
 
     function aplicarMascaraValorCusto() {
@@ -498,24 +416,6 @@
             valor = valor.replace(',', '.'); // Substitui vírgula (decimal) por ponto
             inputValorCusto.value = valor;
         }
-    }
-
-    function alteraCampoTotalParcelas() {
-        const numParcelas = document.getElementById('numParcelas');
-        const numIntDias = document.getElementById('numIntDias');
-        const planoPag = document.getElementById('osPlanoPagamento');
-        const parcelas = document.getElementById('parcelasGeradas');
-        if (planoPag.value === 'AVISTA') {
-            numParcelas.value = 1;
-            numIntDias.value = 1;
-            numIntDias.disabled = true;
-            numParcelas.disabled = true;
-        } else {
-            numIntDias.disabled = false;
-            numParcelas.disabled = false;
-            numIntDias.value = 30;
-        }
-        parcelas.innerHTML = '<option selected disabled>Parcelas...</option>';
     }
 
 </script>

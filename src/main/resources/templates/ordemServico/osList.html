@@ -123,8 +123,9 @@
                                title="Editar O.S.">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <a th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO'}"
-                               th:href="@{/ordem-servico/finalizar/{id}(id=${os.id})}" class="btn btn-success btn-sm"
+                            <a th:if="${(os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO') && !os.validaCampos}"
+                               th:href="@{/ordem-servico/finalizar-view/{id}(id=${os.id})}"
+                               class="btn btn-success btn-sm"
                                title="Finalizar/Faturar O.S.">
                                 <i class="bi bi-check2-circle"></i>
                             </a>
@@ -141,22 +142,45 @@
         </div>
 
         <div class="mt-4" th:if="${ordemServicoPage != null and ordemServicoPage.totalPages > 1}">
-            <nav aria-label="Paginação da lista de Ordens de Serviço">
+            <nav aria-label="Paginação da lista de contas a pagar" th:if="${ordemServicoPage.totalPages > 1}">
                 <ul class="pagination justify-content-center">
-                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+
+                    <li class="page-item" th:classappend="${ordemServicoPage.first} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/ordem-servico(page=${currentPage - 1}, size=${ordemServicoPage.size})}">Anterior</a>
+                           th:href="@{/ordem-servico(page=${currentPage - 1}, size=${ordemServicoPage.size})}"
+                           aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
                     </li>
-                    <li class="page-item"
-                        th:each="i : ${#numbers.sequence(0, ordemServicoPage.totalPages - 1)}"
-                        th:classappend="${i == currentPage} ? 'active'">
-                        <a class="page-link" th:href="@{/ordem-servico(page=${i}, size=${ordemServicoPage.size})}"
-                           th:text="${i + 1}"></a>
-                    </li>
-                    <li th:classappend="${currentPage + 1 >= ordemServicoPage.totalPages} ? 'disabled'"
-                        class="page-item">
+
+                    <th:block th:with="totalPages=${ordemServicoPage.totalPages},
+                           currentPage=${currentPage},
+                           windowSize=2">
+                        <th:block th:each="pageNumber : ${#numbers.sequence(0, totalPages - 1)}">
+                            <li class="page-item"
+                                th:if="${pageNumber == 0 or
+                           pageNumber == totalPages - 1 or
+                           (pageNumber >= currentPage - windowSize and pageNumber <= currentPage + windowSize)}"
+                                th:classappend="${pageNumber == currentPage} ? 'active'">
+                                <a class="page-link"
+                                   th:href="@{/ordem-servico(page=${pageNumber}, size=${ordemServicoPage.size})}"
+                                   th:text="${pageNumber + 1}"></a>
+                            </li>
+
+                            <li class="page-item disabled"
+                                th:if="${(pageNumber == 1 and currentPage > windowSize + 1) or
+                           (pageNumber == totalPages - 2 and currentPage < totalPages - windowSize - 2)}">
+                                <span class="page-link">...</span>
+                            </li>
+                        </th:block>
+                    </th:block>
+
+                    <li class="page-item" th:classappend="${ordemServicoPage.last} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/ordem-servico(page=${currentPage + 1}, size=${ordemServicoPage.size})}">Próxima</a>
+                           th:href="@{/ordem-servico(page=${currentPage + 1}, size=${ordemServicoPage.size})}"
+                           aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
                     </li>
                 </ul>
             </nav>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title th:text="'Finalizar O.S. #' + ${ordemServico?.id ?: ''} + ' - Oficina'">Finalizar Ordem de Serviço</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .details-dl dt {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (min-width: 576px) {
+            .details-dl dt {
+                margin-bottom: 0;
+            }
+        }
+
+        .details-dl dd {
+            margin-bottom: 0.75rem;
+        }
+        .form-control:read-only {
+            background-color: var(--bs-secondary-bg);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
+
+        <div>
+            <h1 class="h3"
+                th:text="'Finalizar Ordem de Serviço' + (${os?.id} ? ' #' + ${os.id} : '')"></h1>
+        </div>
+
+        <form th:action="@{/ordem-servico/finalizar-confirmado}" method="post" th:object="${os}"
+              id="formFinalizarOS">
+            <input type="hidden" th:field="*{id}"/>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h5 class="mb-0 fw-semibold">Resumo da Ordem de Serviço</h5>
+                </div>
+                <div class="card-body p-4">
+                    <dl class="row details-dl">
+                        <dt class="col-sm-3">Cliente:</dt>
+                        <dd class="col-sm-9" th:text="*{cliente?.pesNome ?: 'N/A'}"></dd>
+                        <dt class="col-sm-3">Data de Abertura:</dt>
+                        <dd class="col-sm-9"
+                            th:text="*{dataAbertura != null ? #temporals.format(dataAbertura, 'dd/MM/yyyy HH:mm') : 'N/A'}"></dd>
+                        <dt class="col-sm-3">Valor Total dos Itens:</dt>
+                        <dd class="col-sm-9 h5 fw-bold text-success"
+                            th:text="*{valorTotal != null ? #numbers.formatCurrency(valorTotal) : 'R$ 0,00'}"></dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="mb-0 fw-semibold"><i class="bi bi-credit-card-2-front-fill me-2"></i>Definir Pagamento e
+                        Finalizar</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="osPlanoPagamento" class="form-label">Plano Pagamento: <span class="text-danger">*</span></label>
+                            <select id="osPlanoPagamento" class="form-select" th:field="*{planoPagamento}" required
+                                    th:hx-get="@{/ordem-servico/cadastro/buscar-planoPag}"
+                                    hx-trigger="load, change"
+                                    hx-target="#osTipoPagamento"
+                                    hx-swap="innerHTML">
+                                <option value="" selected disabled>Selecione um plano...</option>
+                                <option th:each="plano : ${planos_pagamento}" th:value="${plano}"
+                                        th:text="${plano.descricao}"></option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="osTipoPagamento" class="form-label">Tipo Pagamento: <span
+                                    class="text-danger">*</span></label>
+                            <select id="osTipoPagamento" class="form-select" th:field="*{tipoPagamento}" required>
+                                <option value="" selected disabled>Selecione um plano primeiro...</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label" for="numParcelas">Número de Parcelas:</label>
+                            <input type="number" th:field="*{quantParcelas}" name="numParcelas" class="form-control" id="numParcelas" required>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label" for="numIntDias">Intervalo entre Parcelas (dias):</label>
+                            <input type="number" class="form-control" th:field="*{intDias}" name="numIntDias" id="numIntDias" required>
+                        </div>
+
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button id="botaoGerarp" class="btn btn-secondary text-white w-100"
+                                    type="button"
+                                    th:hx-get="@{/ordem-servico/gerar-parcelas}"
+                                    hx-swap="innerHTML"
+                                    hx-include="#numParcelas, #numIntDias"
+                                    hx-target="#parcelasGeradasContainer">
+                                <i class="bi bi-arrow-repeat me-1"></i>Gerar/Visualizar Parcelas
+                            </button>
+                        </div>
+
+                        <div class="col-12" id="parcelasGeradasContainer">
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label" for="osObservacao">Observações Finais:</label>
+                            <textarea class="form-control" style="resize: vertical;" id="osObservacao" rows="3"
+                                      th:field="*{observacao}"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                        <a class="btn btn-outline-danger" th:href="@{/ordem-servico}">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar
+                        </a>
+                        <button class="btn btn-secondary text-white"
+                                type="button"
+                                value="rascunho"
+                                th:hx-post="@{/ordem-servico/cadastro/salvar-rascunho}">
+                            <i class="bi bi-file-earmark me-1"></i>Salvar Rascunho
+                        </button>
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-check-lg me-1"></i>Confirmar e Finalizar O.S.
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    function alteraCampoTotalParcelas() {
+        const numParcelasInput = document.getElementById('numParcelas');
+        const planoPagSelect = document.getElementById('osPlanoPagamento');
+        const numIntDias = document.getElementById('numIntDias');
+        if (!numParcelasInput || !planoPagSelect) return;
+
+        // Supondo que o value do plano "À Vista" seja um Enum 'AVISTA'
+        const ehAVista = planoPagSelect.value === 'AVISTA';
+
+        numParcelasInput.readOnly = ehAVista;
+        if (ehAVista) {
+            numParcelasInput.value = 1;
+            numIntDias.value = 1;
+            numIntDias.readOnly = true;
+        } else {
+            numIntDias.readOnly = false;
+            numIntDias.value = 30;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Para o select de plano de pagamento, já que ele tem hx-trigger="load",
+        // a função alteraCampoTotalParcelas será chamada após a primeira requisição HTMX.
+        // Podemos adicionar o listener de 'change' para garantir o comportamento.
+        const planoPagSelect = document.getElementById('osPlanoPagamento');
+        if (planoPagSelect) {
+            planoPagSelect.addEventListener('change', alteraCampoTotalParcelas);
+        }
+        alteraCampoTotalParcelas(); // Chama uma vez para o estado inicial
+    });
+
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        // Se a troca de conteúdo foi no select de Tipo de Pagamento,
+        // podemos reinicializar Choices.js se estiver usando.
+        if (event.detail.target.id === 'osTipoPagamento') {
+            // Ex: initializeChoices('osTipoPagamento');
+        }
+
+        // Também chama a função para garantir que o estado do campo de parcelas está correto
+        alteraCampoTotalParcelas();
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

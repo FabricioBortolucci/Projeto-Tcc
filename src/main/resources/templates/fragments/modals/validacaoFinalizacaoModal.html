@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="modalContent">
+    <div class="modal fade" id="validacaoFinalizacaoModal" tabindex="-1" aria-labelledby="validacaoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-danger"> <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="validacaoModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> Finalização Pendente
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+                <div class="modal-body">
+                    <p class="fw-semibold">Não é possível finalizar a Ordem de Serviço. Por favor, corrija os seguintes erros:</p>
+                    <ul class="list-unstyled mt-3">
+                        <li th:each="erro : ${errosValidacao}" class="mb-2 d-flex align-items-center">
+                            <i class="bi bi-x-circle text-danger me-2"></i>
+                            <span th:text="${erro}">Mensagem de erro aqui.</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendido</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        (function() {
+            const modalEl = document.getElementById('validacaoFinalizacaoModal');
+            if (modalEl) {
+                const modalInstance = new bootstrap.Modal(modalEl);
+                modalInstance.show();
+                // Opcional: remove o modal do DOM quando ele for fechado para manter o HTML limpo
+                modalEl.addEventListener('hidden.bs.modal', function() {
+                    modalEl.remove();
+                });
+            }
+        })();
+    </script>
+</th:block>
+</body>
+</html>

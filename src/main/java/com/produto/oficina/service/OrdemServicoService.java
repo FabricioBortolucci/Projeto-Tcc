@@ -3,11 +3,13 @@ package com.produto.oficina.service;
 import com.produto.oficina.model.*;
 import com.produto.oficina.model.enums.StatusOS;
 import com.produto.oficina.repository.OrdemServicoRepository;
+import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.ProdutoRepository;
 import com.produto.oficina.repository.ServicoRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 
@@ -17,11 +19,13 @@ public class OrdemServicoService {
     private final OrdemServicoRepository ordemServicoRepository;
     private final ServicoRepository servicoRepository;
     private final ProdutoRepository produtoRepository;
+    private final PessoaRepository pessoaRepository;
 
-    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository) {
+    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository, PessoaRepository pessoaRepository) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.servicoRepository = servicoRepository;
         this.produtoRepository = produtoRepository;
+        this.pessoaRepository = pessoaRepository;
     }
 
     public Page<OrdemServico> findAll(Pageable pageable) {
@@ -71,6 +75,18 @@ public class OrdemServicoService {
     }
 
     public void salvarRascunho(OrdemServico ordemServico) {
+        if (ordemServico.getCliente().getId() != null && ordemServico.getFuncionario().getId() != null) {
+            ordemServico.setCliente(pessoaRepository.findById(ordemServico.getCliente().getId()).get());
+            ordemServico.setFuncionario(pessoaRepository.findById(ordemServico.getFuncionario().getId()).get());
+        } else {
+            ordemServico.setCliente(null);
+            ordemServico.setFuncionario(null);
+        }
+        if (ordemServico.getValorTotal() == null) {
+            if (!ordemServico.getItensServico().isEmpty() && !ordemServico.getPecasUsadas().isEmpty()) {
+                ordemServico.setValorTotal(ordemServico.getCalculaTotalServicoItens().add(ordemServico.getCalculaTotalProdsItens()));
+            }
+        }
         ordemServico.setStatus(StatusOS.ABERTA);
         ordemServicoRepository.save(ordemServico);
     }
@@ -79,5 +95,40 @@ public class OrdemServicoService {
         ordemServicoRepository.deleteById(id);
         ordemServicoRepository.flush();
     }
+
+    public OrdemServico findById(Long id) {
+        return ordemServicoRepository.findById(id).get();
+    }
+
+    @Transactional(readOnly = true)
+    public OrdemServico preparaFinalizacaoView(Long id) {
+        OrdemServico os = ordemServicoRepository.findByIdWithItensServico(id)
+                .orElseThrow(() -> new RuntimeException("Ordem de Serviço não encontrada!"));
+
+        ordemServicoRepository.findByIdWithPecasUsadas(id);
+
+        ordemServicoRepository.findByIdWithContasReceber(id);
+
+        return os;
+    }
+
+    @Transactional
+    public OrdemServico preparaFinalizacao(OrdemServico ordemServico) {
+        if (ordemServico.getCliente().getId() != null && ordemServico.getFuncionario().getId() != null) {
+            ordemServico.setCliente(pessoaRepository.findById(ordemServico.getCliente().getId()).get());
+            ordemServico.setFuncionario(pessoaRepository.findById(ordemServico.getFuncionario().getId()).get());
+            ordemServico.setValorTotal(ordemServico.getCalculaTotalServicoItens().add(ordemServico.getCalculaTotalProdsItens()));
+        }
+        ordemServico.getItensServico().forEach(item -> {
+            item.setValorTotal(item.getSubTotal());
+        });
+        ordemServico.getPecasUsadas().forEach(item -> {
+            item.setValorTotal(item.getSubTotal());
+        });
+        ordemServico.setStatus(StatusOS.ABERTA);
+        ordemServicoRepository.save(ordemServico);
+        return ordemServico;
+    }
+
 }
 

@@ -39,11 +39,11 @@ public class OrdemServico {
     @Column(name = "os_valor_total")
     private BigDecimal valorTotal;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.MERGE})
     @JoinColumn(name = "os_cliente_id")
     private Pessoa cliente;
 
-    @ManyToOne
+    @ManyToOne(cascade = {CascadeType.MERGE})
     @JoinColumn(name = "funcionario_id")
     private Pessoa funcionario;
 
@@ -118,6 +118,10 @@ public class OrdemServico {
             valoresParcelas.add((this.getCalculaTotalProdsItens().add(this.getCalculaTotalServicoItens())).divide(new BigDecimal(quantParcelas), RoundingMode.HALF_UP));
         }
         return valoresParcelas;
+    }
+
+    public boolean validaCampos() {
+        return this.getFuncionario() == null || this.getCliente() == null || this.getItensServico().isEmpty() || this.getPecasUsadas().isEmpty();
     }
 
     @Override

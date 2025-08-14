@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title th:text="'Detalhes da Compra #' + ${compra?.id ?: ''} + ' - Oficina'">Visualização de Compra -
-        Oficina</title>
+    <title th:text="'Detalhes da O.S. #' + ${os?.id ?: ''} + ' - Oficina'">Visualização de Ordem de Serviço</title>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
     <style>
@@ -46,18 +45,33 @@
             }
         }
 
-        .card-body > .border-top:first-child:last-child { /* Remove borda se for o único elemento após dl */
-            border-top: none !important;
-            margin-top: 0 !important; /* Ajustado de 0 para preservar o espaçamento do mt-4 do container do botão */
-        }
-
-        .card-body > .border-top.d-flex { /* Garante que mt-4 do container do botão seja respeitado */
-            margin-top: 1.5rem !important; /* Padrão do Bootstrap para mt-4 */
-        }
-
-        /* Espaçamento para o conteúdo da aba */
         .tab-content > .tab-pane {
             padding-top: 1.5rem;
+        }
+
+        /* Classes de status para O.S. */
+        .badge.status-aberta {
+            background-color: var(--bs-info-bg-subtle);
+            color: var(--bs-info-text-emphasis);
+            border: 1px solid var(--bs-info-border-subtle);
+        }
+
+        .badge.status-andamento {
+            background-color: var(--bs-warning-bg-subtle);
+            color: var(--bs-warning-text-emphasis);
+            border: 1px solid var(--bs-warning-border-subtle);
+        }
+
+        .badge.status-finalizada {
+            background-color: var(--bs-success-bg-subtle);
+            color: var(--bs-success-text-emphasis);
+            border: 1px solid var(--bs-success-border-subtle);
+        }
+
+        .badge.status-cancelada {
+            background-color: var(--bs-danger-bg-subtle);
+            color: var(--bs-danger-text-emphasis);
+            border: 1px solid var(--bs-danger-border-subtle);
         }
     </style>
 </head>
@@ -66,140 +80,202 @@
     <div th:insert="~{fragments/sidebar}"></div>
     <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
         <div>
-            <h1 class="h3" th:text="'Detalhes da Compra' + (${compra?.id} ? ' #' + ${compra.id} : '')"></h1>
+            <h1 class="h3" th:text="'Detalhes da Ordem de Serviço' + (${os?.id} ? ' #' + ${os.id} : '')"></h1>
         </div>
 
-        <div th:if="${compra != null}">
-            <ul class="nav nav-pills mb-3" id="compraDetailsTab" role="tablist">
+        <div th:if="${os != null}">
+            <ul class="nav nav-pills mb-3" id="osDetailsTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="detalhes-compra-tab" data-bs-toggle="tab"
-                            data-bs-target="#detalhes-compra-pane"
-                            type="button" role="tab" aria-controls="detalhes-compra-pane" aria-selected="true">
-                        <i class="bi bi-file-earmark-text-fill me-1"></i> Detalhes da Compra
+                    <button class="nav-link active" id="detalhes-os-tab" data-bs-toggle="tab"
+                            data-bs-target="#detalhes-os-pane"
+                            type="button" role="tab" aria-controls="detalhes-os-pane" aria-selected="true">
+                        <i class="bi bi-file-earmark-text-fill me-1"></i> Detalhes da O.S.
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="itens-compra-tab" data-bs-toggle="tab"
-                            data-bs-target="#itens-compra-pane"
-                            type="button" role="tab" aria-controls="itens-compra-pane" aria-selected="false">
-                        <i class="bi bi-list-stars me-1"></i> Itens da Compra
-                        <span th:if="${compra.itens != null and not #lists.isEmpty(compra.itens)}"
-                              class="badge rounded-pill bg-secondary ms-1"
-                              th:text="${#lists.size(compra.itens)}"></span>
+                    <button class="nav-link" id="servicos-os-tab" data-bs-toggle="tab"
+                            data-bs-target="#servicos-os-pane"
+                            type="button" role="tab" aria-controls="servicos-os-pane" aria-selected="false">
+                        <i class="bi bi-tools me-1"></i> Serviços Prestados
+                        <span th:if="${os.itensServico != null}" class="badge rounded-pill bg-secondary ms-1"
+                              th:text="${#lists.size(os.itensServico)}"></span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="pecas-os-tab" data-bs-toggle="tab" data-bs-target="#pecas-os-pane"
+                            type="button" role="tab" aria-controls="pecas-os-pane" aria-selected="false">
+                        <i class="bi bi-box-seam me-1"></i> Peças Utilizadas
+                        <span th:if="${os.pecasUsadas != null}" class="badge rounded-pill bg-secondary ms-1"
+                              th:text="${#lists.size(os.pecasUsadas)}"></span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="financeiro-os-tab" data-bs-toggle="tab"
+                            data-bs-target="#financeiro-os-pane"
+                            type="button" role="tab" aria-controls="financeiro-os-pane" aria-selected="false">
+                        <i class="bi bi-cash-stack me-1"></i> Financeiro
                     </button>
                 </li>
             </ul>
 
-            <div class="tab-content" id="compraDetailsTabContent">
-                <div class="tab-pane fade show active" id="detalhes-compra-pane" role="tabpanel"
-                     aria-labelledby="detalhes-compra-tab" th:object="${compra}">
+            <div class="tab-content" id="osDetailsTabContent">
+                <div class="tab-pane fade show active" id="detalhes-os-pane" role="tabpanel"
+                     aria-labelledby="detalhes-os-tab" th:object="${os}">
                     <div class="card shadow-sm">
                         <div class="card-header bg-light py-3">
-                            <h5 class="mb-0 fw-semibold">Informações Gerais da Compra</h5>
+                            <h5 class="mb-0 fw-semibold">Informações Gerais da O.S.</h5>
                         </div>
                         <div class="card-body p-4">
                             <dl class="row details-dl">
-                                <dt class="col-sm-3">ID da Compra:</dt>
+                                <dt class="col-sm-3">Nº da O.S.:</dt>
                                 <dd class="col-sm-9" th:text="*{id ?: 'N/A'}"></dd>
-
-                                <dt class="col-sm-3">Fornecedor:</dt>
+                                <dt class="col-sm-3">Cliente:</dt>
+                                <dd class="col-sm-9" th:text="*{cliente?.pesNome ?: 'N/A'}"></dd>
+                                <dt class="col-sm-3">Funcionário Responsável:</dt>
+                                <dd class="col-sm-9" th:text="*{funcionario?.pesNome ?: 'N/A'}"></dd>
+                                <dt class="col-sm-3">Data de Abertura:</dt>
                                 <dd class="col-sm-9"
-                                    th:text="*{fornecedor?.pesNome ?: (fornecedor?.nome ?: 'N/A')}"></dd>
-
-                                <dt class="col-sm-3">Data da Compra:</dt>
-                                <dd class="col-sm-9"
-                                    th:text="*{dataCompra != null ? #temporals.format(dataCompra, 'dd/MM/yyyy HH:mm') : 'N/A'}"></dd>
-
-                                <dt class="col-sm-3">Plano de Pagamento:</dt>
-                                <dd class="col-sm-9" th:text="*{planoPagamento?.descricao ?: 'N/A'}"></dd>
-
-                                <dt class="col-sm-3">Tipo de Pagamento:</dt>
-                                <dd class="col-sm-9" th:text="*{tipoPagamento?.descricao ?: 'N/A'}"></dd>
-
-                                <dt class="col-sm-3">Status da Compra:</dt>
-                                <dd class="col-sm-9" th:text="*{statusCompra?.descricao ?: 'N/A'}"></dd>
-
-                                <th:block th:if="*{totalParcelas != null and totalParcelas > 1}">
-                                    <dt class="col-sm-3">Total de Parcelas:</dt>
-                                    <dd class="col-sm-9" th:text="*{totalParcelas}"></dd>
-
-                                    <dt class="col-sm-3">Valor das Parcelas:</dt>
-                                    <dd class="col-sm-9"
-                                        th:text="*{#numbers.formatCurrency(valorTotal.divide(totalParcelas))}"></dd>
-                                </th:block>
-
-
-                                <dt class="col-sm-3">Observação:</dt>
+                                    th:text="*{dataAbertura != null ? #temporals.format(dataAbertura, 'dd/MM/yyyy HH:mm') : 'N/A'}"></dd>
+                                <dt class="col-sm-3" th:if="*{dataFechamento != null}">Data de Fechamento:</dt>
+                                <dd class="col-sm-9" th:if="*{dataFechamento != null}"
+                                    th:text="*{#temporals.format(dataFechamento, 'dd/MM/yyyy HH:mm')}"></dd>
+                                <dt class="col-sm-3">Status da O.S.:</dt>
+                                <dd class="col-sm-9">
+                                    <span class="badge fs-6"
+                                          th:classappend="${#strings.equals(os.status, 'ABERTA') ? 'bg-warning text-dark' :
+                                                    (#strings.equals(os.status, 'EM_EXECUCAO') ? 'bg-warning text-dark' :
+                                               (#strings.equals(os.status, 'FINALIZADA') ? 'bg-success text-dark' :
+                                               (#strings.equals(os.status, 'CANCELADA') ? 'bg-light text-dark' : 'bg-light text-dark')))}"
+                                          th:text="*{status?.descricao ?: status}"></span>
+                                </dd>
+                                <dt class="col-sm-3">Observações:</dt>
                                 <dd class="col-sm-9">
                                     <p th:if="*{observacao != null and !observacao.isEmpty()}" th:text="*{observacao}"
                                        class="mb-0"></p>
                                     <p th:if="*{observacao == null or observacao.isEmpty()}"
                                        class="text-muted fst-italic mb-0">Sem observações.</p>
                                 </dd>
-
-                                <dt class="col-sm-3">Valor Total da Compra:</dt>
-                                <dd class="col-sm-9 fw-bold"
+                                <dt class="col-sm-3">Valor Total da O.S.:</dt>
+                                <dd class="col-sm-9 h5 fw-bold text-success"
                                     th:text="*{valorTotal != null ? #numbers.formatCurrency(valorTotal) : 'R$ 0,00'}"></dd>
                             </dl>
-
                             <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                                <a class="btn btn-outline-secondary" th:href="@{/compra}">
-                                    <i class="bi bi-arrow-left-circle me-1"></i> Voltar para Lista
-                                </a>
-                                <a class="btn btn-danger"
-                                   th:if="${!#strings.equals(compra.statusCompra, 'CANCELADA')}"
-                                   th:href="@{/compra/cancelamento/{index}(index=${compra.id})}">
-                                    <i class="bi bi-trash-fill me-1"></i> Cancelamento
-                                </a>
+                                <a class="btn btn-outline-secondary" th:href="@{/ordem-servico}"><i
+                                        class="bi bi-arrow-left-circle me-1"></i> Voltar para Lista</a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="itens-compra-pane" role="tabpanel" aria-labelledby="itens-compra-tab">
-                    <h5 class="mb-3 fw-semibold">Itens Registrados na Compra</h5>
-                    <div th:if="${compra.itens != null and not #lists.isEmpty(compra.itens)}" class="table-responsive">
-                        <table class="table table-dark table-bordered table-hover table-striped table-sm caption-top">
-                            <caption class="fs-6">Lista de Itens</caption>
+                <div class="tab-pane fade" id="servicos-os-pane" role="tabpanel" aria-labelledby="servicos-os-tab">
+                    <h5 class="mb-3 fw-semibold">Serviços Prestados na O.S.</h5>
+                    <div th:if="${os.itensServico != null and not #lists.isEmpty(os.itensServico)}"
+                         class="table-responsive">
+                        <table class="table table-dark table-striped table-bordered table-sm caption-top">
+                            <caption class="fs-6">Lista de Serviços</caption>
                             <thead>
                             <tr>
-                                <th class="text-start-md" style="width: 10%;">ID Prod.</th>
-                                <th class="text-start-md" style="width: 35%;">Nome do Produto</th>
-                                <th class="text-end" style="width: 15%;">Qtd.</th>
-                                <th class="text-end" style="width: 20%;">Valor Custo (Unit.)</th>
-                                <th class="text-end" style="width: 20%;">Subtotal</th>
+                                <th class="text-start-md">Descrição</th>
+                                <th class="text-end">Qtd.</th>
+                                <th class="text-end">Vlr. Unit.</th>
+                                <th class="text-end">Subtotal</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="item : ${compra.itens}">
-                                <td class="text-start-md" th:text="${item.produto?.id ?: 'N/A'}"></td>
-                                <td class="text-start-md" th:text="${item.produto?.nome ?: 'N/A'}"></td>
+                            <tr th:each="item : ${os.itensServico}">
+                                <td class="text-start-md" th:text="${item.servico?.descricao ?: 'N/A'}"></td>
                                 <td class="text-end" th:text="${item.quantidade ?: 0}"></td>
-                                <td class="text-end"
-                                    th:text="${item.valorUnitario != null ? #numbers.formatCurrency(item.valorUnitario) : 'R$ 0,00'}"></td>
-                                <td class="text-end"
-                                    th:text="${item.subTotal != null ? #numbers.formatCurrency(item.subTotal) : 'R$ 0,00'}"></td>
+                                <td class="text-end" th:text="${#numbers.formatCurrency(item.valorUnitario)}"></td>
+                                <td class="text-end" th:text="${#numbers.formatCurrency(item.subTotal)}"></td>
                             </tr>
                             </tbody>
-                            <tfoot th:if="${compra.valorTotalItens != null}">
-                            <tr>
-                                <td colspan="4" class="text-end fw-bold">Total dos Itens:</td>
-                                <td class="text-end fw-bold"
-                                    th:text="${#numbers.formatCurrency(compra.valorTotalItens)}"></td>
-                            </tr>
-                            </tfoot>
                         </table>
                     </div>
-                    <div th:if="${compra.itens == null or #lists.isEmpty(compra.itens)}"
-                         class="alert alert-light border" role="alert">
-                        Nenhum item registrado nesta compra.
+                    <div th:if="${os.itensServico == null or #lists.isEmpty(os.itensServico)}"
+                         class="alert alert-light border">Nenhum serviço registrado nesta O.S.
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="pecas-os-pane" role="tabpanel" aria-labelledby="pecas-os-tab">
+                    <h5 class="mb-3 fw-semibold">Peças/Produtos Utilizados na O.S.</h5>
+                    <div th:if="${os.pecasUsadas != null and not #lists.isEmpty(os.pecasUsadas)}"
+                         class="table-responsive">
+                        <table class="table table-dark table-striped table-bordered table-sm caption-top">
+                            <caption class="fs-6">Lista de Peças/Produtos</caption>
+                            <thead>
+                            <tr>
+                                <th class="text-start-md">Produto</th>
+                                <th class="text-end">Qtd.</th>
+                                <th class="text-end">Vlr. Unit.</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="item : ${os.pecasUsadas}">
+                                <td class="text-start-md" th:text="${item.produto?.nome ?: 'N/A'}"></td>
+                                <td class="text-end" th:text="${item.quantidade ?: 0}"></td>
+                                <td class="text-end" th:text="${#numbers.formatCurrency(item.valorUnitario)}"></td>
+                                <td class="text-end" th:text="${#numbers.formatCurrency(item.subTotal)}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${os.pecasUsadas == null or #lists.isEmpty(os.pecasUsadas)}"
+                         class="alert alert-light border">Nenhuma peça/produto registrado nesta O.S.
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="financeiro-os-pane" role="tabpanel" aria-labelledby="financeiro-os-tab">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-light py-3">
+                            <h5 class="mb-0 fw-semibold">Financeiro e Contas a Receber</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <dl class="row details-dl mb-4">
+                                <dt class="col-sm-3">Plano de Pagamento:</dt>
+                                <dd class="col-sm-9" th:text="${os.planoPagamento?.descricao ?: 'Não definido'}"></dd>
+                                <dt class="col-sm-3">Tipo de Pagamento:</dt>
+                                <dd class="col-sm-9" th:text="${os.tipoPagamento?.descricao ?: 'Não definido'}"></dd>
+                            </dl>
+
+                            <h6 class="mb-3 fw-semibold">Parcelas Geradas (Contas a Receber)</h6>
+                            <div th:if="${os.contaRecebers != null and not #lists.isEmpty(os.contaRecebers)}"
+                                 class="table-responsive">
+                                <table class="table table-dark table-striped table-bordered table-sm caption-top">
+                                    <caption class="fs-6">Lista de Parcelas</caption>
+                                    <thead>
+                                    <tr>
+                                        <th>Nº Parcela</th>
+                                        <th>ID Conta</th>
+                                        <th>Vencimento</th>
+                                        <th class="text-end">Valor</th>
+                                        <th>Status</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr th:each="conta : ${os.contaRecebers}">
+                                        <td th:text="${conta.numeroParcela + '/' + conta.totalParcelas}"></td>
+                                        <td><a th:href="@{/contas-receber/visualizar/{id}(id=${conta.id})}"
+                                               th:text="${conta.id}" class="link-light"></a></td>
+                                        <td th:text="${#temporals.format(conta.dataVencimento, 'dd/MM/yyyy')}"></td>
+                                        <td class="text-end" th:text="${#numbers.formatCurrency(conta.valor)}"></td>
+                                        <td><span class="badge"
+                                                  th:text="${conta.status?.descricao ?: conta.status}"></span></td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div th:if="${os.contaRecebers == null or #lists.isEmpty(os.contaRecebers)}"
+                                 class="alert alert-light border">Nenhuma conta a receber gerada para esta O.S.
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div th:unless="${compra != null}" class="alert alert-warning mt-4" role="alert">
-            Compra não encontrada ou não disponível.
+        <div th:unless="${os != null}" class="alert alert-warning mt-4" role="alert">
+            Ordem de Serviço não encontrada ou não disponível.
         </div>
     </main>
 </div>
