@@ -1,9 +1,11 @@
 package com.produto.oficina.dto;
 
+import java.math.BigDecimal;
+
 public record DashboardStatsDTO(
         long ordensServicoAbertas,
         long clientesAtivos,
-        String faturamentoMes,
+        BigDecimal faturamentoMes,
         long totalProdutosCadastrados,
         long produtosEmEstoqueBaixo
 ) {}

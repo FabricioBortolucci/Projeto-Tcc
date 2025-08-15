@@ -4,31 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Pessoas - Oficina</title>
-    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <link rel="stylesheet" type="text-css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text-css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
     <style>
-        /* Estilos padrão da "Lista de Caixas" com centralização de texto na tabela */
+        /* Estilos padrão reutilizados */
         .table th, .table td {
             vertical-align: middle;
-            text-align: center; /* Centraliza todo o texto nas células da tabela */
+            text-align: center;
         }
-
         .table-dark .badge a {
             color: inherit;
         }
-
         .table-dark .btn-light {
-            /* Ajustes de contraste para btn-light em fundo escuro, se necessário */
+            /* Ajustes se necessário */
         }
-
-        /* Estilos para os botões de ação apenas com ícone */
         .action-button-wrapper .btn {
-            padding: 0.25rem 0.5rem; /* Padding para botões sm com ícones */
+            padding: 0.25rem 0.5rem;
             font-size: 0.875rem;
         }
-
         .action-button-wrapper .bi {
-            vertical-align: text-bottom; /* Alinha melhor o ícone */
+            vertical-align: text-bottom;
+        }
+        /* Alinhamento para colunas de texto longas */
+        .table td.text-start-md, .table th.text-start-md {
+            text-align: center;
+        }
+        @media (min-width: 768px) {
+            .table td.text-start-md, .table th.text-start-md {
+                text-align: left;
+            }
         }
     </style>
 </head>
@@ -38,17 +42,41 @@
     <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-4">
         <h1 class="h3 mb-4">Lista de Pessoas</h1>
 
-        <div th:if="${pessoa_cadastrada}" class="alert alert-success alert-dismissible" role="alert">
-            Pessoa salva com sucesso!
+        <div th:if="${pessoa_cadastrada_mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${pessoa_cadastrada_mensagem}">Pessoa salva com sucesso!</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
+
+        <div class="card bg-light border-0 mb-4">
+            <div class="card-body p-3">
+                <form th:action="@{/pessoa}" method="get" class="row g-2 align-items-center">
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" class="form-control" name="filtroNome" placeholder="Buscar por nome ou CPF/CNPJ..."
+                                   th:value="${param.filtroNome}">
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <button class="btn btn-primary" type="submit">Buscar</button>
+                    </div>
+                    <div class="col-auto">
+                        <a th:href="@{/pessoa}" class="btn btn-outline-secondary" title="Limpar Filtro">
+                            <i class="bi bi-eraser"></i>
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+
         <div class="table-responsive">
             <table class="table table-dark table-bordered table-hover table-striped caption-top">
                 <caption class="fs-6">Pessoas registradas no sistema</caption>
                 <thead>
                 <tr>
                     <th style="width: 5%;">Id</th>
-                    <th style="width: 30%;">Nome</th>
+                    <th class="text-start-md" style="width: 30%;">Nome</th>
                     <th style="width: 20%;">CPF/CNPJ</th>
                     <th style="width: 15%;">Tipo</th>
                     <th style="width: 10%;">Status</th>
@@ -56,12 +84,12 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:if="${pes_list == null or pes_list.getContent().isEmpty()}">
+                <tr th:if="${pes_list == null or pes_list.empty}">
                     <td colspan="6" class="text-muted p-3">Nenhuma pessoa encontrada.</td>
                 </tr>
                 <tr th:each="pes : ${pes_list.content}">
                     <td th:text="${pes?.id}"></td>
-                    <td th:text="${pes?.pesNome}"></td>
+                    <td class="text-start-md" th:text="${pes?.pesNome}"></td>
                     <td th:text="${pes?.pesCpfCnpj}"></td>
                     <td th:text="${pes?.pesTipo?.descricao ?: 'N/A'}"></td>
                     <td>
@@ -70,20 +98,19 @@
                     </td>
                     <td>
                         <div class="d-flex justify-content-center gap-1 action-button-wrapper">
-                            <form th:action="@{/pessoa/desativar/{index}(index=${pes.id})}" method="post"
-                                  class="d-inline-block">
-                                <button class="btn btn-danger btn-sm" type="submit"
-                                        th:disabled="${!pes.pesAtivo}"
-                                        title="Desativar Pessoa">
-                                    <i class="bi bi-person-slash"></i>
+                            <form th:action="@{/pessoa/desativar/{index}(index=${pes.id})}" method="post" class="d-inline-block"
+                                  onsubmit="return confirm('Tem certeza que deseja alterar o status desta pessoa?');">
+                                <button class="btn btn-sm"
+                                        th:classappend="${pes.pesAtivo ? 'btn-danger' : 'btn-success'}"
+                                        type="submit"
+                                        th:title="${pes.pesAtivo ? 'Desativar' : 'Ativar'}">
+                                    <i th:classappend="${pes.pesAtivo ? 'bi-person-slash' : 'bi-person-check-fill'}"></i>
                                 </button>
                             </form>
-                            <a th:href="@{/pessoa/editar/{index}(index=${pes.id})}" class="btn btn-light btn-sm"
-                               title="Editar Pessoa">
+                            <a th:href="@{/pessoa/editar/{index}(index=${pes.id})}" class="btn btn-light btn-sm" title="Editar">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <a th:href="@{/pessoa/visualizar/{index}(index=${pes.id})}" class="btn btn-light btn-sm"
-                               title="Visualizar Pessoa">
+                            <a th:href="@{/pessoa/visualizar/{index}(index=${pes.id})}" class="btn btn-light btn-sm" title="Visualizar">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
                         </div>
@@ -94,19 +121,45 @@
         </div>
 
         <div class="mt-4" th:if="${pes_list != null and pes_list.totalPages > 1}">
-            <nav aria-label="Paginação da lista de pessoas">
+            <nav aria-label="Paginação da lista de contas a pagar" th:if="${pes_list.totalPages > 1}">
                 <ul class="pagination justify-content-center">
-                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
-                        <a class="page-link" th:href="@{/pessoa(page=${currentPage - 1}, size=${pes_list.size})}">Anterior</a>
+
+                    <li class="page-item" th:classappend="${pes_list.first} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/pessoa(page=${currentPage - 1}, size=${pes_list.size})}"
+                           aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
                     </li>
-                    <li class="page-item"
-                        th:each="i : ${#numbers.sequence(0, pes_list.totalPages - 1)}"
-                        th:classappend="${i == currentPage} ? 'active'">
-                        <a class="page-link" th:href="@{/pessoa(page=${i}, size=${pes_list.size})}"
-                           th:text="${i + 1}"></a>
-                    </li>
-                    <li th:classappend="${currentPage + 1 >= pes_list.totalPages} ? 'disabled'" class="page-item">
-                        <a class="page-link" th:href="@{/pessoa(page=${currentPage + 1}, size=${pes_list.size})}">Próxima</a>
+
+                    <th:block th:with="totalPages=${pes_list.totalPages},
+                           currentPage=${currentPage},
+                           windowSize=2">
+                        <th:block th:each="pageNumber : ${#numbers.sequence(0, totalPages - 1)}">
+                            <li class="page-item"
+                                th:if="${pageNumber == 0 or
+                           pageNumber == totalPages - 1 or
+                           (pageNumber >= currentPage - windowSize and pageNumber <= currentPage + windowSize)}"
+                                th:classappend="${pageNumber == currentPage} ? 'active'">
+                                <a class="page-link"
+                                   th:href="@{/pessoa(page=${pageNumber}, size=${pes_list.size})}"
+                                   th:text="${pageNumber + 1}"></a>
+                            </li>
+
+                            <li class="page-item disabled"
+                                th:if="${(pageNumber == 1 and currentPage > windowSize + 1) or
+                           (pageNumber == totalPages - 2 and currentPage < totalPages - windowSize - 2)}">
+                                <span class="page-link">...</span>
+                            </li>
+                        </th:block>
+                    </th:block>
+
+                    <li class="page-item" th:classappend="${pes_list.last} ? 'disabled'">
+                        <a class="page-link"
+                           th:href="@{/pessoa(page=${currentPage + 1}, size=${pes_list.size})}"
+                           aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
                     </li>
                 </ul>
             </nav>
@@ -122,6 +175,5 @@
 </div>
 
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
-<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
 </body>
 </html>

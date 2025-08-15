@@ -1,25 +1,10 @@
-<!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
-    <title>Oficina</title>
-    <link rel="stylesheet" type="text/css" media="all"
-          href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
-    <link rel="stylesheet" href="/images/bootstrap-icons.css" th:href="@{/images/bootstrap-icons.css}">
-    <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
-</head>
-<body>
-
 <div th:fragment="modalAddfundos" class="modal fade" id="modalDinamicaFundos" tabindex="-1"
      aria-labelledby="modalDinamicaFundosLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalDinamicaFundosLabel">
-                    <span th:text="${modal_title}">Título Padrão do Modal</span>
-                </h5>
+            <div class="modal-header bg-light"><h5 class="modal-title fw-semibold" id="modalDinamicaFundosLabel">
+                <i class="bi bi-arrow-down-up me-1 text-primary"></i> <span th:text="${modal_title}">Movimentação de Caixa</span>
+            </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -27,7 +12,9 @@
 
                     <div class="mb-3">
                         <label for="valorI" class="form-label" th:text="${modal_label ?: 'Valor:'}">Valor:</label>
-                        <input id="valorI" class="form-control" type="text" th:field="*{valor}" placeholder="R$ 0,00"/>
+                        <div class="input-group"><span class="input-group-text">R$</span>
+                            <input id="valorI" class="form-control" type="text" th:field="*{valor}" placeholder="0,00"/>
+                        </div>
                     </div>
 
                     <div class="mb-3">
@@ -41,6 +28,40 @@
                         </select>
                     </div>
 
+                    <fieldset th:if="${remover}" class="card card-body bg-light p-3 mb-3">
+                        <legend class="col-form-label pt-0 fs-6 fw-normal">Líquidar crédito de cliente?</legend>
+                        <div class="d-flex flex-wrap gap-4">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="caixaReembolso"
+                                       id="checkR"
+                                       th:hx-get="@{/caixa/show-clientes}"
+                                       hx-target="#modalClientesCredito"
+                                       hx-swap="innerHTML"
+                                       value="R_CAIXA">
+                                <label class="form-check-label" for="checkR">
+                                    <i class="bi bi-check-circle-fill text-success"></i> Sim
+                                </label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input"
+                                       type="radio"
+                                       name="caixaReembolso"
+                                       id="checkN"
+                                       th:hx-get="@{/caixa/hide-clientes}"
+                                       hx-target="#modalClientesCredito"
+                                       hx-swap="innerHTML"
+                                       value="N_CAIXA" checked> <label class="form-check-label" for="checkN">
+                                <i class="bi bi-x-circle text-danger"></i> Não
+                            </label>
+                            </div>
+                        </div>
+                    </fieldset>
+
+                    <div id="modalClientesCredito" class="mb-3" style="min-height: 78px; transition: all 0.3s ease;">
+                    </div>
+
                     <div class="mb-3">
                         <label for="desc" class="form-label">Descrição:</label>
                         <textarea id="desc" class="form-control" th:field="*{descricao}" rows="3"
@@ -48,7 +69,7 @@
                                   placeholder="Adicione uma breve descrição (opcional)"></textarea>
                     </div>
 
-                    <div class="modal-footer">
+                    <div class="modal-footer border-top pt-3 mt-4">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar
                         </button>
                         <button type="submit" class="btn btn-primary"
@@ -62,48 +83,41 @@
     </div>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        // Função para formatar o valor para decimal antes de enviar
-        // É bom ter essa função definida globalmente se for usada em múltiplos lugares,
-        // ou encapsulada de forma que não polua o escopo global se for muito específica.
         function formatarValorParaDecimal(input) {
             if (input && input.value) {
-                // Remove R$, espaços, todos os pontos (milhares) e substitui vírgula por ponto decimal
                 input.value = input.value.replace(/R\$\s*/g, '').replace(/\./g, '').replace(',', '.');
             }
         }
 
         var modalElement = document.getElementById('modalDinamicaFundos');
         if (modalElement) {
-            var modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement); // Uso de getOrCreateInstance é mais robusto
+            var modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
             modalInstance.show();
-
             modalElement.addEventListener('hidden.bs.modal', function () {
-                // Considerar se 'modalElement.remove()' é sempre desejado.
-                // Se o modal for sempre o mesmo, apenas ocultá-lo pode ser suficiente e mais performático
-                // do que removê-lo e recriá-lo, a menos que o conteúdo interno mude drasticamente
-                // ou haja problemas de estado/ID. Se o HTMX substitui o conteúdo da modal,
-                // remover pode ser uma boa estratégia para garantir um estado limpo.
-                var backdrop = document.querySelector('.modal-backdrop');
-                if (backdrop) {
-                    backdrop.remove(); // Garante que o backdrop seja removido se houver múltiplos ou persistentes
-                }
                 modalElement.remove();
+                var backdrop = document.querySelector('.modal-backdrop');
+                if (backdrop) backdrop.remove();
             });
-
             const valorFundoInputModal = document.getElementById('valorI');
             if (valorFundoInputModal && typeof VMasker !== 'undefined') {
                 VMasker(valorFundoInputModal).maskMoney({
-                    // unit: 'R$', // VMasker pode adicionar a unidade automaticamente
-                    thousands: '.',
-                    decimal: ',',
-                    precision: 2,
-                    zeroCents: true // Para exibir R$ 10,00 em vez de R$ 10,
+                    thousands: '.', decimal: ',', precision: 2, zeroCents: true
                 });
             }
+            modalElement.addEventListener('htmx:afterSwap', function (event) {
+                if (event.detail.target.id === 'modalClientesCredito') {
+                    const clienteSelect = document.getElementById('clienteSelect');
+                    if (clienteSelect && !clienteSelect.choices) {
+                        new Choices(clienteSelect, {
+                            searchEnabled: true,
+                            itemSelectText: '',
+                            placeholder: true,
+                            placeholderValue: 'Busque ou selecione um cliente...'
+                        });
+                    }
+                }
+            });
         }
         /*]]>*/
     </script>
 </div>
-
-</body>
-</html>

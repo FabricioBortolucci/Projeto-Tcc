@@ -99,6 +99,7 @@ public class CaixaController extends AbstractController {
                                   Model model) {
         caixaId = id;
         if (remover) {
+            model.addAttribute("remover", remover);
             model.addAttribute("modal_title", "Remover fundos do caixa");
             model.addAttribute("modal_label", "Valor a ser removido: ");
             model.addAttribute("tiposMovimento", TipoMovimentacao.apenasSaidas());
@@ -112,11 +113,23 @@ public class CaixaController extends AbstractController {
         return "fragments/caixaFragments/modalCaixa";
     }
 
+    @GetMapping("/show-clientes")
+    public String showClientes(Model model) {
+        model.addAttribute("clientes", pessoaService.buscarClientesAtivosComCredito());
+        return "fragments/caixaFragments/clientesCredito";
+    }
+
+    @GetMapping("/hide-clientes")
+    public String hideClientes() {
+        return "fragments/caixaFragments/modalCaixa :: #modalClientesCredito";
+    }
+
     @PostMapping("/editar/movimentarFundos")
     public String addFundos(@ModelAttribute MovimentacaoCaixa movimento,
+                            @RequestParam("clienteSelect") Long idCliente,
                             RedirectAttributes redirectAttributes,
                             Model model) {
-        mvService.salvarMovimentacao(movimento, caixaId);
+        mvService.salvarMovimentacao(movimento, caixaId, idCliente);
         redirectAttributes.addFlashAttribute("mensagem", "Movimento realizado com sucesso!");
         return "redirect:/caixa/editar/" + movimento.getCaixa().getId();
     }

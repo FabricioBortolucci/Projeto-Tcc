@@ -1,7 +1,10 @@
 package com.produto.oficina.service;
 
 import com.produto.oficina.model.*;
+import com.produto.oficina.model.enums.PlanoPagamento;
+import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.StatusOS;
+import com.produto.oficina.model.enums.TipoMovimentacao;
 import com.produto.oficina.repository.OrdemServicoRepository;
 import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.ProdutoRepository;
@@ -12,6 +15,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class OrdemServicoService {
@@ -20,12 +30,18 @@ public class OrdemServicoService {
     private final ServicoRepository servicoRepository;
     private final ProdutoRepository produtoRepository;
     private final PessoaRepository pessoaRepository;
+    private final CaixaService caixaService;
+    private final ContaReceberService contaReceberService;
+    private final PessoaService pessoaService;
 
-    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository, PessoaRepository pessoaRepository) {
+    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository, PessoaRepository pessoaRepository, CaixaService caixaService, ContaReceberService contaReceberService, PessoaService pessoaService) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.servicoRepository = servicoRepository;
         this.produtoRepository = produtoRepository;
         this.pessoaRepository = pessoaRepository;
+        this.caixaService = caixaService;
+        this.contaReceberService = contaReceberService;
+        this.pessoaService = pessoaService;
     }
 
     public Page<OrdemServico> findAll(Pageable pageable) {
@@ -74,6 +90,7 @@ public class OrdemServicoService {
         ordemServico.getPecasUsadas().add(ordemServicoPeca);
     }
 
+    @Transactional
     public void salvarRascunho(OrdemServico ordemServico) {
         if (ordemServico.getCliente().getId() != null && ordemServico.getFuncionario().getId() != null) {
             ordemServico.setCliente(pessoaRepository.findById(ordemServico.getCliente().getId()).get());
@@ -82,13 +99,10 @@ public class OrdemServicoService {
             ordemServico.setCliente(null);
             ordemServico.setFuncionario(null);
         }
-        if (ordemServico.getValorTotal() == null) {
-            if (!ordemServico.getItensServico().isEmpty() && !ordemServico.getPecasUsadas().isEmpty()) {
-                ordemServico.setValorTotal(ordemServico.getCalculaTotalServicoItens().add(ordemServico.getCalculaTotalProdsItens()));
-            }
-        }
-        ordemServico.setStatus(StatusOS.ABERTA);
-        ordemServicoRepository.save(ordemServico);
+
+        ordemServico.setValorTotal(ordemServico.getCalculaTotalServicoItens().add(ordemServico.getCalculaTotalProdsItens()));
+        if (ordemServico.getStatus() == null) ordemServico.setStatus(StatusOS.ABERTA);
+        ordemServicoRepository.saveAndFlush(ordemServico);
     }
 
     public void cancelarOS(Long id) {
@@ -119,16 +133,190 @@ public class OrdemServicoService {
             ordemServico.setFuncionario(pessoaRepository.findById(ordemServico.getFuncionario().getId()).get());
             ordemServico.setValorTotal(ordemServico.getCalculaTotalServicoItens().add(ordemServico.getCalculaTotalProdsItens()));
         }
-        ordemServico.getItensServico().forEach(item -> {
+        for (OrdemServicoItem item : ordemServico.getItensServico()) {
             item.setValorTotal(item.getSubTotal());
-        });
-        ordemServico.getPecasUsadas().forEach(item -> {
+        }
+        for (OrdemServicoPeca item : ordemServico.getPecasUsadas()) {
             item.setValorTotal(item.getSubTotal());
-        });
+        }
         ordemServico.setStatus(StatusOS.ABERTA);
         ordemServicoRepository.save(ordemServico);
         return ordemServico;
     }
 
+    @Transactional
+    public void finalizarOs(OrdemServico os) {
+
+        List<ContaReceber> contasReceber = new ArrayList<>();
+        ContaReceber contaReceber;
+
+        if (os.getPlanoPagamento().equals(PlanoPagamento.APRAZO)) {
+            LocalDate dataEmissao = os.getDataAbertura().toLocalDate();
+            for (int i = 1; i <= os.getQuantParcelas(); i++) {
+                contaReceber = new ContaReceber();
+                contaReceber.setOrdemServico(os);
+                contaReceber.setCliente(os.getCliente());
+                contaReceber.setNumeroParcela(i);
+                contaReceber.setStatus(StatusConta.PENDENTE);
+                contaReceber.setTotalParcelas(os.getQuantParcelas());
+                contaReceber.setValorTotalOriginal(os.getValorTotal());
+                contaReceber.setValor(os.getValorTotal().divide(BigDecimal.valueOf(os.getQuantParcelas()), RoundingMode.HALF_UP));
+                LocalDate dataVencimento = dataEmissao.plusDays(os.getIntDias()).plusMonths(i - 1);
+                contaReceber.setDataVencimento(dataVencimento);
+                contasReceber.add(contaReceber);
+            }
+            os.setContaRecebers(contasReceber);
+
+        } else {
+            contaReceber = new ContaReceber();
+            contaReceber.setOrdemServico(os);
+            contaReceber.setCliente(os.getCliente());
+            contaReceber.setNumeroParcela(1);
+            contaReceber.setStatus(StatusConta.PAGO);
+            contaReceber.setTotalParcelas(os.getQuantParcelas());
+            contaReceber.setValorTotalOriginal(os.getValorTotal());
+            contaReceber.setValor(os.getValorTotal());
+            contaReceber.setDataVencimento(os.getDataAbertura().toLocalDate().plusDays(os.getIntDias()));
+            contaReceber.setDataRecebimento(LocalDate.now());
+            contasReceber.add(contaReceber);
+            os.setContaRecebers(contasReceber);
+        }
+
+        for (OrdemServicoPeca item : os.getPecasUsadas()) {
+            Produto prod = produtoRepository.findById(item.getProduto().getId()).get();
+
+            if (prod.getEstoque() < item.getQuantidade().intValue()) {
+                throw new IllegalStateException("Estoque insuficiente para o produto: " + prod.getNome() +
+                        ". Disponível: " + prod.getEstoque() + ", Necessário: " + item.getQuantidade());
+            }
+
+            prod.setEstoque(prod.getEstoque() - item.getQuantidade().intValue());
+            produtoRepository.save(prod);
+
+            /*MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
+            movEstoque.setProduto(prodAtual);
+            movEstoque.setQuantidade(BigDecimal.valueOf(item.getQuantidade()));
+            movEstoque.setTipo(TipoMovimentacaoEstoque.SAIDA);
+            movEstoque.setDataMovimentacao(LocalDateTime.now());
+            movEstoque.setOrigemId(os.getId());
+            movEstoque.setOrigemTipo("ORDEM_DE_SERVICO");
+            movEstoque.setObservacao("Saída de material para a OS nº " + os.getId());
+            movimentacaoEstoqueRepository.save(movEstoque); */
+        }
+
+        os.setStatus(StatusOS.FINALIZADA);
+        os.setDataFechamento(LocalDateTime.now());
+        OrdemServico osFinalizada = ordemServicoRepository.save(os);
+
+        if (osFinalizada.getPlanoPagamento().equals(PlanoPagamento.AVISTA)) {
+            Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
+
+            MovimentacaoCaixa novoMovimento = new MovimentacaoCaixa();
+            novoMovimento.setCaixa(caixaAtual);
+            novoMovimento.setDataMovimentacao(LocalDateTime.now());
+            novoMovimento.setTipo(TipoMovimentacao.ENTRADA);
+            novoMovimento.setContaReceber(osFinalizada.getContaRecebers().getFirst());
+            novoMovimento.setValor(osFinalizada.getValorTotal());
+            novoMovimento.setDescricao("Recebimento da OS nº " + osFinalizada.getId() + " - Cliente: " + osFinalizada.getCliente().getPesNome());
+
+            caixaAtual.getMovimentacoes().add(novoMovimento);
+            caixaService.salvarCaixaAposMovimento(caixaAtual);
+        }
+    }
+
+    public void executarOs(Long id) {
+        OrdemServico os = ordemServicoRepository.findById(id).get();
+        os.setStatus(StatusOS.EM_EXECUCAO);
+        ordemServicoRepository.save(os);
+    }
+
+    public long countByStatusAbertaEexecucao() {
+        long num = ordemServicoRepository.countByStatus(StatusOS.ABERTA);
+        num += ordemServicoRepository.countByStatus(StatusOS.EM_EXECUCAO);
+        return num;
+    }
+
+    public BigDecimal buscaFaturamentoMensal() {
+        LocalDate hoje = LocalDate.now();
+
+        // Calcula o primeiro dia do mês atual à meia-noite (início do dia)
+        LocalDateTime inicioDoMes = hoje.withDayOfMonth(1).atStartOfDay();
+
+        // Calcula o último dia do mês atual às 23:59:59.999... (fim do dia)
+        LocalDateTime fimDoMes = hoje.with(TemporalAdjusters.lastDayOfMonth()).atTime(LocalTime.MAX);
+
+        BigDecimal valorTotalOsMes = BigDecimal.ZERO;
+        List<OrdemServico> os = ordemServicoRepository.findAllByDataFechamentoBetween(inicioDoMes, fimDoMes);
+        for (OrdemServico o : os) {
+            valorTotalOsMes = valorTotalOsMes.add(o.getValorTotal());
+        }
+        return valorTotalOsMes;
+
+    }
+
+    public OrdemServico save(OrdemServico ordemServico) {
+        return ordemServicoRepository.save(ordemServico);
+    }
+
+    @Transactional
+    public void cancelarOrdemDeServico(OrdemServico ordemServico, List<Long> idsDasPecasParaDevolver, String acaoFinanceira) {
+        if (ordemServico.getStatus().equals(StatusOS.FINALIZADA)) {
+            BigDecimal valorTotalCreditoCliente = BigDecimal.ZERO;
+            ordemServico.setContaRecebers(contaReceberService.findAllByOsId(ordemServico.getId()));
+
+            for (ContaReceber contaReceber : ordemServico.getContaRecebers()) {
+                if (contaReceber.getStatus().equals(StatusConta.PENDENTE)) {
+                    contaReceber.setStatus(StatusConta.CANCELADO);
+                }
+                if (contaReceber.getStatus().equals(StatusConta.PAGO)) {
+                    if (acaoFinanceira.equals("GERAR_CREDITO")) {
+                        valorTotalCreditoCliente = valorTotalCreditoCliente.add(contaReceber.getValor());
+                        contaReceber.setStatus(StatusConta.CANCELADO_CREDITO);
+                    }
+                    if (acaoFinanceira.equals("REEMBOLSAR")) {
+                        contaReceber.setStatus(StatusConta.CANCELADO_REEMBOLSO);
+                    }
+                }
+            }
+
+            if (idsDasPecasParaDevolver != null && !idsDasPecasParaDevolver.isEmpty()) {
+                for (Long id : idsDasPecasParaDevolver) {
+                    for (OrdemServicoPeca pecasDevolucao : ordemServico.getPecasUsadas()) {
+                        if (pecasDevolucao.getId().equals(id)) {
+                            produtoRepository.findById(pecasDevolucao.getProduto().getId()).ifPresent(produto -> {
+                                produto.setEstoque(produto.getEstoque() + pecasDevolucao.getQuantidade().intValue());
+                                produtoRepository.save(produto);
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (ordemServico.getPlanoPagamento().equals(PlanoPagamento.AVISTA) && acaoFinanceira.equals("REEMBOLSAR")) {
+                Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
+
+                MovimentacaoCaixa novoMovimento = new MovimentacaoCaixa();
+                novoMovimento.setCaixa(caixaAtual);
+                novoMovimento.setDataMovimentacao(LocalDateTime.now());
+                novoMovimento.setTipo(TipoMovimentacao.SAIDA);
+                novoMovimento.setContaReceber(ordemServico.getContaRecebers().getFirst());
+                novoMovimento.setValor(ordemServico.getValorTotal());
+                novoMovimento.setDescricao("Reembolso da OS nº " + ordemServico.getId() + " - Cliente: " + ordemServico.getCliente().getPesNome());
+
+                caixaAtual.getMovimentacoes().add(novoMovimento);
+                caixaService.salvarCaixaAposMovimento(caixaAtual);
+            }
+
+            if (acaoFinanceira.equals("GERAR_CREDITO")) {
+                ordemServico.getCliente().setPesCredito(ordemServico.getCliente().getPesCredito().add(valorTotalCreditoCliente));
+                pessoaRepository.save(ordemServico.getCliente());
+            }
+
+            ordemServico.setUsuarioCancelou(pessoaService.buscaUsuarioLogado());
+            ordemServico.setDataCancelamento(LocalDateTime.now());
+            ordemServico.setStatus(StatusOS.CANCELADA);
+            ordemServicoRepository.save(ordemServico);
+        }
+    }
 }
 

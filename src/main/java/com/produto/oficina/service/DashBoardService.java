@@ -13,10 +13,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,7 +24,7 @@ public class DashBoardService {
 
     private final ProdutoRepository produtoRepository;
     private final PessoaRepository pessoaRepository;
-    private final OrdemServicoRepository ordemServicoRepository;
+    private final OrdemServicoService ordemServicoService;
 
 
     public DashboardPageDTO getDashboardPageData() {
@@ -37,13 +35,11 @@ public class DashBoardService {
 
     private DashboardStatsDTO getDashboardStats() {
         long totalProdutos = produtoRepository.count();
-        // Usa o novo método do repositório para a contagem
         long produtosBaixoEstoqueCount = produtoRepository.countProdutosEmEstoqueBaixo();
 
-        // Dados Mockados (substitua com chamadas reais)
-        long ordensAbertasMock = ordemServicoRepository.count();
+        long ordensAbertasMock = ordemServicoService.countByStatusAbertaEexecucao();
         long clientesAtivosMock = pessoaRepository.countPessoaByPesAtivoAndPesTipo(true, PesTipo.CLIENTE);
-        String faturamentoMesMock = "R$ 12.345,67"; // Mantenha ou substitua
+        BigDecimal faturamentoMesMock = ordemServicoService.buscaFaturamentoMensal();
 
         return new DashboardStatsDTO(
                 ordensAbertasMock,
@@ -55,8 +51,7 @@ public class DashBoardService {
     }
 
     private List<AtividadeRecenteDTO> getAlertasDeEstoque() {
-        Pageable topAlertas = PageRequest.of(0, 5); // Mostrar os top 5 alertas
-        // Usa o novo método do repositório para buscar a lista
+        Pageable topAlertas = PageRequest.of(0, 5);
         List<Produto> produtosComEstoqueBaixo = produtoRepository.findProdutosComEstoqueBaixo(topAlertas);
 
         if (produtosComEstoqueBaixo.isEmpty()) {
@@ -71,10 +66,10 @@ public class DashBoardService {
 
         return produtosComEstoqueBaixo.stream()
                 .map(produto -> new AtividadeRecenteDTO(
-                        "Estoque Baixo: " + produto.getNome(), // Supondo que Produto tem getNome()
-                        "Estoque Atual: " + produto.getEstoque() + " (Limite: <=3)", // Supondo que Produto tem getEstoque()
+                        "Estoque Baixo: " + produto.getNome(),
+                        "Estoque Atual: " + produto.getEstoque() + " (Limite: <=3)",
                         "Alerta Crítico",
-                        "/produto/visualizar/" + produto.getId(), // Supondo que Produto tem getId()
+                        "/produto/visualizar/" + produto.getId(),
                         "bi-exclamation-triangle-fill text-danger"
                 ))
                 .collect(Collectors.toList());

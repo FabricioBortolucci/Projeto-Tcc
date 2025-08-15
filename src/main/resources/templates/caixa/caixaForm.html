@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" media="all"
           href="/css/bootstrap.min.css" th:href="@{/css/bootstrap.min.css}"/>
     <link rel="stylesheet" href="/images/bootstrap-icons.css" th:href="@{/images/bootstrap-icons.css}">
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/choices.min.css}"/>
     <style>
         /* Optional: Custom styles for consistent input widths */
         .input-display-fixed {
@@ -163,7 +164,7 @@
                                    th:href="@{/caixa/editar/fechamento/{id}(id=*{id})}">
                                     <i class="bi bi-lock"></i> Fechamento
                                 </a>
-                                <a class="btn btn-outline-secondary ms-auto" th:href="@{/caixa}">
+                                <a class="btn btn-outline-secondary" th:href="@{/caixa}">
                                     <i class="bi bi-x-circle"></i> Cancelar
                                 </a>
                             </div>
@@ -245,7 +246,7 @@
     </main>
 </div>
 
-
+<script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
 <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>

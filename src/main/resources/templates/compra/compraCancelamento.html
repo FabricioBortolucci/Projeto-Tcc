@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title th:text="'Cancelar Compra #' + ${compra?.id ?: ''} + ' - Oficina'">Cancelar Compra - Oficina</title>
+    <title th:text="'Cancelar Compra #' + ${compra_cancelamento?.id ?: ''} + ' - Oficina'">Cancelar Compra - Oficina</title>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
     <style>
@@ -210,7 +210,7 @@
                         </div>
                         <p class="text-muted small">Ao confirmar, a compra será marcada como cancelada.</p>
                         <div class="pt-3 mt-3 border-top d-flex justify-content-end gap-2">
-                            <a class="btn btn-outline-secondary" th:href="@{/compra/visualizar/{id}(id=${compra.id})}">
+                            <a class="btn btn-outline-secondary" th:href="@{/compra/visualizar/{id}(id=${compra_cancelamento.id})}">
                                 <i class="bi bi-x-circle me-1"></i> Não, Manter Compra
                             </a>
                             <button type="submit" class="btn btn-danger">

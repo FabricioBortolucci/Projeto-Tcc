@@ -5,10 +5,7 @@ import com.produto.oficina.model.Produto;
 import com.produto.oficina.model.Servico;
 import com.produto.oficina.model.enums.PlanoPagamento;
 import com.produto.oficina.model.enums.TipoPagamento;
-import com.produto.oficina.service.OrdemServicoService;
-import com.produto.oficina.service.PessoaService;
-import com.produto.oficina.service.ProdutoService;
-import com.produto.oficina.service.ServicoService;
+import com.produto.oficina.service.*;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -31,12 +29,14 @@ public class OrdemServicoController extends AbstractController {
     private final PessoaService pessoaService;
     private final ServicoService servicoService;
     private final ProdutoService produtoService;
+    private final CaixaService caixaService;
 
-    public OrdemServicoController(OrdemServicoService osService, PessoaService pessoaService, ServicoService servicoService, ProdutoService produtoService) {
+    public OrdemServicoController(OrdemServicoService osService, PessoaService pessoaService, ServicoService servicoService, ProdutoService produtoService, CaixaService caixaService) {
         this.osService = osService;
         this.pessoaService = pessoaService;
         this.servicoService = servicoService;
         this.produtoService = produtoService;
+        this.caixaService = caixaService;
     }
 
     @ModelAttribute("os")
@@ -48,14 +48,18 @@ public class OrdemServicoController extends AbstractController {
     public String osList(Model model,
                          @RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "5") int size) {
-        Page<OrdemServico> osPage = osService.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
+        Page<OrdemServico> osPage = osService.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC,  "id")));
         model.addAttribute("ordemServicoPage", osPage);
         model.addAttribute("currentPage", page);
         return "ordemServico/osList";
     }
 
     @GetMapping("/cadastro")
-    public String cadastro(Model model) {
+    public String cadastro(RedirectAttributes redirectAttributes, Model model) {
+        if (!caixaService.verificaCaixaAberto()) {
+            redirectAttributes.addFlashAttribute("mostrarModal", true);
+            return "redirect:/ordem-servico";
+        }
         model.addAttribute("os", new OrdemServico());
         model.addAttribute("clientes", pessoaService.buscaClientes());
         model.addAttribute("funcionarios", pessoaService.buscaFuncionarios());
@@ -65,8 +69,8 @@ public class OrdemServicoController extends AbstractController {
     }
 
     @GetMapping("/editar/{id}")
-    public String cadastro(@PathVariable Long id,
-                           Model model) {
+    public String editar(@PathVariable Long id,
+                         Model model) {
         model.addAttribute("os", osService.findById(id));
         model.addAttribute("clientes", pessoaService.buscaClientes());
         model.addAttribute("funcionarios", pessoaService.buscaFuncionarios());
@@ -111,7 +115,7 @@ public class OrdemServicoController extends AbstractController {
 
     @GetMapping("/finalizar-os")
     public String preparafinalizarOs(@ModelAttribute("os") OrdemServico ordemServico,
-                              Model model) {
+                                     Model model) {
         model.addAttribute("os", osService.preparaFinalizacao(ordemServico));
         model.addAttribute("planos_pagamento", PlanoPagamento.values());
         return "ordemServico/osFinalizacao";
@@ -119,11 +123,17 @@ public class OrdemServicoController extends AbstractController {
 
     @GetMapping("/finalizar-view/{id}")
     public String preparafinalizarOsView(@PathVariable Long id,
-                                  @ModelAttribute("os") OrdemServico ordemServico,
-                                  Model model) {
+                                         @ModelAttribute("os") OrdemServico ordemServico,
+                                         Model model) {
         model.addAttribute("os", osService.preparaFinalizacaoView(id));
         model.addAttribute("planos_pagamento", PlanoPagamento.values());
         return "ordemServico/osFinalizacao";
+    }
+
+    @PostMapping("/finalizar-confirmado")
+    public String finalizarConfirmarOs(@ModelAttribute("os") OrdemServico ordemServico) {
+        osService.finalizarOs(ordemServico);
+        return "redirect:/ordem-servico";
     }
 
     @GetMapping("/cadastro/buscar-planoPag")
@@ -203,8 +213,8 @@ public class OrdemServicoController extends AbstractController {
         return htmxRedirect("/ordem-servico");
     }
 
-    @GetMapping("/cancelar/{id}")
-    public String cancelarOs(@PathVariable Long id, Model model) {
+    @GetMapping("/excluir-os/{id}")
+    public String excluirOs(@PathVariable Long id, Model model) {
         osService.cancelarOS(id);
         return "redirect:/ordem-servico";
     }
@@ -220,6 +230,30 @@ public class OrdemServicoController extends AbstractController {
         }
         model.addAttribute("os", ordemServico);
         return "fragments/ordemServicoFragments/osReplace :: listaParcelas";
+    }
+
+    @GetMapping("/executar-os/{id}")
+    public String executarOs(@PathVariable Long id) {
+        osService.executarOs(id);
+        return "redirect:/ordem-servico";
+    }
+
+    @GetMapping("/cancelar-os/{id}")
+    public String cancelarOs(@PathVariable Long id,
+                             Model model) {
+        model.addAttribute("os", osService.findById(id));
+        return "ordemServico/osCancelamento";
+    }
+
+    @PostMapping("/cancelar-confirmado")
+    public String cancelarConfirmado(
+            @ModelAttribute("os") OrdemServico ordemServico,
+            @RequestParam("acaoFinanceira") String acaoFinanceira,
+            @RequestParam(name = "pecasParaDevolver", required = false) List<Long> idsDasPecasParaDevolver,
+            RedirectAttributes redirectAttributes) {
+        osService.cancelarOrdemDeServico(ordemServico, idsDasPecasParaDevolver, acaoFinanceira);
+        redirectAttributes.addFlashAttribute("os_mensagem_sucesso", "Ordem de Serviço #" + ordemServico.getId() + " cancelada com sucesso!");
+        return "redirect:/ordem-servico";
     }
 
 }

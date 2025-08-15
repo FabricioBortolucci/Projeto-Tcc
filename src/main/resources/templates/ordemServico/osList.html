@@ -73,7 +73,7 @@
         <h1 class="h3 mb-4">Lista de Ordens de Serviço</h1>
 
         <div th:if="${os_mensagem_sucesso}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${os_mensagem_sucesso}">Ação realizada com sucesso!</span>
+            <span th:text="${os_mensagem_sucesso}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
 
@@ -85,8 +85,11 @@
                     <th style="width: 5%;">Nº O.S.</th>
                     <th class="text-start-md" style="width: 25%;">Cliente</th>
                     <th class="text-start-md" style="width: 20%;">Funcionário Resp.</th>
-                    <th style="width: 15%;">Data Abertura</th>
-                    <th style="width: 15%;">Data Fechamento</th>
+                    <th style="width: 7%;">Data Abertura</th>
+                    <th style="width: 7%;">Data Fechamento</th>
+                    <th class="text-center" style="width: 10%;">Plano de Pagamento</th>
+                    <th class="text-center" style="width: 10%;">Tipo de Pagamento</th>
+                    <th class="text-center" style="width: 10%;">Quantidade de Parcelas</th>
                     <th class="text-center" style="width: 10%;">Valor Total</th>
                     <th style="width: 10%;">Status</th>
                     <th style="min-width: 150px;">Opções</th>
@@ -102,6 +105,9 @@
                     <td class="text-start-md" th:text="${os.funcionario?.pesNome ?: 'N/A'}"></td>
                     <td th:text="${os.dataAbertura != null ? #temporals.format(os.dataAbertura, 'dd/MM/yy HH:mm') : 'N/A'}"></td>
                     <td th:text="${os.dataFechamento != null ? #temporals.format(os.dataFechamento, 'dd/MM/yy HH:mm') : '-'}"></td>
+                    <td class="text-start-md" th:text="${os.planoPagamento?.descricao ?: 'N/A'}"></td>
+                    <td class="text-start-md" th:text="${os.tipoPagamento?.descricao ?: 'N/A'}"></td>
+                    <td class="text-start-md" th:text="${os.quantParcelas ?: 'N/A'}"></td>
                     <td class="text-end"
                         th:text="${os.valorTotal != null ? #numbers.formatCurrency(os.valorTotal) : 'R$ 0,00'}"></td>
                     <td>
@@ -118,19 +124,30 @@
                                title="Visualizar O.S.">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
-                            <a th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO'}"
+                            <a th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_EXECUCAO'}"
                                th:href="@{/ordem-servico/editar/{id}(id=${os.id})}" class="btn btn-light btn-sm"
                                title="Editar O.S.">
                                 <i class="bi bi-pencil-square"></i>
                             </a>
-                            <a th:if="${(os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO') && !os.validaCampos}"
+                            <a th:if="${os.status?.name() == 'ABERTA'}"
+                               type="button" class="btn btn-info btn-sm text-white"
+                               title="Começar O.S"
+                               th:href="@{/ordem-servico/executar-os/{id}(id=${os.id})}">
+                                <i class="bi bi-play-circle-fill"></i>
+                            </a>
+                            <a th:if="${(os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_EXECUCAO') && !os.validaCampos}"
                                th:href="@{/ordem-servico/finalizar-view/{id}(id=${os.id})}"
                                class="btn btn-success btn-sm"
                                title="Finalizar/Faturar O.S.">
                                 <i class="bi bi-check2-circle"></i>
                             </a>
-                            <a th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_ANDAMENTO'}"
-                               th:href="@{/ordem-servico/cancelar/{id}(id=${os.id})}" class="btn btn-danger btn-sm"
+                            <a th:if="${os.status?.name() == 'ABERTA' or os.status?.name() == 'EM_EXECUCAO'}"
+                               th:href="@{/ordem-servico/excluir-os/{id}(id=${os.id})}" class="btn btn-danger btn-sm"
+                               title="Excluir O.S.">
+                                <i class="bi bi-x-octagon-fill"></i>
+                            </a>
+                            <a th:if="${os.status?.name() == 'FINALIZADA'}"
+                               th:href="@{/ordem-servico/cancelar-os/{id}(id=${os.id})}" class="btn btn-danger btn-sm"
                                title="Cancelar O.S.">
                                 <i class="bi bi-x-octagon-fill"></i>
                             </a>

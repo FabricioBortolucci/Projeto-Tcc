@@ -5,7 +5,8 @@ public enum StatusConta {
     PAGO("Pago"),
     ATRASADO("Atrasado"),
     CANCELADO("Cancelado"),
-    CANCELADO_CREDITO("Cancelado (Gerou Crédito)");
+    CANCELADO_CREDITO("Cancelado (Gerou Crédito)"),
+    CANCELADO_REEMBOLSO("Cancelado (Reembolso)");
 
     public final String descricao;
 

@@ -139,6 +139,9 @@
                                 <dt class="col-sm-3" th:if="*{dataFechamento != null}">Data de Fechamento:</dt>
                                 <dd class="col-sm-9" th:if="*{dataFechamento != null}"
                                     th:text="*{#temporals.format(dataFechamento, 'dd/MM/yyyy HH:mm')}"></dd>
+                                <dt class="col-sm-3" th:if="*{dataCancelamento != null}">Data de Cancelamento:</dt>
+                                <dd class="col-sm-9" th:if="*{dataCancelamento != null}"
+                                    th:text="*{#temporals.format(dataCancelamento, 'dd/MM/yyyy HH:mm')}"></dd>
                                 <dt class="col-sm-3">Status da O.S.:</dt>
                                 <dd class="col-sm-9">
                                     <span class="badge fs-6"
@@ -155,6 +158,14 @@
                                     <p th:if="*{observacao == null or observacao.isEmpty()}"
                                        class="text-muted fst-italic mb-0">Sem observações.</p>
                                 </dd>
+                                <dt class="col-sm-3">Observações Cancelamento:</dt>
+                                <dd class="col-sm-9">
+                                    <p th:if="*{observacaoCancelamento != null and !observacaoCancelamento.isEmpty()}"
+                                       th:text="*{observacaoCancelamento}"
+                                       class="mb-0"></p>
+                                    <p th:if="*{observacaoCancelamento == null or observacaoCancelamento.isEmpty()}"
+                                       class="text-muted fst-italic mb-0">Sem observações de Cancelamento.</p>
+                                </dd>
                                 <dt class="col-sm-3">Valor Total da O.S.:</dt>
                                 <dd class="col-sm-9 h5 fw-bold text-success"
                                     th:text="*{valorTotal != null ? #numbers.formatCurrency(valorTotal) : 'R$ 0,00'}"></dd>
@@ -162,6 +173,10 @@
                             <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
                                 <a class="btn btn-outline-secondary" th:href="@{/ordem-servico}"><i
                                         class="bi bi-arrow-left-circle me-1"></i> Voltar para Lista</a>
+                                <a th:if="${os.status?.name() == 'FINALIZADA'}"
+                                   th:href="@{/ordem-servico/cancelar-os/{id}(id=${os.id})}" class="btn btn-danger">
+                                    <i class="bi bi-trash-fill me-1"></i> Cancelamento
+                                </a>
                             </div>
                         </div>
                     </div>

@@ -11,4 +11,8 @@ public interface MovimentacaoCaixaRepository extends JpaRepository<MovimentacaoC
 
 
     List<MovimentacaoCaixa> findAllByCaixa_Id(Long caixaId);
+
+    List<MovimentacaoCaixa> findAllByCaixa_IdOrderByIdAsc(Long caixaId);
+
+    List<MovimentacaoCaixa> findAllByCaixa_IdOrderByIdDesc(Long caixaId);
 }

@@ -1,0 +1,22 @@
+<div id="modalClientesCredito">
+    <label class="form-label" for="clienteSelect">Cliente: <span
+            class="text-danger">*</span></label>
+    <select class="form-select"
+            id="clienteSelect"
+            name="clienteSelect"
+            required>
+        <option value="">Selecione o Cliente...</option>
+        <option th:each="c : ${clientes}" th:value="${c.id}"
+                th:text="${c.pesNome}"></option>
+    </select>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const clienteSelect = document.getElementById('clienteSelect');
+            const clienteSelectchoices = new Choices(clienteSelect, {
+                searchEnabled: true,
+                placeholder: true,
+                placeholderValue: 'Selecione o Fornecedor...'
+            });
+        });
+    </script>
+</div>

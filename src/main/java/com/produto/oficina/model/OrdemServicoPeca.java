@@ -21,7 +21,7 @@ public class OrdemServicoPeca {
     @Column(name = "ost_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ost_ordem_servico_id")
     private OrdemServico ordemServico;
 

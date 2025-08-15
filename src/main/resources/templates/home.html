@@ -107,7 +107,7 @@
                             <i class="bi bi-graph-up-arrow text-warning"></i>
                             <h5 class="card-title fs-6 text-muted">Faturamento do Mês</h5>
                             <p class="card-text h3"
-                               th:text="${estatisticas != null ? estatisticas.faturamentoMes : 'R$ 0,00'}">R$ 0,00</p>
+                               th:text="${estatisticas != null ? #numbers.formatCurrency(estatisticas.faturamentoMes) : 'R$ 0,00'}">R$ 0,00</p>
                         </div>
                     </div>
                 </div>

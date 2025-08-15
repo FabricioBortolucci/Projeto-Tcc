@@ -148,26 +148,50 @@
         </div>
 
         <div class="mt-4" th:if="${contaReceberPage != null and contaReceberPage.totalPages > 1}">
-            <nav aria-label="Paginação da lista de contas a receber">
+            <nav aria-label="Paginação da lista de contas a pagar" th:if="${contaReceberPage.totalPages > 1}">
                 <ul class="pagination justify-content-center">
-                    <li th:classappend="${currentPage == 0} ? 'disabled'" class="page-item">
+
+                    <li class="page-item" th:classappend="${contaReceberPage.first} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/contas-receber(page=${currentPage - 1}, size=${contaReceberPage.size})}">Anterior</a>
+                           th:href="@{/contas-receber(page=${currentPage - 1}, size=${contaReceberPage.size})}"
+                           aria-label="Anterior">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
                     </li>
-                    <li class="page-item"
-                        th:each="i : ${#numbers.sequence(0, contaReceberPage.totalPages - 1)}"
-                        th:classappend="${i == currentPage} ? 'active'">
-                        <a class="page-link" th:href="@{/contas-receber(page=${i}, size=${contaReceberPage.size})}"
-                           th:text="${i + 1}"></a>
-                    </li>
-                    <li th:classappend="${currentPage + 1 >= contaReceberPage.totalPages} ? 'disabled'"
-                        class="page-item">
+
+                    <th:block th:with="totalPages=${contaReceberPage.totalPages},
+                           currentPage=${currentPage},
+                           windowSize=2">
+                        <th:block th:each="pageNumber : ${#numbers.sequence(0, totalPages - 1)}">
+                            <li class="page-item"
+                                th:if="${pageNumber == 0 or
+                           pageNumber == totalPages - 1 or
+                           (pageNumber >= currentPage - windowSize and pageNumber <= currentPage + windowSize)}"
+                                th:classappend="${pageNumber == currentPage} ? 'active'">
+                                <a class="page-link"
+                                   th:href="@{/contas-receber(page=${pageNumber}, size=${contaReceberPage.size})}"
+                                   th:text="${pageNumber + 1}"></a>
+                            </li>
+
+                            <li class="page-item disabled"
+                                th:if="${(pageNumber == 1 and currentPage > windowSize + 1) or
+                           (pageNumber == totalPages - 2 and currentPage < totalPages - windowSize - 2)}">
+                                <span class="page-link">...</span>
+                            </li>
+                        </th:block>
+                    </th:block>
+
+                    <li class="page-item" th:classappend="${contaReceberPage.last} ? 'disabled'">
                         <a class="page-link"
-                           th:href="@{/contas-receber(page=${currentPage + 1}, size=${contaReceberPage.size})}">Próxima</a>
+                           th:href="@{/contas-receber(page=${currentPage + 1}, size=${contaReceberPage.size})}"
+                           aria-label="Próxima">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
                     </li>
                 </ul>
             </nav>
         </div>
+
 
         <div class="mt-4">
             <a class="btn btn-success" th:href="@{/contas-receber/cadastro}">

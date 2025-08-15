@@ -21,7 +21,7 @@ public class ItemCompra {
     @JoinColumn(name = "mov_comp_id")
     private Compra compra;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "produto_id")
     private Produto produto;
 

@@ -16,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +59,7 @@ public class PessoaService {
                         p.getId(),
                         p.getPesNome(),
                         p.getPesCpfCnpj(),
-                        p.getPesTipo().toString(),
+                        p.getPesTipo().toString() != null ? p.getPesTipo().toString() : "",
                         p.getPesAtivo(),
                         p.getPesEmail()
                 ));
@@ -199,5 +200,13 @@ public class PessoaService {
 
     public List<Pessoa> buscaFuncionarios() {
         return repository.findAllByPesAtivoAndPesTipo(true, PesTipo.FUNCIONARIO);
+    }
+
+    public List<Pessoa> buscarClientesAtivosComCredito() {
+        return repository.findAllByPesAtivoAndPesTipo(true, PesTipo.CLIENTE);
+    }
+
+    public Pessoa buscaClientePorId(Long idCliente) {
+        return repository.findById(idCliente).orElse(null);
     }
 }

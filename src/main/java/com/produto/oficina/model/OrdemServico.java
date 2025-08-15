@@ -36,16 +36,23 @@ public class OrdemServico {
     @Column(name = "os_data_fechamento")
     private LocalDateTime dataFechamento;
 
+    @Column(name = "os_data_cancelamento")
+    private LocalDateTime dataCancelamento;
+
     @Column(name = "os_valor_total")
     private BigDecimal valorTotal;
 
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "os_cliente_id")
     private Pessoa cliente;
 
-    @ManyToOne(cascade = {CascadeType.MERGE})
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "funcionario_id")
     private Pessoa funcionario;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "os_usuario_cancelou")
+    private Usuario usuarioCancelou;
 
     @Column(name = "os_tipo_pagamento")
     @Enumerated(EnumType.STRING)
@@ -58,11 +65,11 @@ public class OrdemServico {
     @Column(name = "os_int_dias")
     private Integer intDias;
 
-    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<OrdemServicoItem> itensServico = new ArrayList<>();
 
-    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "ordemServico", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     private List<OrdemServicoPeca> pecasUsadas = new ArrayList<>();
 
@@ -75,6 +82,9 @@ public class OrdemServico {
 
     @Column(name = "os_obs")
     private String observacao;
+
+    @Column(name = "os_obs_cancel")
+    private String observacaoCancelamento;
 
     @Column(name = "os_mp_desperdicio")
     private BigDecimal desperdicio;
@@ -94,7 +104,7 @@ public class OrdemServico {
 
     public BigDecimal getCalculaTotalServicoItens() {
         BigDecimal valorTotalServicosItens = BigDecimal.ZERO;
-        if (itensServico != null) {
+        if (!itensServico.isEmpty()) {
             for (OrdemServicoItem ordemServicoItem : itensServico) {
                 valorTotalServicosItens = valorTotalServicosItens.add(ordemServicoItem.getSubTotal());
             }
@@ -104,7 +114,7 @@ public class OrdemServico {
 
     public BigDecimal getCalculaTotalProdsItens() {
         BigDecimal valorTotalProdsItens = BigDecimal.ZERO;
-        if (pecasUsadas != null) {
+        if (!pecasUsadas.isEmpty()) {
             for (OrdemServicoPeca ordemServicoPeca : pecasUsadas) {
                 valorTotalProdsItens = valorTotalProdsItens.add(ordemServicoPeca.getSubTotal());
             }

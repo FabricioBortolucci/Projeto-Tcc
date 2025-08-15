@@ -73,7 +73,7 @@ public class Compra {
     @Column(name = "comp_int_dias")
     private Integer intDias;
 
-    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ItemCompra> itens = new ArrayList<>();
 
     @OneToMany(mappedBy = "compra", cascade = CascadeType.ALL)
