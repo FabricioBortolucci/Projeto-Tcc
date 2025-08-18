@@ -63,6 +63,8 @@ public class ContaReceber {
     @OneToMany(mappedBy = "contaReceber")
     private List<MovimentacaoCaixa> movimentacoes;
 
-    @Column(name = "cr_observacao")
+    @Column(name = "cr_observacao", columnDefinition = "TEXT")
     private String observacao;
+
+
 }

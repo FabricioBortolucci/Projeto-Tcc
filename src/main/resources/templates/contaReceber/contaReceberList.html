@@ -73,7 +73,7 @@
         <h1 class="h3 mb-4">Lista de Contas a Receber</h1>
 
         <div th:if="${conta_recebida_mensagem}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${conta_recebida_mensagem}">Ação realizada com sucesso!</span>
+            <span th:text="${mensagem}">Ação realizada com sucesso!</span>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
         </div>
 
@@ -114,9 +114,9 @@
                     <td>
                         <span class="badge"
                               th:classappend="${#strings.equals(conta.status, 'PENDENTE') ? 'status-pendente' :
-                                               (#strings.equals(conta.status, 'RECEBIDA') ? 'status-paga' :
-                                               (#strings.equals(conta.status, 'VENCIDA') ? 'status-vencida' :
-                                               (#strings.equals(conta.status, 'CANCELADA') ? 'status-cancelada' : 'bg-light text-dark')))}"
+                                               (#strings.equals(conta.status, 'PAGO') ? 'status-paga' :
+                                               (#strings.equals(conta.status, 'ATRASADO') ? 'status-vencida' :
+                                               (#strings.equals(conta.status, 'CANCELADO') ? 'status-cancelada' : 'bg-light text-dark')))}"
                               th:text="${conta.status?.descricao ?: conta.status}">
                         </span>
                     </td>
@@ -132,10 +132,9 @@
                                title="Visualizar Conta">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
-                            <form th:if="${#strings.equals(conta.status, 'PENDENTE')}"
+                            <form th:if="${#strings.equals(conta.status, 'PAGO')}"
                                   th:action="@{/contas-receber/cancelar/{id}(id=${conta.id})}" method="post"
-                                  class="d-inline-block"
-                                  onsubmit="return confirm('Tem certeza que deseja CANCELAR esta conta a receber?');">
+                                  class="d-inline-block">
                                 <button class="btn btn-danger btn-sm" type="submit" title="Cancelar Conta">
                                     <i class="bi bi-x-octagon-fill"></i>
                                 </button>

@@ -122,38 +122,37 @@ public class ContaPagarService {
 
     @Transactional
     public void cancelarContaPagar(Long id) {
-        contaPagarRepository.findById(id).ifPresent(contaPagar -> {
-            if (contaPagar.getStatus().equals(StatusConta.PENDENTE)) {
-                contaPagar.setStatus(StatusConta.CANCELADO);
-                String obsOriginalPendente = contaPagar.getObservacao() != null ? contaPagar.getObservacao() : "";
-                contaPagar.setObservacao(obsOriginalPendente + " [Cancelada em " +
-                        JavaUtils.formatLocalDate(LocalDate.now()) + " por " +
-                        pessoaService.buscaUsuarioLogado().getUsuNome() + "]");
+        ContaPagar contaPagar = contaPagarRepository.findById(id).get();
+        if (contaPagar.getStatus().equals(StatusConta.PENDENTE)) {
+            contaPagar.setStatus(StatusConta.CANCELADO);
+            String obsOriginalPendente = contaPagar.getObservacao() != null ? contaPagar.getObservacao() : "";
+            contaPagar.setObservacao(obsOriginalPendente + " [Cancelada em " +
+                    JavaUtils.formatLocalDate(LocalDate.now()) + " por " +
+                    pessoaService.buscaUsuarioLogado().getUsuNome() + "]");
 
-            } else if (contaPagar.getStatus().equals(StatusConta.PAGO)) {
-                Pessoa fornecedor = pessoaService.buscaFornecedorPorId(contaPagar.getFornecedor().getId()).get();
-                BigDecimal valorEstornar = contaPagar.getValorPago() != null ? contaPagar.getValorPago() : BigDecimal.ZERO;
-                BigDecimal valorCredito = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
-                fornecedor.setPesCredito(valorCredito.add(valorEstornar));
+        } else if (contaPagar.getStatus().equals(StatusConta.PAGO)) {
+            Pessoa fornecedor = pessoaService.buscaFornecedorPorId(contaPagar.getFornecedor().getId()).get();
+            BigDecimal valorEstornar = contaPagar.getValorPago() != null ? contaPagar.getValorPago() : BigDecimal.ZERO;
+            BigDecimal valorCredito = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
+            fornecedor.setPesCredito(valorCredito.add(valorEstornar));
 
-                String observacaoOriginal = contaPagar.getObservacao() != null ? contaPagar.getObservacao() : "";
-                String detalheEstorno = " [Pagamento de " +
-                        (contaPagar.getDataPagamento() != null ? JavaUtils.formatLocalDate(contaPagar.getDataPagamento()) : "data desconhecida") +
-                        " no valor de " + JavaUtils.formatMonetaryString(valorEstornar) +
-                        " estornado em " + JavaUtils.formatLocalDate(LocalDate.now()) +
-                        " por usuário " + pessoaService.buscaUsuarioLogado().getUsuNome() +
-                        ". Valor convertido em crédito com fornecedor.]";
+            String observacaoOriginal = contaPagar.getObservacao() != null ? contaPagar.getObservacao() : "";
+            String detalheEstorno = " [Pagamento de " +
+                    (contaPagar.getDataPagamento() != null ? JavaUtils.formatLocalDate(contaPagar.getDataPagamento()) : "data desconhecida") +
+                    " no valor de " + JavaUtils.formatMonetaryString(valorEstornar) +
+                    " estornado em " + JavaUtils.formatLocalDate(LocalDate.now()) +
+                    " por usuário " + pessoaService.buscaUsuarioLogado().getUsuNome() +
+                    ". Valor convertido em crédito com fornecedor.]";
 
-                contaPagar.setObservacao(observacaoOriginal.isEmpty() ? detalheEstorno.trim() : observacaoOriginal + detalheEstorno);
+            contaPagar.setObservacao(observacaoOriginal.isEmpty() ? detalheEstorno.trim() : observacaoOriginal + detalheEstorno);
 
-                contaPagar.setStatus(StatusConta.PENDENTE);
-                contaPagar.setDataPagamento(null);
-                contaPagar.setTipoPagamento(null);
-                contaPagar.setValorPago(BigDecimal.ZERO);
+            contaPagar.setStatus(StatusConta.PENDENTE);
+            contaPagar.setDataPagamento(null);
+            contaPagar.setTipoPagamento(null);
+            contaPagar.setValorPago(BigDecimal.ZERO);
 
-                pessoaService.salvarEdit(fornecedor);
-            }
-            contaPagarRepository.save(contaPagar);
-        });
+            pessoaService.salvarEdit(fornecedor);
+        }
+        contaPagarRepository.save(contaPagar);
     }
 }

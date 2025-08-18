@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title th:text="'Detalhes da Conta a Pagar #' + ${contaPagar?.id ?: ''} + ' - Oficina'">Visualização de Conta a
-        Pagar</title>
+    <title th:text="'Detalhes da Conta a Receber #' + ${contaReceber?.id ?: ''} + ' - Oficina'">Visualização de Conta a
+        Receber</title>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
     <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
     <style>
@@ -50,10 +50,40 @@
             padding-top: 1.5rem;
         }
 
-        .table-dark .parcela-atual-destaque td { /* Garante que o texto seja legível no table-dark */
-            color: var(--bs-light) !important;
+        /* Cores para status de conta (reutilizáveis) */
+        .badge.status-pendente {
+            background-color: var(--bs-warning-bg-subtle) !important;
+            color: var(--bs-warning-text-emphasis) !important;
+            border: 1px solid var(--bs-warning-border-subtle) !important;
         }
 
+        .badge.status-recebida, .badge.status-paga {
+            background-color: var(--bs-success-bg-subtle) !important;
+            color: var(--bs-success-text-emphasis) !important;
+            border: 1px solid var(--bs-success-border-subtle) !important;
+        }
+
+        .badge.status-vencida, .badge.status-atrasado {
+            background-color: var(--bs-danger-bg-subtle) !important;
+            color: var(--bs-danger-text-emphasis) !important;
+            border: 1px solid var(--bs-danger-border-subtle) !important;
+        }
+
+        .badge.status-cancelada, .badge.status-cancelado {
+            background-color: var(--bs-secondary-bg-subtle) !important;
+            color: var(--bs-secondary-text-emphasis) !important;
+            border: 1px solid var(--bs-secondary-border-subtle) !important;
+        }
+
+        /* Destaque para a parcela atual na tabela de parcelamento */
+        .parcela-atual-destaque {
+            background-color: rgba(var(--bs-primary-rgb), 0.15) !important;
+            font-weight: bold;
+        }
+
+        .table-dark .parcela-atual-destaque td {
+            color: var(--bs-light) !important;
+        }
     </style>
 </head>
 <body>
@@ -64,11 +94,11 @@
 
         <div>
             <h1 class="h3"
-                th:text="'Detalhes da Conta a Pagar' + (${contaPagar?.id} ? ' #' + ${contaPagar.id} : '')"></h1>
+                th:text="'Detalhes da Conta a Receber' + (${contaReceber?.id} ? ' #' + ${contaReceber.id} : '')"></h1>
         </div>
 
-        <div th:if="${contaPagar != null}">
-            <ul class="nav nav-pills mb-3" id="contaPagarDetailsTab" role="tablist">
+        <div th:if="${contaReceber != null}">
+            <ul class="nav nav-pills mb-3" id="contaReceberDetailsTab" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="detalhes-conta-tab" data-bs-toggle="tab"
                             data-bs-target="#detalhes-conta-pane"
@@ -76,113 +106,100 @@
                         <i class="bi bi-file-earmark-medical-fill me-1"></i> Detalhes da Conta
                     </button>
                 </li>
-                <li class="nav-item" role="presentation" th:if="${contaPagar.compra != null}">
-                    <button class="nav-link" id="compra-origem-tab" data-bs-toggle="tab"
-                            data-bs-target="#compra-origem-pane"
-                            type="button" role="tab" aria-controls="compra-origem-pane" aria-selected="false">
-                        <i class="bi bi-bag-check-fill me-1"></i> Compra de Origem
+                <li class="nav-item" role="presentation" th:if="${contaReceber.ordemServico != null}">
+                    <button class="nav-link" id="os-origem-tab" data-bs-toggle="tab" data-bs-target="#os-origem-pane"
+                            type="button" role="tab" aria-controls="os-origem-pane" aria-selected="false">
+                        <i class="bi bi-wrench-adjustable-circle me-1"></i> O.S. de Origem
                     </button>
                 </li>
                 <li class="nav-item" role="presentation"
-                    th:if="${contaPagar.compra?.totalParcelas != null and contaPagar.totalParcelas > 1}">
+                    th:if="${contaReceber.ordemServico?.contaRecebers != null and contaReceber.totalParcelas > 1}">
                     <button class="nav-link" id="parcelamento-tab" data-bs-toggle="tab"
                             data-bs-target="#parcelamento-pane"
                             type="button" role="tab" aria-controls="parcelamento-pane" aria-selected="false">
                         <i class="bi bi-calendar2-week-fill me-1"></i> Parcelamento
                         <span class="badge rounded-pill bg-secondary ms-1"
-                              th:text="${#lists.size(contaPagar.compra.valoresParcelas)}"></span>
+                              th:text="${#lists.size(contaReceber.ordemServico.contaRecebers)}"></span>
                     </button>
                 </li>
             </ul>
 
-            <div class="tab-content" id="contaPagarDetailsTabContent">
+            <div class="tab-content" id="contaReceberDetailsTabContent">
                 <div class="tab-pane fade show active" id="detalhes-conta-pane" role="tabpanel"
-                     aria-labelledby="detalhes-conta-tab" th:object="${contaPagar}">
+                     aria-labelledby="detalhes-conta-tab" th:object="${contaReceber}">
                     <div class="card shadow-sm">
                         <div class="card-header bg-light py-3">
-                            <h5 class="mb-0 fw-semibold">Informações da Conta a Pagar</h5>
+                            <h5 class="mb-0 fw-semibold">Informações da Conta a Receber</h5>
                         </div>
                         <div class="card-body p-4">
                             <dl class="row details-dl">
                                 <dt class="col-sm-3">ID da Conta:</dt>
                                 <dd class="col-sm-9" th:text="*{id ?: 'N/A'}"></dd>
-
-                                <dt class="col-sm-3">Fornecedor:</dt>
-                                <dd class="col-sm-9" th:text="*{fornecedor?.pesNome ?: 'N/A'}"></dd>
-
+                                <dt class="col-sm-3">Cliente:</dt>
+                                <dd class="col-sm-9" th:text="*{cliente?.pesNome ?: 'N/A'}"></dd>
                                 <dt class="col-sm-3">Data de Vencimento:</dt>
                                 <dd class="col-sm-9"
                                     th:text="*{dataVencimento != null ? #temporals.format(dataVencimento, 'dd/MM/yyyy') : 'N/A'}"></dd>
-
-                                <dt class="col-sm-3">Valor a Pagar:</dt>
+                                <dt class="col-sm-3">Valor a Receber:</dt>
                                 <dd class="col-sm-9 fw-bold"
                                     th:text="*{valor != null ? #numbers.formatCurrency(valor) : 'R$ 0,00'}"></dd>
-
                                 <dt class="col-sm-3">Status:</dt>
-                                <dd class="col-sm-9">
-                                    <span th:text="*{status?.descricao}"></span>
+                                <dd class="col-sm-9"
+                                    th:text="*{status?.descricao}">
                                 </dd>
-
-                                <dt class="col-sm-3" th:if="*{dataPagamento != null}">Data de Pagamento:</dt>
-                                <dd class="col-sm-9" th:if="*{dataPagamento != null}"
-                                    th:text="*{#temporals.format(dataPagamento, 'dd/MM/yyyy HH:mm')}"></dd>
-
-                                <dt class="col-sm-3" th:if="*{valorPago != null}">Valor Pago:</dt>
-                                <dd class="col-sm-9 fw-bold" th:if="*{valorPago != null}"
-                                    th:text="*{#numbers.formatCurrency(valorPago)}"></dd>
-
-                                <dt class="col-sm-3">Tipo de Pagamento (Baixa):</dt>
-                                <dd class="col-sm-9" th:text="*{tipoPagamento?.descricao ?: 'N/A'}"></dd>
-
+                                <dt class="col-sm-3" th:if="*{dataRecebimento != null}">Data de Recebimento:</dt>
+                                <dd class="col-sm-9" th:if="*{dataRecebimento != null}"
+                                    th:text="*{#temporals.format(dataRecebimento, 'dd/MM/yyyy HH:mm')}"></dd>
+                                <dt class="col-sm-3" th:if="*{valorRecebido != null}">Valor Recebido:</dt>
+                                <dd class="col-sm-9 fw-bold" th:if="*{valorRecebido != null}"
+                                    th:text="*{#numbers.formatCurrency(valorRecebido)}"></dd>
                                 <th:block th:if="*{totalParcelas != null and totalParcelas > 0}">
                                     <dt class="col-sm-3">Parcela:</dt>
                                     <dd class="col-sm-9" th:text="*{numeroParcela + ' de ' + totalParcelas}"></dd>
                                 </th:block>
-
                                 <th:block th:if="*{observacao != null and !observacao.isEmpty()}">
                                     <dt class="col-sm-3">Observação:</dt>
                                     <dd class="col-sm-9" th:text="*{observacao}"></dd>
                                 </th:block>
-
                             </dl>
-
                             <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
-                                <a class="btn btn-outline-secondary" th:href="@{/contas-pagar}">
+                                <a class="btn btn-outline-secondary" th:href="@{/contas-receber}">
                                     <i class="bi bi-arrow-left-circle me-1"></i> Voltar para Lista
                                 </a>
                                 <a class="btn btn-success"
                                    th:if="*{status != null and (status.toString() == 'PENDENTE' or status.toString() == 'VENCIDA')}"
-                                   th:href="@{/contas-pagar/registrar-pagamento/{id}(id=*{id})}">
-                                    <i class="bi bi-cash-coin me-1"></i> Registrar Pagamento
+                                   th:href="@{/contas-receber/registrar-recebimento/{id}(id=*{id})}">
+                                    <i class="bi bi-cash-coin me-1"></i> Registrar Recebimento
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="compra-origem-pane" role="tabpanel" aria-labelledby="compra-origem-tab"
-                     th:if="${contaPagar.compra != null}" th:object="${contaPagar.compra}">
+                <div class="tab-pane fade" id="os-origem-pane" role="tabpanel" aria-labelledby="os-origem-tab"
+                     th:if="${contaReceber.ordemServico != null}" th:object="${contaReceber.ordemServico}">
                     <div class="card shadow-sm">
                         <div class="card-header bg-light py-3">
-                            <h5 class="mb-0 fw-semibold">Informações da Compra de Origem</h5>
+                            <h5 class="mb-0 fw-semibold">Informações da O.S. de Origem</h5>
                         </div>
                         <div class="card-body p-4">
                             <dl class="row details-dl">
-                                <dt class="col-sm-3">ID da Compra:</dt>
-                                <dd class="col-sm-9"><a th:href="@{/compra/visualizar/{id}(id=*{id})}"
-                                                        th:text="*{id ?: 'N/A'}"></a></dd>
-                                <dt class="col-sm-3">Fornecedor da Compra:</dt>
-                                <dd class="col-sm-9" th:text="*{fornecedor?.pesNome ?: 'N/A'}"></dd>
-                                <dt class="col-sm-3">Data da Compra:</dt>
+                                <dt class="col-sm-3">Nº da O.S.:</dt>
+                                <dd class="col-sm-9"><a th:href="@{/ordem-servico/visualizar/{id}(id=*{id})}"
+                                                        th:text="*{id ?: 'N/A'}" class="link-primary"></a></dd>
+                                <dt class="col-sm-3">Cliente da O.S.:</dt>
+                                <dd class="col-sm-9" th:text="*{cliente?.pesNome ?: 'N/A'}"></dd>
+                                <dt class="col-sm-3">Data de Abertura da O.S.:</dt>
                                 <dd class="col-sm-9"
-                                    th:text="*{dataCompra != null ? #temporals.format(dataCompra, 'dd/MM/yyyy HH:mm') : 'N/A'}"></dd>
-                                <dt class="col-sm-3">Valor Total da Compra:</dt>
+                                    th:text="*{dataAbertura != null ? #temporals.format(dataAbertura, 'dd/MM/yyyy HH:mm') : 'N/A'}"></dd>
+                                <dt class="col-sm-3">Valor Total da O.S.:</dt>
                                 <dd class="col-sm-9 fw-bold"
                                     th:text="*{valorTotal != null ? #numbers.formatCurrency(valorTotal) : 'R$ 0,00'}"></dd>
                             </dl>
                             <div class="pt-3 mt-4 border-top d-flex justify-content-start">
-                                <a class="btn btn-info text-white" th:href="@{/compra/visualizar/{id}(id=*{id})}">
-                                    <i class="bi bi-eye-fill me-1"></i> Ver Detalhes da Compra
+                                <a class="btn btn-info text-white"
+                                   th:href="@{/ordem-servico/visualizar/{id}(id=*{id})}">
+                                    <i class="bi bi-eye-fill me-1"></i> Ver Detalhes da O.S.
                                 </a>
                             </div>
                         </div>
@@ -190,11 +207,11 @@
                 </div>
 
                 <div class="tab-pane fade" id="parcelamento-pane" role="tabpanel" aria-labelledby="parcelamento-tab"
-                     th:if="${contaPagar.compra?.totalParcelas != null and contaPagar.totalParcelas > 1}">
+                     th:if="${contaReceber.ordemServico?.contaRecebers != null and contaReceber.totalParcelas > 1}">
                     <h5 class="mb-3 fw-semibold">Demonstrativo do Parcelamento</h5>
                     <div class="table-responsive">
                         <table class="table table-dark table-bordered table-hover table-striped table-sm caption-top">
-                            <caption class="fs-6">Todas as Parcelas da Compra</caption>
+                            <caption class="fs-6">Todas as Parcelas da O.S.</caption>
                             <thead>
                             <tr>
                                 <th style="width: 10%;">Parcela</th>
@@ -205,17 +222,15 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr th:each="parc, iter : ${contaPagar.compra.getContasPagar()}"
-                                th:classappend="${contaPagar.id == parc.id} ? 'parcela-atual-destaque' : ''">
-                                <td th:text="${parc.numeroParcela + '/' + contaPagar.totalParcelas}"></td>
-                                <td><a th:href="@{/contas-pagar/visualizar/{id}(id=${parc.id})}"
-                                       th:text="${parc.id}"></a></td>
+                            <tr th:each="parc : ${contaReceber.ordemServico.contaRecebers}"
+                                th:classappend="${contaReceber.id == parc.id} ? 'parcela-atual-destaque' : ''">
+                                <td th:text="${parc.numeroParcela + '/' + contaReceber.totalParcelas}"></td>
+                                <td><a th:href="@{/contas-receber/visualizar/{id}(id=${parc.id})}" th:text="${parc.id}"
+                                       class="link-light"></a></td>
                                 <td th:text="${parc.dataVencimento != null ? #temporals.format(parc.dataVencimento, 'dd/MM/yyyy') : 'N/A'}"></td>
                                 <td class="text-end"
                                     th:text="${parc.valor != null ? #numbers.formatCurrency(parc.valor) : 'R$ 0,00'}"></td>
-                                <td>
-                                    <span class="badge"
-                                          th:text="${parc.status?.descricao}"></span>
+                                <td th:text="${parc.status?.descricao}">
                                 </td>
                             </tr>
                             </tbody>
@@ -225,8 +240,8 @@
             </div>
         </div>
 
-        <div th:unless="${contaPagar != null}" class="alert alert-warning mt-4" role="alert">
-            Conta a Pagar não encontrada ou não disponível.
+        <div th:unless="${contaReceber != null}" class="alert alert-warning mt-4" role="alert">
+            Conta a Receber não encontrada ou não disponível.
         </div>
     </main>
 </div>

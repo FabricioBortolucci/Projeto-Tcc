@@ -62,7 +62,7 @@ public class ContaPagar implements Comparable<ContaPagar> {
     @OneToMany(mappedBy = "contaPagar", cascade = CascadeType.ALL)
     private List<MovimentacaoCaixa> movimentacoes;
 
-    @Column(name = "cp_observacao")
+    @Column(name = "cp_observacao", columnDefinition = "TEXT")
     private String observacao;
 
     public ContaPagar(Long id, BigDecimal valor, LocalDate dataVencimento, LocalDate dataPagamento, Integer numeroParcela, Integer totalParcelas, BigDecimal valorTotalOriginal, TipoPagamento tipoPagamento, StatusConta status, Pessoa fornecedor, Compra compra, String observacao) {

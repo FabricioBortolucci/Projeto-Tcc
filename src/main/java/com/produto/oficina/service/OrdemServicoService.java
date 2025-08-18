@@ -1,10 +1,7 @@
 package com.produto.oficina.service;
 
 import com.produto.oficina.model.*;
-import com.produto.oficina.model.enums.PlanoPagamento;
-import com.produto.oficina.model.enums.StatusConta;
-import com.produto.oficina.model.enums.StatusOS;
-import com.produto.oficina.model.enums.TipoMovimentacao;
+import com.produto.oficina.model.enums.*;
 import com.produto.oficina.repository.OrdemServicoRepository;
 import com.produto.oficina.repository.PessoaRepository;
 import com.produto.oficina.repository.ProdutoRepository;
@@ -173,6 +170,7 @@ public class OrdemServicoService {
             contaReceber.setCliente(os.getCliente());
             contaReceber.setNumeroParcela(1);
             contaReceber.setStatus(StatusConta.PAGO);
+            contaReceber.setTipoPagamento(os.getTipoPagamento());
             contaReceber.setTotalParcelas(os.getQuantParcelas());
             contaReceber.setValorTotalOriginal(os.getValorTotal());
             contaReceber.setValor(os.getValorTotal());
@@ -264,9 +262,11 @@ public class OrdemServicoService {
             BigDecimal valorTotalCreditoCliente = BigDecimal.ZERO;
             ordemServico.setContaRecebers(contaReceberService.findAllByOsId(ordemServico.getId()));
 
+            List<ContaReceber> crCancels = new ArrayList<>();
             for (ContaReceber contaReceber : ordemServico.getContaRecebers()) {
                 if (contaReceber.getStatus().equals(StatusConta.PENDENTE)) {
                     contaReceber.setStatus(StatusConta.CANCELADO);
+                    crCancels.add(contaReceber);
                 }
                 if (contaReceber.getStatus().equals(StatusConta.PAGO)) {
                     if (acaoFinanceira.equals("GERAR_CREDITO")) {
@@ -292,7 +292,8 @@ public class OrdemServicoService {
                 }
             }
 
-            if (ordemServico.getPlanoPagamento().equals(PlanoPagamento.AVISTA) && acaoFinanceira.equals("REEMBOLSAR")) {
+            if (ordemServico.getPlanoPagamento().equals(PlanoPagamento.AVISTA) &&
+                    acaoFinanceira.equals("REEMBOLSAR") && crCancels.isEmpty()) {
                 Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
 
                 MovimentacaoCaixa novoMovimento = new MovimentacaoCaixa();
