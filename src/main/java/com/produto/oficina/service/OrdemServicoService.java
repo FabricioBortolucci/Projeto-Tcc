@@ -2,10 +2,7 @@ package com.produto.oficina.service;
 
 import com.produto.oficina.model.*;
 import com.produto.oficina.model.enums.*;
-import com.produto.oficina.repository.OrdemServicoRepository;
-import com.produto.oficina.repository.PessoaRepository;
-import com.produto.oficina.repository.ProdutoRepository;
-import com.produto.oficina.repository.ServicoRepository;
+import com.produto.oficina.repository.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -30,8 +27,9 @@ public class OrdemServicoService {
     private final CaixaService caixaService;
     private final ContaReceberService contaReceberService;
     private final PessoaService pessoaService;
+    private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
-    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository, PessoaRepository pessoaRepository, CaixaService caixaService, ContaReceberService contaReceberService, PessoaService pessoaService) {
+    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository, PessoaRepository pessoaRepository, CaixaService caixaService, ContaReceberService contaReceberService, PessoaService pessoaService, MovimentacaoEstoqueRepository movimentacaoEstoqueRepository) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.servicoRepository = servicoRepository;
         this.produtoRepository = produtoRepository;
@@ -39,6 +37,7 @@ public class OrdemServicoService {
         this.caixaService = caixaService;
         this.contaReceberService = contaReceberService;
         this.pessoaService = pessoaService;
+        this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
     }
 
     public Page<OrdemServico> findAll(Pageable pageable) {
@@ -191,15 +190,17 @@ public class OrdemServicoService {
             prod.setEstoque(prod.getEstoque() - item.getQuantidade().intValue());
             produtoRepository.save(prod);
 
-            /*MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
-            movEstoque.setProduto(prodAtual);
-            movEstoque.setQuantidade(BigDecimal.valueOf(item.getQuantidade()));
-            movEstoque.setTipo(TipoMovimentacaoEstoque.SAIDA);
+            MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
+            movEstoque.setProduto(prod);
+            movEstoque.setCustoUnitario(prod.getPrecoUnitario());
+            movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
+            movEstoque.setQuantidade(item.getQuantidade());
+            movEstoque.setTipo(TipoMovimentacao.SAIDA);
             movEstoque.setDataMovimentacao(LocalDateTime.now());
             movEstoque.setOrigemId(os.getId());
             movEstoque.setOrigemTipo("ORDEM_DE_SERVICO");
             movEstoque.setObservacao("Saída de material para a OS nº " + os.getId());
-            movimentacaoEstoqueRepository.save(movEstoque); */
+            movimentacaoEstoqueRepository.save(movEstoque);
         }
 
         os.setStatus(StatusOS.FINALIZADA);
@@ -282,10 +283,22 @@ public class OrdemServicoService {
             if (idsDasPecasParaDevolver != null && !idsDasPecasParaDevolver.isEmpty()) {
                 for (Long id : idsDasPecasParaDevolver) {
                     for (OrdemServicoPeca pecasDevolucao : ordemServico.getPecasUsadas()) {
-                        if (pecasDevolucao.getId().equals(id)) {
+                        if (pecasDevolucao.getProduto().getId().equals(id)) {
                             produtoRepository.findById(pecasDevolucao.getProduto().getId()).ifPresent(produto -> {
                                 produto.setEstoque(produto.getEstoque() + pecasDevolucao.getQuantidade().intValue());
                                 produtoRepository.save(produto);
+
+                                MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
+                                movEstoque.setProduto(produto);
+                                movEstoque.setCustoUnitario(produto.getPrecoUnitario());
+                                movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
+                                movEstoque.setQuantidade(pecasDevolucao.getQuantidade());
+                                movEstoque.setTipo(TipoMovimentacao.ENTRADA);
+                                movEstoque.setDataMovimentacao(LocalDateTime.now());
+                                movEstoque.setOrigemId(ordemServico.getId());
+                                movEstoque.setOrigemTipo("ORDEM_DE_SERVICO");
+                                movEstoque.setObservacao("Entrada de material da OS nº " + ordemServico.getId());
+                                movimentacaoEstoqueRepository.save(movEstoque);
                             });
                         }
                     }

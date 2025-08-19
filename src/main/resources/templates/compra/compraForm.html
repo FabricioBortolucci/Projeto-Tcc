@@ -96,7 +96,7 @@
             </li>
         </ul>
 
-        <form th:action="@{/compra/cadastrar}" method="post" th:object="${compra}" id="formPrincipalCompra">
+        <form th:action="@{/compra/cadastrar}" method="post" th:object="${compra}" id="formPrincipalCompra" >
             <input type="hidden" th:field="*{id}"/>
 
             <div class="tab-content" id="myTabContent">
@@ -197,7 +197,7 @@
                                     <tr>
                                         <th style="width:10%">Id Produto</th>
                                         <th>Nome</th>
-                                        <th class="text-center">Preço Custo</th>
+                                        <th class="text-center">Preço Unitário</th>
                                         <th class="text-center">Quantidade</th>
                                         <th class="text-center">Subtotal</th>
                                         <th class="text-center">Opções</th>
@@ -328,7 +328,7 @@
                                             onclick="formatarValorParaDecimal(document.getElementById('valorCusto'))"
                                             th:hx-post="@{/compra/cadastro/gerar-parcelas}"
                                             hx-swap="innerHTML"
-                                            hx-include="#numParcelas ,#numIntDias"
+                                            hx-include="#numParcelas, #numIntDias"
                                             hx-target="#parcelasGeradas">
                                         <i class="bi bi-check-lg me-1"></i>Gerar
                                     </button>
@@ -438,12 +438,12 @@
         const parcelas = document.getElementById('parcelasGeradas');
         if (planoPag.value === 'AVISTA') {
             numParcelas.value = 1;
-            numIntDias.value = 1;
-            numIntDias.disabled = true;
-            numParcelas.disabled = true;
+            numIntDias.value = 30;
+            numIntDias.readOnly = true;
+            numParcelas.readOnly = true;
         } else {
-            numIntDias.disabled = false;
-            numParcelas.disabled = false;
+            numIntDias.readOnly = false;
+            numParcelas.readOnly = false;
             numIntDias.value = 30;
         }
         parcelas.innerHTML = '<option selected disabled>Parcelas...</option>';

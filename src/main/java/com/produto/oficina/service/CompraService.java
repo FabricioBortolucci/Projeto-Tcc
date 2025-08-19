@@ -4,6 +4,7 @@ import com.produto.oficina.dto.CompraDTO;
 import com.produto.oficina.model.*;
 import com.produto.oficina.model.enums.*;
 import com.produto.oficina.repository.CompraRepository;
+import com.produto.oficina.repository.MovimentacaoEstoqueRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,13 +28,15 @@ public class CompraService {
     private final CaixaService caixaService;
     private final ContaPagarService contaPagarService;
     private final PessoaService pessoaService;
+    private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
-    public CompraService(CompraRepository compraRepository, ProdutoService produtoService, CaixaService caixaService, ContaPagarService contaPagarService, PessoaService pessoaService) {
+    public CompraService(CompraRepository compraRepository, ProdutoService produtoService, CaixaService caixaService, ContaPagarService contaPagarService, PessoaService pessoaService, MovimentacaoEstoqueRepository movimentacaoEstoqueRepository) {
         this.compraRepository = compraRepository;
         this.produtoService = produtoService;
         this.caixaService = caixaService;
         this.contaPagarService = contaPagarService;
         this.pessoaService = pessoaService;
+        this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
     }
 
     public Page<Compra> findAll(Pageable pageable) {
@@ -82,6 +85,18 @@ public class CompraService {
                 Produto prodAtual = produtoService.findById(item.getProduto().getId());
                 prodAtual.setEstoque(prodAtual.getEstoque() + item.getQuantidade());
                 produtoService.save(prodAtual);
+
+                MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
+                movEstoque.setProduto(prodAtual);
+                movEstoque.setCustoUnitario(prodAtual.getPrecoUnitario());
+                movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
+                movEstoque.setQuantidade(BigDecimal.valueOf(item.getQuantidade()));
+                movEstoque.setTipo(TipoMovimentacao.ENTRADA);
+                movEstoque.setDataMovimentacao(LocalDateTime.now());
+                movEstoque.setOrigemId(novaCompra.getId());
+                movEstoque.setOrigemTipo("COMPRA");
+                movEstoque.setObservacao("Entrada de material da Compra nº " + novaCompra.getId());
+                movimentacaoEstoqueRepository.save(movEstoque);
             }
 
             novaCompra.setStatusCompra(StatusCompra.FINALIZADA);
@@ -209,6 +224,18 @@ public class CompraService {
                         prodAtual.setEstoque(0);
                     }
                     produtos.add(prodAtual);
+
+                    MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
+                    movEstoque.setProduto(prodAtual);
+                    movEstoque.setCustoUnitario(prodAtual.getPrecoUnitario());
+                    movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
+                    movEstoque.setQuantidade(BigDecimal.valueOf(item.getQuantidade()));
+                    movEstoque.setTipo(TipoMovimentacao.SAIDA);
+                    movEstoque.setDataMovimentacao(LocalDateTime.now());
+                    movEstoque.setOrigemId(compra.getId());
+                    movEstoque.setOrigemTipo("COMPRA");
+                    movEstoque.setObservacao("Saída de material da Compra nº " + compra.getId());
+                    movimentacaoEstoqueRepository.save(movEstoque);
                 }
             }
             compra.getFornecedor().setPesCredito(compra.getFornecedor().getPesCredito().add(valorTotalCredito));
