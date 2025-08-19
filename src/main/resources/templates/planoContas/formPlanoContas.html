@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Cadastro de Plano de Contas - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .form-control:read-only {
+            background-color: var(--bs-secondary-bg);
+            opacity: 1;
+        }
+
+        /* Garante que a mensagem de erro para radio buttons seja visível */
+        .invalid-feedback-radio {
+            width: 100%;
+            margin-top: .25rem;
+            font-size: .875em;
+            color: var(--bs-danger-text);
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-3">
+
+        <div>
+            <h1 class="h3" th:text="${plano.id == null ? 'Cadastro de Nova Conta' : 'Editar Conta do Plano'}"></h1>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-semibold">Informações da Conta</h5>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="@{/plano-contas/salvar}" method="post" th:object="${plano}">
+                    <input type="hidden" th:field="*{id}"/>
+
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="codigoConta" class="form-label">Código Estruturado <span
+                                    class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="codigoConta" th:field="*{codigo}"
+                                   placeholder="Ex: 1.01.01" required
+                                   th:classappend="${#fields.hasErrors('codigo')} ? 'is-invalid' : ''">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('codigo')}"
+                                 th:errors="*{codigo}"></div>
+                            <div class="form-text">Define a posição da conta na hierarquia.</div>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="descricaoConta" class="form-label">Descrição <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="descricaoConta" th:field="*{descricao}"
+                                   placeholder="Ex: Despesas com Salários" required
+                                   th:classappend="${#fields.hasErrors('descricao')} ? 'is-invalid' : ''">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('descricao')}"
+                                 th:errors="*{descricao}"></div>
+                        </div>
+                        <div class="col-12">
+                            <label for="contaPaiSelect" class="form-label">Conta Pai (Agrupadora):</label>
+                            <select class="form-select" id="contaPaiSelect" th:field="*{contaPai}"
+                                    th:classappend="${#fields.hasErrors('contaPai')} ? 'is-invalid' : ''">
+                                <option value="">Nenhuma (Conta Raiz / Nível 1)</option>
+                                <option th:each="contaPaiOpt : ${contasPaiDisponiveis}"
+                                        th:value="${contaPaiOpt.id}"
+                                        th:text="${contaPaiOpt.codigo + ' - ' + contaPaiOpt.descricao}"></option>
+                            </select>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('contaPai')}"
+                                 th:errors="*{contaPai}"></div>
+                        </div>
+
+                        <hr class="my-3">
+
+                        <div class="col-md-6">
+                            <fieldset>
+                                <legend class="col-form-label pt-0 fs-6 fw-normal">Natureza da Conta <span
+                                        class="text-danger">*</span></legend>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="form-check"
+                                         th:each="naturezaOpt : ${natureza}">
+                                        <input class="form-check-input" type="radio" th:field="*{naturezaConta}"
+                                               th:value="${naturezaOpt}"
+                                               th:id="'natureza-' + ${naturezaOpt.name()}"
+                                               th:classappend="${#fields.hasErrors('naturezaConta')} ? 'is-invalid' : ''">
+                                        <label class="form-check-label" th:for="'natureza-' + ${naturezaOpt.name()}"
+                                               th:text="${naturezaOpt.descricao}"></label>
+                                    </div>
+                                </div>
+                                <div class="invalid-feedback-radio" th:if="${#fields.hasErrors('naturezaConta')}"
+                                     th:errors="*{naturezaConta}"></div>
+                            </fieldset>
+                        </div>
+
+                        <div class="col-md-6">
+                            <fieldset>
+                                <legend class="col-form-label pt-0 fs-6 fw-normal">Tipo da Conta <span
+                                        class="text-danger">*</span></legend>
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="form-check"
+                                         th:each="tipoOpt : ${tipoPlano}">
+                                        <input class="form-check-input" type="radio" th:field="*{tipoConta}"
+                                               th:value="${tipoOpt}"
+                                               th:id="'tipo-' + ${tipoOpt.name()}"
+                                               th:classappend="${#fields.hasErrors('tipoConta')} ? 'is-invalid' : ''">
+                                        <label class="form-check-label" th:for="'tipo-' + ${tipoOpt.name()}"
+                                               th:text="${tipoOpt.descricao}"></label>
+                                    </div>
+                                </div>
+                                <div class="invalid-feedback-radio" th:if="${#fields.hasErrors('tipoConta')}"
+                                     th:errors="*{tipoConta}"></div>
+                            </fieldset>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check form-switch mt-3">
+                                <input class="form-check-input" type="checkbox" role="switch"
+                                       id="checkAceitaLancamentos" th:field="*{aceitaLancamentos}" readonly>
+                                <label class="form-check-label" for="checkAceitaLancamentos">Aceita Lançamentos
+                                    Financeiros</label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                        <a class="btn btn-outline-secondary" th:href="@{/plano-contas}"><i
+                                class="bi bi-x-circle me-1"></i>Cancelar</a>
+                        <button class="btn btn-success" type="submit"><i class="bi bi-check-lg me-1"></i>Salvar Conta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function () {
+        const radiosTipoConta = document.querySelectorAll('input[name="tipoConta"]');
+        const checkAceitaLancamentos = document.getElementById('checkAceitaLancamentos');
+
+        function atualizarCheckLancamentos() {
+            if (!checkAceitaLancamentos) return;
+            const tipoSelecionado = document.querySelector('input[name="tipoConta"]:checked');
+            // O campo 'aceitaLancamentos' é readonly, mas seu valor 'checked' é controlado pelo JS
+            if (tipoSelecionado && tipoSelecionado.value === 'ANALITICA') {
+                checkAceitaLancamentos.checked = true;
+            } else {
+                checkAceitaLancamentos.checked = false;
+            }
+        }
+
+        radiosTipoConta.forEach(radio => {
+            radio.addEventListener('change', atualizarCheckLancamentos);
+        });
+
+        atualizarCheckLancamentos();
+    });
+    /*]]>*/
+</script>
+</body>
+</html>
