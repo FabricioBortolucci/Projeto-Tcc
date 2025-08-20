@@ -1,10 +1,14 @@
 package com.produto.oficina.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Objects;
 
 
@@ -14,33 +18,35 @@ import java.util.Objects;
 @AllArgsConstructor
 @ToString
 @Entity
-public class OrdemServicoPeca {
+public class LancamentoFinanceiro {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ost_id")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ost_ordem_servico_id")
-    @ToString.Exclude
-    private OrdemServico ordemServico;
+    @Column(name = "lan_desc")
+    private String descricao;
+
+    @Column(name = "lan_valor")
+    private BigDecimal valor;
+
+    @Column(name = "lan_data_comp")
+    private LocalDate dataCompetencia;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "plano_contas_id")
+    private PlanoDeContas planoDeContas;
 
     @ManyToOne
-    @JoinColumn(name = "ost_produto_id")
-    private Produto produto;
+    @JoinColumn(name = "ordem_servico_id")
+    private OrdemServico ordemServico;
 
-    @Column(name = "ost_quantidade")
-    private BigDecimal quantidade;
-
-    @Column(name = "ost_valor_unitario")
-    private BigDecimal valorUnitario;
-
-    @Column(name = "ost_valor_total")
-    private BigDecimal valorTotal;
-
-    public BigDecimal getSubTotal() {
-        return valorUnitario.multiply(quantidade);
+    public LancamentoFinanceiro(String descricao, BigDecimal valor, LocalDate dataCompetencia, PlanoDeContas planoDeContas, OrdemServico ordemServico) {
+        this.descricao = descricao;
+        this.valor = valor;
+        this.dataCompetencia = dataCompetencia;
+        this.planoDeContas = planoDeContas;
+        this.ordemServico = ordemServico;
     }
 
     @Override
@@ -50,7 +56,7 @@ public class OrdemServicoPeca {
         Class<?> oEffectiveClass = o instanceof HibernateProxy ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass() : o.getClass();
         Class<?> thisEffectiveClass = this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass() : this.getClass();
         if (thisEffectiveClass != oEffectiveClass) return false;
-        OrdemServicoPeca produto = (OrdemServicoPeca) o;
+        LancamentoFinanceiro produto = (LancamentoFinanceiro) o;
         return getId() != null && Objects.equals(getId(), produto.getId());
     }
 

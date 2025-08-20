@@ -64,6 +64,28 @@
                                   class="text-danger"></span>
                         </div>
 
+                        <div class="col-md-4">
+                            <label for="contaCusto" class="form-label">Conta de Custo/CMV <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-select" id="contaCusto" th:field="*{contaCusto}" required>
+                                <option value="">Selecione...</option>
+                                <option th:each="conta : ${contasCusto}" th:value="${conta.id}"
+                                        th:text="${conta.codigo + ' - ' + conta.descricao}"
+                                        th:disabled="${#strings.equals(conta.tipoConta, 'SINTETICA')}"></option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4" id="containerContaReceita">
+                            <label for="contaReceita" class="form-label">Conta de Receita (Venda) <span
+                                    id="asteriscoReceita" class="text-danger">*</span></label>
+                            <select class="form-select" id="contaReceita" th:field="*{contaReceitaPadrao}">
+                                <option value="">Selecione...</option>
+                                <option th:each="conta : ${contasReceita}" th:value="${conta.id}"
+                                        th:text="${conta.codigo + ' - ' + conta.descricao}"
+                                        th:disabled="${#strings.equals(conta.tipoConta, 'SINTETICA')}"></option>
+                            </select>
+                        </div>
+
                         <div class="col-12">
                             <div class="form-check form-switch mt-2">
                                 <input class="form-check-input" type="checkbox" role="switch" id="ativo"

@@ -1,10 +1,13 @@
 package com.produto.oficina.controller;
 
 import com.produto.oficina.model.Servico;
+import com.produto.oficina.model.enums.NaturezaContaPlanoContas;
+import com.produto.oficina.service.PlanoDeContasService;
 import com.produto.oficina.service.ServicoService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,16 +19,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ServicoController extends AbstractController {
 
     private final ServicoService servicoService;
+    private final PlanoDeContasService  planoDeContasService;
 
-    public ServicoController(ServicoService servicoService) {
+    public ServicoController(ServicoService servicoService, PlanoDeContasService planoDeContasService) {
         this.servicoService = servicoService;
+        this.planoDeContasService = planoDeContasService;
     }
 
     @GetMapping
     public String servicoList(Model model,
                               @RequestParam(defaultValue = "0") int page,
                               @RequestParam(defaultValue = "5") int size) {
-        Page<Servico> servicoPage = servicoService.buscaTodosPaginado(PageRequest.of(page, size));
+        Page<Servico> servicoPage = servicoService.buscaTodosPaginado(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
         model.addAttribute("servicoPage", servicoPage);
         model.addAttribute("currentPage", page);
         return "servico/servList";
@@ -34,6 +39,8 @@ public class ServicoController extends AbstractController {
     @GetMapping("/cadastro")
     public String servicoForm(Model model) {
         model.addAttribute("servico", new Servico());
+        model.addAttribute("contasReceita", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.RECEITA));
+        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorCodigo("2.01"));
         return "servico/servForm";
     }
 
@@ -55,6 +62,8 @@ public class ServicoController extends AbstractController {
     @GetMapping("/editar/{index}")
     public String servicoEditar(@PathVariable Long index, Model model) {
         model.addAttribute("servico", servicoService.buscaServico(index));
+        model.addAttribute("contasReceita", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.RECEITA));
+        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorCodigo("2.01"));
         return "servico/servForm";
     }
 

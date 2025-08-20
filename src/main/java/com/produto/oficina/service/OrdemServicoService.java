@@ -15,7 +15,9 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class OrdemServicoService {
@@ -28,8 +30,9 @@ public class OrdemServicoService {
     private final ContaReceberService contaReceberService;
     private final PessoaService pessoaService;
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
+    private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
 
-    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository, PessoaRepository pessoaRepository, CaixaService caixaService, ContaReceberService contaReceberService, PessoaService pessoaService, MovimentacaoEstoqueRepository movimentacaoEstoqueRepository) {
+    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository, PessoaRepository pessoaRepository, CaixaService caixaService, ContaReceberService contaReceberService, PessoaService pessoaService, MovimentacaoEstoqueRepository movimentacaoEstoqueRepository, LancamentoFinanceiroRepository lancamentoFinanceiroRepository) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.servicoRepository = servicoRepository;
         this.produtoRepository = produtoRepository;
@@ -38,6 +41,7 @@ public class OrdemServicoService {
         this.contaReceberService = contaReceberService;
         this.pessoaService = pessoaService;
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
+        this.lancamentoFinanceiroRepository = lancamentoFinanceiroRepository;
     }
 
     public Page<OrdemServico> findAll(Pageable pageable) {
@@ -140,66 +144,126 @@ public class OrdemServicoService {
         return ordemServico;
     }
 
+
     @Transactional
     public void finalizarOs(OrdemServico os) {
-
-        List<ContaReceber> contasReceber = new ArrayList<>();
-        ContaReceber contaReceber;
-
-        if (os.getPlanoPagamento().equals(PlanoPagamento.APRAZO)) {
-            LocalDate dataEmissao = os.getDataAbertura().toLocalDate();
-            for (int i = 1; i <= os.getQuantParcelas(); i++) {
-                contaReceber = new ContaReceber();
-                contaReceber.setOrdemServico(os);
-                contaReceber.setCliente(os.getCliente());
-                contaReceber.setNumeroParcela(i);
-                contaReceber.setStatus(StatusConta.PENDENTE);
-                contaReceber.setTotalParcelas(os.getQuantParcelas());
-                contaReceber.setValorTotalOriginal(os.getValorTotal());
-                contaReceber.setValor(os.getValorTotal().divide(BigDecimal.valueOf(os.getQuantParcelas()), RoundingMode.HALF_UP));
-                LocalDate dataVencimento = dataEmissao.plusDays(os.getIntDias()).plusMonths(i - 1);
-                contaReceber.setDataVencimento(dataVencimento);
-                contasReceber.add(contaReceber);
-            }
-            os.setContaRecebers(contasReceber);
-
-        } else {
-            contaReceber = new ContaReceber();
-            contaReceber.setOrdemServico(os);
-            contaReceber.setCliente(os.getCliente());
-            contaReceber.setNumeroParcela(1);
-            contaReceber.setStatus(StatusConta.PAGO);
-            contaReceber.setTipoPagamento(os.getTipoPagamento());
-            contaReceber.setTotalParcelas(os.getQuantParcelas());
-            contaReceber.setValorTotalOriginal(os.getValorTotal());
-            contaReceber.setValor(os.getValorTotal());
-            contaReceber.setDataVencimento(os.getDataAbertura().toLocalDate().plusDays(os.getIntDias()));
-            contaReceber.setDataRecebimento(LocalDate.now());
-            contasReceber.add(contaReceber);
-            os.setContaRecebers(contasReceber);
-        }
+        LocalDate hoje = LocalDate.now();
 
         for (OrdemServicoPeca item : os.getPecasUsadas()) {
-            Produto prod = produtoRepository.findById(item.getProduto().getId()).get();
+            Produto produto = produtoRepository.findById(item.getProduto().getId())
+                    .orElseThrow(() -> new IllegalStateException("Produto com ID " + item.getProduto().getId() + " não encontrado."));
 
-            if (prod.getEstoque() < item.getQuantidade().intValue()) {
-                throw new IllegalStateException("Estoque insuficiente para o produto: " + prod.getNome() +
-                        ". Disponível: " + prod.getEstoque() + ", Necessário: " + item.getQuantidade());
+            if (produto.getProdutoTipo().equals(ProdutoTipo.PECA)) {
+
+                if (produto.getContaReceitaPadrao() == null || produto.getContaCusto() == null || produto.getContaEstoque() == null) {
+                    throw new IllegalStateException("A peça '" + produto.getNome() +
+                            "' não possui todas as contas financeiras (Receita, Custo, Estoque) configuradas.");
+                }
+
+                lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
+                        "Receita da peça '" + produto.getNome() + "' na OS #" + os.getId(),
+                        item.getSubTotal(),
+                        hoje,
+                        produto.getContaReceitaPadrao(),
+                        os
+                ));
+
+                BigDecimal custoTotalItem = produto.getPrecoCusto().multiply(item.getQuantidade());
+                lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
+                        "Custo da peça '" + produto.getNome() + "' na OS #" + os.getId(), // Descrição correta
+                        custoTotalItem,
+                        hoje,
+                        produto.getContaCusto(),
+                        os
+                ));
+
+            } else if (produto.getProdutoTipo().equals(ProdutoTipo.MATERIA_PRIMA)) {
+
+                if (produto.getContaCusto() == null || produto.getContaEstoque() == null) {
+                    throw new IllegalStateException("A matéria-prima '" + produto.getNome() +
+                            "' não possui as contas de Custo e/ou Estoque configuradas.");
+                }
+
+                BigDecimal custoTotalItem = produto.getPrecoCusto().multiply(item.getQuantidade());
+                lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
+                        "Custo da matéria-prima '" + produto.getNome() + "' na OS #" + os.getId(),
+                        custoTotalItem,
+                        hoje,
+                        produto.getContaCusto(),
+                        os
+                ));
+
+            } else {
+                throw new IllegalStateException("O produto '" + produto.getNome() + "' está com um tipo inválido ou não definido.");
+            }
+        }
+
+        for (OrdemServicoItem servicoPrestado : os.getItensServico()) {
+            Servico servico = servicoRepository.findById(servicoPrestado.getServico().getId()).get();
+            if (servico.getContaReceitaPadrao() == null || servico.getContaCusto() == null) {
+                throw new IllegalStateException("O serviço '" + servico.getDescricao() + "' não possui Conta de Receita e/ou Custo configurada.");
             }
 
+            lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
+                    "Receita do serviço '" + servico.getDescricao() + "' na OS #" + os.getId(),
+                    servicoPrestado.getValorUnitario(),
+                    hoje,
+                    servico.getContaReceitaPadrao(),
+                    os
+            ));
+        }
+
+        List<ContaReceber> contasReceber = new ArrayList<>();
+
+        if (os.getPlanoPagamento().equals(PlanoPagamento.APRAZO)) {
+            BigDecimal valorParcela = os.getValorTotal().divide(BigDecimal.valueOf(os.getQuantParcelas()), RoundingMode.HALF_UP);
+            for (int i = 1; i <= os.getQuantParcelas(); i++) {
+                ContaReceber cr = new ContaReceber();
+                cr.setOrdemServico(os);
+                cr.setCliente(os.getCliente());
+                cr.setValor(valorParcela);
+                cr.setValorTotalOriginal(os.getValorTotal());
+                cr.setStatus(StatusConta.PENDENTE);
+                cr.setNumeroParcela(i);
+                LocalDate dataVencimento = hoje.plusDays(os.getIntDias()).plusMonths(i - 1);
+                cr.setDataVencimento(dataVencimento);
+                contasReceber.add(cr);
+            }
+        } else {
+            ContaReceber cr = new ContaReceber();
+            cr.setOrdemServico(os);
+            cr.setCliente(os.getCliente());
+            cr.setValor(os.getValorTotal());
+            cr.setValorTotalOriginal(os.getValorTotal());
+            cr.setStatus(StatusConta.PAGO);
+            cr.setNumeroParcela(1);
+            cr.setTotalParcelas(os.getQuantParcelas());
+            cr.setDataRecebimento(LocalDate.now());
+            cr.setTipoPagamento(os.getTipoPagamento());
+            cr.setDataVencimento(os.getDataAbertura().toLocalDate().plusDays(os.getIntDias()));
+            cr.setDataRecebimento(LocalDate.now());
+            contasReceber.add(cr);
+        }
+        os.setContaRecebers(contasReceber);
+
+        for (OrdemServicoPeca item : os.getPecasUsadas()) {
+            Produto prod = item.getProduto();
+            if (prod.getEstoque() < item.getQuantidade().intValue()) {
+                throw new IllegalStateException("Estoque insuficiente para o produto: " + prod.getNome());
+            }
             prod.setEstoque(prod.getEstoque() - item.getQuantidade().intValue());
             produtoRepository.save(prod);
 
-            MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
-            movEstoque.setProduto(prod);
-            movEstoque.setCustoUnitario(prod.getPrecoUnitario());
-            movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
-            movEstoque.setQuantidade(item.getQuantidade());
-            movEstoque.setTipo(TipoMovimentacao.SAIDA);
-            movEstoque.setDataMovimentacao(LocalDateTime.now());
-            movEstoque.setOrigemId(os.getId());
-            movEstoque.setOrigemTipo("ORDEM_DE_SERVICO");
-            movEstoque.setObservacao("Saída de material para a OS nº " + os.getId());
+            MovimentacaoEstoque movEstoque = new MovimentacaoEstoque(
+                    prod,
+                    item.getQuantidade(),
+                    TipoMovimentacao.SAIDA,
+                    prod.getPrecoCusto(),
+                    os.getId(),
+                    "ORDEM_DE_SERVICO",
+                    pessoaService.buscaPessoaLogada(),
+                    "Saída de material para a OS #" + os.getId()
+            );
             movimentacaoEstoqueRepository.save(movEstoque);
         }
 
@@ -209,17 +273,14 @@ public class OrdemServicoService {
 
         if (osFinalizada.getPlanoPagamento().equals(PlanoPagamento.AVISTA)) {
             Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
-
             MovimentacaoCaixa novoMovimento = new MovimentacaoCaixa();
             novoMovimento.setCaixa(caixaAtual);
-            novoMovimento.setDataMovimentacao(LocalDateTime.now());
             novoMovimento.setTipo(TipoMovimentacao.ENTRADA);
-            novoMovimento.setContaReceber(osFinalizada.getContaRecebers().getFirst());
             novoMovimento.setValor(osFinalizada.getValorTotal());
-            novoMovimento.setDescricao("Recebimento da OS nº " + osFinalizada.getId() + " - Cliente: " + osFinalizada.getCliente().getPesNome());
-
-            caixaAtual.getMovimentacoes().add(novoMovimento);
-            caixaService.salvarCaixaAposMovimento(caixaAtual);
+            novoMovimento.setContaReceber(osFinalizada.getContaRecebers().getFirst());
+            novoMovimento.setDescricao("Recebimento da OS #" + osFinalizada.getId() + " - Cliente: " + osFinalizada.getCliente().getPesNome());
+            novoMovimento.setDataMovimentacao(LocalDateTime.now());
+            caixaService.salvarCaixaAposMovimento(caixaAtual, novoMovimento);
         }
     }
 

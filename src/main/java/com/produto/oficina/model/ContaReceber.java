@@ -67,7 +67,6 @@ public class ContaReceber {
     @Column(name = "cr_observacao", columnDefinition = "TEXT")
     private String observacao;
 
-    @NotNull(message = "A conta do plano de contas é obrigatória.")
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "plano_contas_id")
     private PlanoDeContas planoDeContas;

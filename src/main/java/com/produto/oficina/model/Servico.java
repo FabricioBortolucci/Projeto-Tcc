@@ -37,9 +37,20 @@ public class Servico {
     private boolean ativo = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @NotNull(message = "A conta de receita é obrigatória")
     @JoinColumn(name = "conta_receita_id")
     @ToString.Exclude
     private PlanoDeContas contaReceitaPadrao;
+
+    /**
+     * Conta de Custo para onde vai o custo associado a este serviço (ex: mão de obra direta).
+     * Ex: "2.01.02 - Custo com Mão de Obra"
+     */
+    @NotNull(message = "A conta de custo é obrigatória")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conta_custo_id")
+    @ToString.Exclude
+    private PlanoDeContas contaCusto;
 
     @Override
     public final boolean equals(Object o) {

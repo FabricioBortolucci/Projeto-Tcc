@@ -51,6 +51,17 @@ public class MovimentacaoEstoque {
     @Column(length = 500)
     private String observacao;
 
+    public MovimentacaoEstoque(Produto prod, BigDecimal quantidade, TipoMovimentacao tipoMovimentacao, BigDecimal precoCusto, Long id, String ordemDeServico, Pessoa pessoa, String s) {
+        this.produto = prod;
+        this.quantidade = quantidade;
+        this.tipo = tipoMovimentacao;
+        this.custoUnitario =  precoCusto;
+        this.origemId = id;
+        this.origemTipo = ordemDeServico;
+        this.usuarioResponsavel = pessoa;
+        this.observacao = s;
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;

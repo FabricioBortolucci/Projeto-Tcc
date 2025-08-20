@@ -63,6 +63,7 @@ public class Produto {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conta_estoque_id")
+    @ToString.Exclude
     private PlanoDeContas contaEstoque;
 
     /**
@@ -71,6 +72,7 @@ public class Produto {
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conta_custo_id")
+    @ToString.Exclude
     private PlanoDeContas contaCusto;
 
 

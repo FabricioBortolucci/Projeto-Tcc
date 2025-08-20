@@ -2,6 +2,7 @@ package com.produto.oficina.service;
 
 import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.Caixa;
+import com.produto.oficina.model.MovimentacaoCaixa;
 import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.enums.StatusCaixa;
 import com.produto.oficina.repository.CaixaRepository;
@@ -76,6 +77,11 @@ public class CaixaService {
 
     public void salvarCaixaAposMovimento(Caixa caixaAtual) {
         caixaRepository.saveAndFlush(caixaAtual);
+    }
+
+    public void salvarCaixaAposMovimento(Caixa caixaAtual, MovimentacaoCaixa movimentacao) {
+        caixaRepository.saveAndFlush(caixaAtual);
+        movimentacaoCaixaRepository.saveAndFlush(movimentacao);
     }
 
     @Transactional
