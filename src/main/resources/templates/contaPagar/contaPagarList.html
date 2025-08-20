@@ -132,7 +132,10 @@
                                title="Visualizar Conta">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
-                            <form th:if="${!#strings.equals(conta.status, 'CANCELADO') and !#strings.equals(conta.status, 'CANCELADO_CREDITO')}"
+                            <form th:if="${!#strings.equals(conta.status, 'CANCELADO') and !#strings.equals(conta.status, 'CANCELADO_CREDITO')
+                            and (#strings.equals(conta.tipoPagamento, 'DINHEIRO')
+                            or #strings.equals(conta.tipoPagamento, 'PIX')
+                            or #strings.equals(conta.tipoPagamento, 'BOLETO'))}"
                                   th:action="@{/contas-pagar/cancelar/{id}(id=${conta.id})}" method="post"
                                   class="d-inline-block">
                                 <button class="btn btn-danger btn-sm" type="submit"

@@ -2,9 +2,10 @@
      aria-labelledby="modalDinamicaFundosLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-light"><h5 class="modal-title fw-semibold" id="modalDinamicaFundosLabel">
-                <i class="bi bi-arrow-down-up me-1 text-primary"></i> <span th:text="${modal_title}">Movimentação de Caixa</span>
-            </h5>
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-semibold" id="modalDinamicaFundosLabel">
+                    <i class="bi bi-arrow-down-up me-1 text-primary"></i> <span th:text="${modal_title}">Movimentação de Caixa</span>
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -12,7 +13,8 @@
 
                     <div class="mb-3">
                         <label for="valorI" class="form-label" th:text="${modal_label ?: 'Valor:'}">Valor:</label>
-                        <div class="input-group"><span class="input-group-text">R$</span>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
                             <input id="valorI" class="form-control" type="text" th:field="*{valor}" placeholder="0,00"/>
                         </div>
                     </div>
@@ -23,19 +25,39 @@
                                 th:field="*{tipo}">
                             <option value="" disabled selected>Selecione...</option>
                             <option th:each="tipoOpt : ${tiposMovimento}" th:value="${tipoOpt}"
-                                    th:text="${tipoOpt.descricao}">
-                            </option>
+                                    th:text="${tipoOpt.descricao}"></option>
                         </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <div id="containerSelectSaida" th:if="${remover}">
+                            <label for="planoContasSaida" class="form-label">Classificar Despesa/Custo <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-select" id="planoContasSaida" th:field="*{planoDeContas}" required>
+                                <option value="">Selecione a conta de despesa...</option>
+                                <option th:each="conta : ${contasParaSaida}"
+                                        th:value="${conta.id}"
+                                        th:text="${conta.codigo + ' - ' + conta.descricao}"></option>
+                            </select>
+                        </div>
+
+                        <div id="containerSelectEntrada" th:if="${!remover}">
+                            <label for="planoContasEntrada" class="form-label">Classificar Origem da Receita <span
+                                    class="text-danger">*</span></label>
+                            <select class="form-select" id="planoContasEntrada" th:field="*{planoDeContas}" required>
+                                <option value="">Selecione a conta de origem...</option>
+                                <option th:each="conta : ${contasParaEntrada}"
+                                        th:value="${conta.id}"
+                                        th:text="${conta.codigo + ' - ' + conta.descricao}"></option>
+                            </select>
+                        </div>
                     </div>
 
                     <fieldset th:if="${remover}" class="card card-body bg-light p-3 mb-3">
                         <legend class="col-form-label pt-0 fs-6 fw-normal">Líquidar crédito de cliente?</legend>
                         <div class="d-flex flex-wrap gap-4">
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="caixaReembolso"
-                                       id="checkR"
+                                <input class="form-check-input" type="radio" name="caixaReembolso" id="checkR"
                                        th:hx-get="@{/caixa/show-clientes}"
                                        hx-target="#modalClientesCredito"
                                        hx-swap="innerHTML"
@@ -45,16 +67,14 @@
                                 </label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="caixaReembolso"
-                                       id="checkN"
+                                <input class="form-check-input" type="radio" name="caixaReembolso" id="checkN"
                                        th:hx-get="@{/caixa/hide-clientes}"
                                        hx-target="#modalClientesCredito"
                                        hx-swap="innerHTML"
-                                       value="N_CAIXA" checked> <label class="form-check-label" for="checkN">
-                                <i class="bi bi-x-circle text-danger"></i> Não
-                            </label>
+                                       value="N_CAIXA" checked>
+                                <label class="form-check-label" for="checkN">
+                                    <i class="bi bi-x-circle text-danger"></i> Não
+                                </label>
                             </div>
                         </div>
                     </fieldset>
@@ -93,17 +113,40 @@
         if (modalElement) {
             var modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
             modalInstance.show();
+
             modalElement.addEventListener('hidden.bs.modal', function () {
                 modalElement.remove();
                 var backdrop = document.querySelector('.modal-backdrop');
                 if (backdrop) backdrop.remove();
             });
+
             const valorFundoInputModal = document.getElementById('valorI');
             if (valorFundoInputModal && typeof VMasker !== 'undefined') {
                 VMasker(valorFundoInputModal).maskMoney({
                     thousands: '.', decimal: ',', precision: 2, zeroCents: true
                 });
             }
+
+            // NOVO: Inicializa Choices.js para os selects de Plano de Contas
+            const planoContasSaidaSelect = document.getElementById('planoContasSaida');
+            if (planoContasSaidaSelect && typeof Choices !== 'undefined') {
+                new Choices(planoContasSaidaSelect, {
+                    searchEnabled: true,
+                    itemSelectText: '',
+                    placeholder: true,
+                    searchPlaceholderValue: 'Buscar conta de despesa...'
+                });
+            }
+            const planoContasEntradaSelect = document.getElementById('planoContasEntrada');
+            if (planoContasEntradaSelect && typeof Choices !== 'undefined') {
+                new Choices(planoContasEntradaSelect, {
+                    searchEnabled: true,
+                    itemSelectText: '',
+                    placeholder: true,
+                    searchPlaceholderValue: 'Buscar conta de origem...'
+                });
+            }
+
             modalElement.addEventListener('htmx:afterSwap', function (event) {
                 if (event.detail.target.id === 'modalClientesCredito') {
                     const clienteSelect = document.getElementById('clienteSelect');

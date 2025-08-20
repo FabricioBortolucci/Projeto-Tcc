@@ -1,6 +1,7 @@
 package com.produto.oficina.service;
 
 import com.produto.oficina.model.PlanoDeContas;
+import com.produto.oficina.model.enums.NaturezaContaPlanoContas;
 import com.produto.oficina.model.enums.TipoContaPlanoContas;
 import com.produto.oficina.repository.PlanoDeContasRepository;
 import jakarta.transaction.Transactional;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +32,6 @@ public class PlanoDeContasService {
             return planoDeContasRepository.findAll(pageable);
         }
     }
-
 
     @Transactional
     public PlanoDeContas salvar(PlanoDeContas planoDeContas) {
@@ -94,5 +95,51 @@ public class PlanoDeContasService {
 
     public Optional<PlanoDeContas> findById(Long id) {
         return planoDeContasRepository.findById(id);
+    }
+
+    public List<PlanoDeContas> buscarContasParaSaidaDeCaixa() {
+        List<NaturezaContaPlanoContas> naturezasDeSaida = Arrays.asList(
+                NaturezaContaPlanoContas.DESPESA,
+                NaturezaContaPlanoContas.CUSTO,
+                NaturezaContaPlanoContas.PASSIVO
+        );
+        return planoDeContasRepository.findAllByTipoContaAndNaturezaContaInOrderByCodigoAsc(
+                TipoContaPlanoContas.ANALITICA,
+                naturezasDeSaida
+        );
+    }
+
+    public List<PlanoDeContas> buscarContasParaEntradaDeCaixa() {
+        List<NaturezaContaPlanoContas> naturezasDeEntrada = Arrays.asList(
+                NaturezaContaPlanoContas.RECEITA,
+                NaturezaContaPlanoContas.PATRIMONIO_LIQUIDO,
+                NaturezaContaPlanoContas.PASSIVO // Para casos de empréstimos
+        );
+        return planoDeContasRepository.findAllByTipoContaAndNaturezaContaInOrderByCodigoAsc(
+                TipoContaPlanoContas.ANALITICA,
+                naturezasDeEntrada
+        );
+    }
+
+    public void excluirPlano(Long id) {
+        planoDeContasRepository.deleteById(id);
+    }
+
+    public List<PlanoDeContas> buscarContasParaProdServ() {
+        List<NaturezaContaPlanoContas> naturezasDeEntrada = List.of(
+                NaturezaContaPlanoContas.RECEITA
+        );
+        return planoDeContasRepository.findAllByTipoContaAndNaturezaContaInOrderByCodigoAsc(
+                TipoContaPlanoContas.ANALITICA,
+                naturezasDeEntrada
+        );
+    }
+
+    public List<PlanoDeContas> buscarContasPorNatureza(NaturezaContaPlanoContas naturezaContaPlanoContas) {
+        return planoDeContasRepository.findAllByNaturezaContaOrderByCodigoAsc(naturezaContaPlanoContas);
+    }
+
+    public List<PlanoDeContas> buscarContasPorCodigo(String codigo) {
+        return planoDeContasRepository.findAllByCodigoStartsWithOrderByCodigoAsc(codigo);
     }
 }

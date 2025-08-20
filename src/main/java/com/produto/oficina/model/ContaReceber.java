@@ -3,6 +3,7 @@ package com.produto.oficina.model;
 import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoPagamento;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -66,5 +67,9 @@ public class ContaReceber {
     @Column(name = "cr_observacao", columnDefinition = "TEXT")
     private String observacao;
 
+    @NotNull(message = "A conta do plano de contas é obrigatória.")
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "plano_contas_id")
+    private PlanoDeContas planoDeContas;
 
 }

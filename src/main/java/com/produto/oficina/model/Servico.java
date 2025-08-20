@@ -36,6 +36,10 @@ public class Servico {
     @Column(name = "serv_ativo")
     private boolean ativo = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conta_receita_id")
+    @ToString.Exclude
+    private PlanoDeContas contaReceitaPadrao;
 
     @Override
     public final boolean equals(Object o) {

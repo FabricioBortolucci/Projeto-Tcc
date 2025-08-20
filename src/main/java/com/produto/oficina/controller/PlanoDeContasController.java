@@ -38,7 +38,7 @@ public class PlanoDeContasController {
                             @RequestParam(required = false) String filtro) {
 
         // Define a ordenação
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "codigo"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "codigo"));
 
         // ALTERAÇÃO PRINCIPAL AQUI:
         // Chame o novo método do service, passando o filtro e a paginação.
@@ -95,4 +95,11 @@ public class PlanoDeContasController {
             return "planoContas/formPlanoContas";
         }
     }
+
+    @PostMapping("/excluir/{id}")
+    public String excluir(@PathVariable("id") Long id) {
+        planoDeContasService.excluirPlano(id);
+        return "redirect:/plano-contas";
+    }
+
 }

@@ -2,7 +2,9 @@ package com.produto.oficina.controller;
 
 import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.Produto;
+import com.produto.oficina.model.enums.NaturezaContaPlanoContas;
 import com.produto.oficina.model.enums.ProdutoTipo;
+import com.produto.oficina.service.PlanoDeContasService;
 import com.produto.oficina.service.ProdutoService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -20,9 +22,11 @@ import java.util.List;
 public class ProdutoController {
 
     private final ProdutoService produtoService;
+    private final PlanoDeContasService planoDeContasService;
 
-    public ProdutoController(ProdutoService produtoService) {
+    public ProdutoController(ProdutoService produtoService, PlanoDeContasService planoDeContasService) {
         this.produtoService = produtoService;
+        this.planoDeContasService = planoDeContasService;
     }
 
     private final List<Pessoa> fornecedores = new ArrayList<>();
@@ -41,6 +45,9 @@ public class ProdutoController {
     public String produtoForm(Model model) {
         model.addAttribute("produto", new Produto());
         model.addAttribute("tipo_lista", ProdutoTipo.values());
+        model.addAttribute("contasEstoque", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.ATIVO));
+        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorCodigo("2.01"));
+        model.addAttribute("contasReceita", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.RECEITA));
         return "produto/prodForm";
     }
 
@@ -63,6 +70,9 @@ public class ProdutoController {
 
         model.addAttribute("produto", prod);
         model.addAttribute("tipo_lista", ProdutoTipo.values());
+        model.addAttribute("contasEstoque", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.ATIVO));
+        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorCodigo("2.01"));
+        model.addAttribute("contasReceita", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.RECEITA));
         return "produto/prodForm";
     }
 

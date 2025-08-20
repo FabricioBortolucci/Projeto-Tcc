@@ -3,6 +3,7 @@ package com.produto.oficina.model;
 import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoPagamento;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.SortComparator;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -64,6 +65,11 @@ public class ContaPagar implements Comparable<ContaPagar> {
 
     @Column(name = "cp_observacao", columnDefinition = "TEXT")
     private String observacao;
+
+    @NotNull(message = "A conta do plano de contas é obrigatória.")
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "plano_contas_id")
+    private PlanoDeContas planoDeContas;
 
     public ContaPagar(Long id, BigDecimal valor, LocalDate dataVencimento, LocalDate dataPagamento, Integer numeroParcela, Integer totalParcelas, BigDecimal valorTotalOriginal, TipoPagamento tipoPagamento, StatusConta status, Pessoa fornecedor, Compra compra, String observacao) {
         this.id = id;

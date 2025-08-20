@@ -4,10 +4,7 @@ import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.Caixa;
 import com.produto.oficina.model.MovimentacaoCaixa;
 import com.produto.oficina.model.enums.TipoMovimentacao;
-import com.produto.oficina.service.CaixaService;
-import com.produto.oficina.service.CompraService;
-import com.produto.oficina.service.MovimentacaoCaixaService;
-import com.produto.oficina.service.PessoaService;
+import com.produto.oficina.service.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -27,11 +24,13 @@ public class CaixaController extends AbstractController {
     private final CaixaService caixaService;
     private final PessoaService pessoaService;
     private final MovimentacaoCaixaService mvService;
+    private final PlanoDeContasService  planoDeContasService;
 
-    public CaixaController(CaixaService caixaService, PessoaService pessoaService, MovimentacaoCaixaService mvService) {
+    public CaixaController(CaixaService caixaService, PessoaService pessoaService, MovimentacaoCaixaService mvService, PlanoDeContasService planoDeContasService) {
         this.caixaService = caixaService;
         this.pessoaService = pessoaService;
         this.mvService = mvService;
+        this.planoDeContasService = planoDeContasService;
     }
 
     private Long caixaId = 0L;
@@ -103,10 +102,13 @@ public class CaixaController extends AbstractController {
             model.addAttribute("modal_title", "Remover fundos do caixa");
             model.addAttribute("modal_label", "Valor a ser removido: ");
             model.addAttribute("tiposMovimento", TipoMovimentacao.apenasSaidas());
+            model.addAttribute("contasParaSaida", planoDeContasService.buscarContasParaSaidaDeCaixa());
         } else {
+            model.addAttribute("remover", remover);
             model.addAttribute("modal_title", "Adicionar fundos no caixa");
             model.addAttribute("modal_label", "Valor a ser adicionado: ");
             model.addAttribute("tiposMovimento", TipoMovimentacao.apenasEntradas());
+            model.addAttribute("contasParaEntrada", planoDeContasService.buscarContasParaEntradaDeCaixa());
         }
         model.addAttribute("movimento", new MovimentacaoCaixa());
         model.addAttribute("mostrarModal", true);

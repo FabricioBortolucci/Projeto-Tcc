@@ -93,6 +93,12 @@ public class MovimentacaoCaixa {
     @Column(name = "origem_tipo", length = 50)
     private String origemTipo;
 
+    // Este campo é para classificar movimentações que não têm vínculo
+    // com Contas a Pagar/Receber. Por isso, pode ser nulo (optional = true).
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "plano_contas_id")
+    private PlanoDeContas planoDeContas;
+
     // Construtor para facilitar a criação de movimentações comuns
     public MovimentacaoCaixa(Caixa caixa, BigDecimal valor, TipoMovimentacao tipo, String descricao,
                              ContaPagar contaPagar, ContaReceber contaReceber,

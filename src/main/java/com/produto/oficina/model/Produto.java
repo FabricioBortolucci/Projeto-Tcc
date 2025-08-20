@@ -6,8 +6,6 @@ import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 
@@ -48,6 +46,32 @@ public class Produto {
 
     @Column(name = "prod_ativo")
     private Boolean ativo = true;
+
+    /**
+     * Conta de Receita para onde vai o valor da venda deste produto.
+     * Aplicável principalmente para PEÇAS.
+     * Ex: "1.01.01 - Receita com Venda de Peças"
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conta_receita_id")
+    @ToString.Exclude
+    private PlanoDeContas contaReceitaPadrao;
+
+    /**
+     * Conta de Ativo onde o produto é armazenado.
+     * Ex: "1.01.04.01 - Estoque de Peças" ou "1.01.04.02 - Estoque de Matéria-Prima"
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conta_estoque_id")
+    private PlanoDeContas contaEstoque;
+
+    /**
+     * Conta de Custo para onde vai o custo do produto quando ele é vendido/usado.
+     * Ex: "2.01.01 - Custo das Peças Vendidas (CMV)" ou "2.01.03 - Custo com Matéria-Prima Consumida"
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conta_custo_id")
+    private PlanoDeContas contaCusto;
 
 
     @Override
