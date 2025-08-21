@@ -131,8 +131,9 @@ public class OrdemServicoController extends AbstractController {
     }
 
     @PostMapping("/finalizar-confirmado")
-    public String finalizarConfirmarOs(@ModelAttribute("os") OrdemServico ordemServico) {
+    public String finalizarConfirmarOs(@ModelAttribute("os") OrdemServico ordemServico, RedirectAttributes redirectAttributes) {
         osService.finalizarOs(ordemServico);
+        redirectAttributes.addFlashAttribute("os_mensagem_sucesso", "O.S finalizada com sucesso!");
         return "redirect:/ordem-servico";
     }
 

@@ -135,8 +135,14 @@ public class PlanoDeContasService {
         );
     }
 
+
+
     public List<PlanoDeContas> buscarContasPorNatureza(NaturezaContaPlanoContas naturezaContaPlanoContas) {
         return planoDeContasRepository.findAllByNaturezaContaOrderByCodigoAsc(naturezaContaPlanoContas);
+    }
+
+    public List<PlanoDeContas> buscarContasIn(TipoContaPlanoContas tipoContaPlanoContas, List<NaturezaContaPlanoContas>  naturezaContas) {
+        return planoDeContasRepository.findAllByTipoContaAndNaturezaContaInOrderByCodigoAsc(tipoContaPlanoContas, naturezaContas);
     }
 
     public List<PlanoDeContas> buscarContasPorCodigo(String codigo) {

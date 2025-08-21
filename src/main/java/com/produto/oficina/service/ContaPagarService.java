@@ -113,8 +113,9 @@ public class ContaPagarService {
         mv.setTipo(TipoMovimentacao.SAIDA);
         mv.setValor(contaPagar.getValorPago());
         mv.setDataMovimentacao(LocalDateTime.now());
+        mv.setPlanoDeContas(contaPagar.getPlanoDeContas());
         mv.setOrigemId(contaPagar.getId());
-        mv.setOrigemTipo("Conta Pagar");
+        mv.setOrigemTipo("PAGAMENTO_CONTA_PAGAR");
         mv.setDescricao("Pagamento da Conta a Pagar ID " + contaPagar.getId() + ", Fornecedor " + contaPagar.getFornecedor().getPesNome());
         caixaAtual.getMovimentacoes().add(mv);
         caixaService.salvarCaixaAposMovimento(caixaAtual);

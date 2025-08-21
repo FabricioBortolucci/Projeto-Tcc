@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Nova Conta a Pagar Avulsa - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/choices.min.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .form-control:focus, .form-select:focus, .choices__input:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .choices__inner {
+            background-color: var(--bs-body-bg);
+            border: var(--bs-border-width) solid var(--bs-border-color);
+            border-radius: var(--bs-border-radius);
+            font-size: 1rem;
+            min-height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+        }
+
+        .choices.is-focused .choices__inner, .choices.is-open .choices__inner {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-3">
+        <div>
+            <h1 class="h3"
+                th:text="${contaPagar.id == null ? 'Nova Conta a Pagar Avulsa' : 'Editar Conta a Pagar'}"></h1>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-semibold">Informações da Conta</h5>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="@{/contas-pagar/salvar-avulsa}" method="post" th:object="${contaPagar}"
+                      onsubmit="desmascararValor(); return true;">
+                    <input type="hidden" th:field="*{id}"/>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="fornecedorSelect" class="form-label">Fornecedor</label>
+                            <select id="fornecedorSelect" class="form-select" th:field="*{fornecedor}">
+                                <option value="">Selecione um fornecedor...</option>
+                                <option th:each="forn : ${fornecedores}" th:value="${forn.id}"
+                                        th:text="${forn.pesNome}"></option>
+                            </select>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('fornecedor')}"
+                                 th:errors="*{fornecedor}"></div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="planoContasSelect" class="form-label">Classificação (Plano de Contas) <span
+                                    class="text-danger">*</span></label>
+                            <select id="planoContasSelect" class="form-select" th:field="*{planoDeContas}" required>
+                                <option value="">Selecione uma conta de despesa...</option>
+                                <option th:each="conta : ${contasDeDespesa}"
+                                        th:value="${conta.id}"
+                                        th:text="${conta.codigo + ' - ' + conta.descricao}"
+                                        th:disabled="${#strings.equals(conta.tipoConta, 'SINTETICA')}"></option>
+                            </select>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('planoDeContas')}"
+                                 th:errors="*{planoDeContas}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="valorTotal" class="form-label">Valor Total <span
+                                    class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="text" class="form-control" id="valorTotal" th:field="*{valor}"
+                                       placeholder="0,00" required/>
+                            </div>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('valor')}"
+                                 th:errors="*{valor}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label for="dataVencimento" class="form-label">Data do 1º Vencimento <span
+                                    class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="dataVencimento" th:field="*{dataVencimento}"
+                                   required/>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('dataVencimento')}"
+                                 th:errors="*{dataVencimento}"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label" for="numParcelas">Número de Parcelas <span
+                                    class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="numParcelas" th:field="*{totalParcelas}"
+                                   min="1" value="1" required>
+                            <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('totalParcelas')}"
+                                 th:errors="*{totalParcelas}"></div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="observacao" class="form-label">Observações:</label>
+                            <textarea class="form-control" id="observacao" th:field="*{observacao}" rows="3"
+                                      style="resize: vertical;"
+                                      placeholder="Ex: Pagamento referente a..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
+                        <a class="btn btn-outline-secondary" th:href="@{/contas-pagar}">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar
+                        </a>
+                        <button class="btn btn-success" type="submit">
+                            <i class="bi bi-check-lg me-1"></i>Salvar e Gerar Contas
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
+<script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function () {
+        const fornecedorSelect = document.getElementById('fornecedorSelect');
+        if (fornecedorSelect) {
+            new Choices(fornecedorSelect, {
+                searchEnabled: true,
+                itemSelectText: '',
+                placeholder: true,
+                searchPlaceholderValue: 'Buscar fornecedor...'
+            });
+        }
+
+        const planoContasSelect = document.getElementById('planoContasSelect');
+        if (planoContasSelect) {
+            new Choices(planoContasSelect, {
+                searchEnabled: true,
+                itemSelectText: '',
+                placeholder: true,
+                searchPlaceholderValue: 'Buscar conta...'
+            });
+        }
+
+        const valorInput = document.getElementById('valorTotal');
+        if (valorInput) {
+            VMasker(valorInput).maskMoney({unit: 'R$', precision: 2, thousands: '.', decimal: ','});
+        }
+    });
+
+    function desmascararValor() {
+        const valorInput = document.getElementById('valorTotal');
+        if (valorInput && valorInput.value) {
+            let valor = valorInput.value.replace('R$', '').trim().replace(/\./g, '').replace(',', '.');
+            valorInput.value = valor;
+        }
+        return true;
+    }
+
+    /*]]>*/
+</script>
+</body>
+</html>

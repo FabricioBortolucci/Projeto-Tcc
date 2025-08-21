@@ -51,11 +51,32 @@ public class MovimentacaoEstoque {
     @Column(length = 500)
     private String observacao;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conta_estoque_id")
+    private PlanoDeContas contaEstoque;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conta_contrapartida_id")
+    private PlanoDeContas contaContrapartida;
+
     public MovimentacaoEstoque(Produto prod, BigDecimal quantidade, TipoMovimentacao tipoMovimentacao, BigDecimal precoCusto, Long id, String ordemDeServico, Pessoa pessoa, String s) {
         this.produto = prod;
         this.quantidade = quantidade;
         this.tipo = tipoMovimentacao;
         this.custoUnitario =  precoCusto;
+        this.origemId = id;
+        this.origemTipo = ordemDeServico;
+        this.usuarioResponsavel = pessoa;
+        this.observacao = s;
+    }
+
+    public MovimentacaoEstoque(Produto prod, BigDecimal quantidade, TipoMovimentacao tipoMovimentacao, BigDecimal precoCusto, PlanoDeContas contaEstoque, PlanoDeContas contaCusto, Long id, String ordemDeServico, Pessoa pessoa, String s) {
+        this.produto = prod;
+        this.quantidade = quantidade;
+        this.tipo = tipoMovimentacao;
+        this.custoUnitario =  precoCusto;
+        this.contaEstoque = contaEstoque;
+        this.contaContrapartida = contaCusto;
         this.origemId = id;
         this.origemTipo = ordemDeServico;
         this.usuarioResponsavel = pessoa;

@@ -123,6 +123,10 @@
                                     <span th:text="*{status?.descricao}"></span>
                                 </dd>
 
+                                <dt class="col-sm-3">Plano de Contas Associado:</dt>
+                                <dd class="col-sm-9" th:text="*{planoDeContas?.codigo + ' - ' +  planoDeContas?.descricao}">
+                                </dd>
+
                                 <dt class="col-sm-3" th:if="*{dataPagamento != null}">Data de Pagamento:</dt>
                                 <dd class="col-sm-9" th:if="*{dataPagamento != null}"
                                     th:text="*{#temporals.format(dataPagamento, 'dd/MM/yyyy HH:mm')}"></dd>

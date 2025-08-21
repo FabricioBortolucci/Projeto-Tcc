@@ -135,7 +135,8 @@
                                 <dt class="col-sm-3">Tipo de Pagamento:</dt>
                                 <dd class="col-sm-9" th:text="*{tipoPagamento.descricao}"></dd>
                                 <dt class="col-sm-3">Quantidade de Parcelas:</dt>
-                                <dd class="col-sm-9" th:text="*{quantParcelas + 'x de ' + #numbers.formatCurrency(valorTotal / quantParcelas)}"></dd>
+                                <dd class="col-sm-9"
+                                    th:text="*{quantParcelas + 'x de ' + #numbers.formatCurrency(valorTotal / quantParcelas)}"></dd>
                                 <dt class="col-sm-3">Valor Total da O.S.:</dt>
                                 <dd class="col-sm-9 fw-bold"
                                     th:text="*{valorTotal != null ? #numbers.formatCurrency(valorTotal) : 'R$ 0,00'}"></dd>
@@ -224,8 +225,7 @@
                                             <i class="bi bi-wallet2"></i> Gerar Crédito
                                         </label>
                                     </div>
-                                    <div th:if="${os.planoPagamento.equals(os.planoPagamento.AVISTA)}"
-                                         class="form-check form-check-inline">
+                                    <div class="form-check form-check-inline">
                                         <input class="form-check-input"
                                                type="radio" name="acaoFinanceira"
                                                id="radioReembolso"

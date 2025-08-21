@@ -8,6 +8,7 @@ import com.produto.oficina.model.enums.TipoMovimentacao;
 import com.produto.oficina.model.enums.TipoPagamento;
 import com.produto.oficina.repository.ContaReceberRepository;
 import com.produto.oficina.repository.OrdemServicoRepository;
+import com.produto.oficina.repository.PlanoDeContasRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -27,12 +28,14 @@ public class ContaReceberService {
     private final OrdemServicoRepository ordemServicoRepository;
     private final CaixaService caixaService;
     private final PessoaService pessoaService;
+    private final PlanoDeContasRepository planoDeContasRepository;
 
-    public ContaReceberService(ContaReceberRepository contaReceberRepository, OrdemServicoRepository ordemServicoRepository, CaixaService caixaService, PessoaService pessoaService) {
+    public ContaReceberService(ContaReceberRepository contaReceberRepository, OrdemServicoRepository ordemServicoRepository, CaixaService caixaService, PessoaService pessoaService, PlanoDeContasRepository planoDeContasRepository) {
         this.contaReceberRepository = contaReceberRepository;
         this.ordemServicoRepository = ordemServicoRepository;
         this.caixaService = caixaService;
         this.pessoaService = pessoaService;
+        this.planoDeContasRepository = planoDeContasRepository;
     }
 
     public Page<ContaReceber> findAll(Pageable pageable) {
@@ -91,7 +94,16 @@ public class ContaReceberService {
         mv.setValor(contaReceber.getValorRecebido() == null ? contaReceber.getValor() : contaReceber.getValorRecebido());
         mv.setDataMovimentacao(LocalDateTime.now());
         mv.setOrigemId(contaReceber.getId());
-        mv.setOrigemTipo("Conta Receber");
+        mv.setOrigemTipo("PAGAMENTO_CONTA_RECEBER");
+        if (contaReceber.getOrdemServico() != null) {
+            PlanoDeContas contaContasReceber = planoDeContasRepository.findByCodigo("3.01.03")
+                    .orElseThrow(() -> new RuntimeException("Conta 'Contas a Receber de Clientes' (3.01.03) não encontrada."));
+
+            mv.setPlanoDeContas(contaContasReceber);
+        } else {
+            mv.setPlanoDeContas(contaReceber.getPlanoDeContas());
+        }
+
         if (tipoMovimentacao.equals(TipoMovimentacao.ENTRADA)) {
             mv.setDescricao("Recebimento da Conta a Receber ID " + contaReceber.getId() + ", Cliente: " + contaReceber.getCliente().getPesNome());
         } else if (tipoMovimentacao.equals(TipoMovimentacao.SAIDA)) {

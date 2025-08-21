@@ -225,6 +225,7 @@ public class OrdemServicoService {
                 cr.setValorTotalOriginal(os.getValorTotal());
                 cr.setStatus(StatusConta.PENDENTE);
                 cr.setNumeroParcela(i);
+                cr.setTotalParcelas(os.getQuantParcelas());
                 LocalDate dataVencimento = hoje.plusDays(os.getIntDias()).plusMonths(i - 1);
                 cr.setDataVencimento(dataVencimento);
                 contasReceber.add(cr);
@@ -259,6 +260,8 @@ public class OrdemServicoService {
                     item.getQuantidade(),
                     TipoMovimentacao.SAIDA,
                     prod.getPrecoCusto(),
+                    prod.getContaEstoque(),
+                    prod.getContaCusto(),
                     os.getId(),
                     "ORDEM_DE_SERVICO",
                     pessoaService.buscaPessoaLogada(),
@@ -319,79 +322,88 @@ public class OrdemServicoService {
     }
 
     @Transactional
-    public void cancelarOrdemDeServico(OrdemServico ordemServico, List<Long> idsDasPecasParaDevolver, String acaoFinanceira) {
-        if (ordemServico.getStatus().equals(StatusOS.FINALIZADA)) {
-            BigDecimal valorTotalCreditoCliente = BigDecimal.ZERO;
-            ordemServico.setContaRecebers(contaReceberService.findAllByOsId(ordemServico.getId()));
-
-            List<ContaReceber> crCancels = new ArrayList<>();
-            for (ContaReceber contaReceber : ordemServico.getContaRecebers()) {
-                if (contaReceber.getStatus().equals(StatusConta.PENDENTE)) {
-                    contaReceber.setStatus(StatusConta.CANCELADO);
-                    crCancels.add(contaReceber);
-                }
-                if (contaReceber.getStatus().equals(StatusConta.PAGO)) {
-                    if (acaoFinanceira.equals("GERAR_CREDITO")) {
-                        valorTotalCreditoCliente = valorTotalCreditoCliente.add(contaReceber.getValor());
-                        contaReceber.setStatus(StatusConta.CANCELADO_CREDITO);
-                    }
-                    if (acaoFinanceira.equals("REEMBOLSAR")) {
-                        contaReceber.setStatus(StatusConta.CANCELADO_REEMBOLSO);
-                    }
-                }
-            }
-
-            if (idsDasPecasParaDevolver != null && !idsDasPecasParaDevolver.isEmpty()) {
-                for (Long id : idsDasPecasParaDevolver) {
-                    for (OrdemServicoPeca pecasDevolucao : ordemServico.getPecasUsadas()) {
-                        if (pecasDevolucao.getProduto().getId().equals(id)) {
-                            produtoRepository.findById(pecasDevolucao.getProduto().getId()).ifPresent(produto -> {
-                                produto.setEstoque(produto.getEstoque() + pecasDevolucao.getQuantidade().intValue());
-                                produtoRepository.save(produto);
-
-                                MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
-                                movEstoque.setProduto(produto);
-                                movEstoque.setCustoUnitario(produto.getPrecoUnitario());
-                                movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
-                                movEstoque.setQuantidade(pecasDevolucao.getQuantidade());
-                                movEstoque.setTipo(TipoMovimentacao.ENTRADA);
-                                movEstoque.setDataMovimentacao(LocalDateTime.now());
-                                movEstoque.setOrigemId(ordemServico.getId());
-                                movEstoque.setOrigemTipo("ORDEM_DE_SERVICO");
-                                movEstoque.setObservacao("Entrada de material da OS nº " + ordemServico.getId());
-                                movimentacaoEstoqueRepository.save(movEstoque);
-                            });
-                        }
-                    }
-                }
-            }
-
-            if (ordemServico.getPlanoPagamento().equals(PlanoPagamento.AVISTA) &&
-                    acaoFinanceira.equals("REEMBOLSAR") && crCancels.isEmpty()) {
-                Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
-
-                MovimentacaoCaixa novoMovimento = new MovimentacaoCaixa();
-                novoMovimento.setCaixa(caixaAtual);
-                novoMovimento.setDataMovimentacao(LocalDateTime.now());
-                novoMovimento.setTipo(TipoMovimentacao.SAIDA);
-                novoMovimento.setContaReceber(ordemServico.getContaRecebers().getFirst());
-                novoMovimento.setValor(ordemServico.getValorTotal());
-                novoMovimento.setDescricao("Reembolso da OS nº " + ordemServico.getId() + " - Cliente: " + ordemServico.getCliente().getPesNome());
-
-                caixaAtual.getMovimentacoes().add(novoMovimento);
-                caixaService.salvarCaixaAposMovimento(caixaAtual);
-            }
-
-            if (acaoFinanceira.equals("GERAR_CREDITO")) {
-                ordemServico.getCliente().setPesCredito(ordemServico.getCliente().getPesCredito().add(valorTotalCreditoCliente));
-                pessoaRepository.save(ordemServico.getCliente());
-            }
-
-            ordemServico.setUsuarioCancelou(pessoaService.buscaUsuarioLogado());
-            ordemServico.setDataCancelamento(LocalDateTime.now());
-            ordemServico.setStatus(StatusOS.CANCELADA);
-            ordemServicoRepository.save(ordemServico);
+    public void cancelarOrdemDeServico(OrdemServico os, List<Long> idsPecasDevolucao, String acaoFinanceira) {
+        if (!os.getStatus().equals(StatusOS.FINALIZADA)) {
+            throw new IllegalStateException("Apenas Ordens de Serviço finalizadas podem ser canceladas.");
         }
+
+        os.setContaRecebers(contaReceberService.findAllByOsId(os.getId()));
+
+        List<LancamentoFinanceiro> lancamentosOriginais = lancamentoFinanceiroRepository.findByOrdemServico(os);
+        for (LancamentoFinanceiro lancamento : lancamentosOriginais) {
+            LancamentoFinanceiro estorno = new LancamentoFinanceiro(
+                    "Estorno: " + lancamento.getDescricao(),
+                    lancamento.getValor().negate(),
+                    LocalDate.now(),
+                    lancamento.getPlanoDeContas(),
+                    os
+            );
+            lancamentoFinanceiroRepository.save(estorno);
+        }
+
+        if (idsPecasDevolucao != null && !idsPecasDevolucao.isEmpty()) {
+            for (Long id : idsPecasDevolucao) {
+                for (OrdemServicoPeca pecaUsada : os.getPecasUsadas()) {
+                    if (id.equals(pecaUsada.getProduto().getId())) {
+                        Produto produto = pecaUsada.getProduto();
+                        produto.setEstoque(produto.getEstoque() + pecaUsada.getQuantidade().intValue());
+                        produtoRepository.save(produto);
+
+                        MovimentacaoEstoque movEstoque = new MovimentacaoEstoque(
+                                produto,
+                                pecaUsada.getQuantidade(),
+                                TipoMovimentacao.ENTRADA,
+                                produto.getPrecoCusto(),
+                                produto.getContaEstoque(),
+                                produto.getContaCusto(),
+                                os.getId(),
+                                "CANCELAMENTO_OS",
+                                pessoaService.buscaPessoaLogada(),
+                                "Entrada por cancelamento da OS #" + os.getId()
+                        );
+                        movimentacaoEstoqueRepository.save(movEstoque);
+                    }
+                }
+            }
+        }
+
+        BigDecimal valorTotalPagoPeloCliente = BigDecimal.ZERO;
+
+        for (ContaReceber contaReceber : os.getContaRecebers()) {
+            if (contaReceber.getStatus().equals(StatusConta.PAGO)) {
+                valorTotalPagoPeloCliente = valorTotalPagoPeloCliente.add(contaReceber.getValorRecebido());
+                if ("GERAR_CREDITO".equals(acaoFinanceira)) {
+                    contaReceber.setStatus(StatusConta.CANCELADO_CREDITO);
+                } else if ("REEMBOLSAR".equals(acaoFinanceira)) {
+                    contaReceber.setStatus(StatusConta.CANCELADO_REEMBOLSO);
+                }
+            } else {
+                contaReceber.setStatus(StatusConta.CANCELADO);
+            }
+        }
+
+        if (valorTotalPagoPeloCliente.compareTo(BigDecimal.ZERO) > 0) {
+            if ("GERAR_CREDITO".equals(acaoFinanceira)) {
+                Pessoa cliente = os.getCliente();
+                BigDecimal creditoAtual = cliente.getPesCredito() != null ? cliente.getPesCredito() : BigDecimal.ZERO;
+                cliente.setPesCredito(creditoAtual.add(valorTotalPagoPeloCliente));
+                pessoaRepository.save(cliente);
+            } else if ("REEMBOLSAR".equals(acaoFinanceira)) {
+                Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
+                MovimentacaoCaixa movimentoReembolso = new MovimentacaoCaixa();
+                movimentoReembolso.setCaixa(caixaAtual);
+                movimentoReembolso.setDataMovimentacao(LocalDateTime.now());
+                movimentoReembolso.setTipo(TipoMovimentacao.SAIDA);
+                movimentoReembolso.setValor(valorTotalPagoPeloCliente);
+                movimentoReembolso.setDescricao("Reembolso da OS #" + os.getId() + " - Cliente: " + os.getCliente().getPesNome());
+                caixaService.salvarCaixaAposMovimento(caixaAtual, movimentoReembolso);
+            }
+        }
+
+        os.setStatus(StatusOS.CANCELADA);
+        os.setUsuarioCancelou(pessoaService.buscaUsuarioLogado());
+        os.setDataCancelamento(LocalDateTime.now());
+        ordemServicoRepository.save(os);
     }
 }
 

@@ -2,7 +2,10 @@ package com.produto.oficina.controller;
 
 import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.ContaPagar;
+import com.produto.oficina.model.ContaReceber;
+import com.produto.oficina.model.enums.NaturezaContaPlanoContas;
 import com.produto.oficina.model.enums.StatusConta;
+import com.produto.oficina.model.enums.TipoContaPlanoContas;
 import com.produto.oficina.model.enums.TipoPagamento;
 import com.produto.oficina.service.*;
 import org.springframework.data.domain.Page;
@@ -13,16 +16,23 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Controller
 @RequestMapping("/contas-pagar")
 public class ContaPagarController {
 
     private final ContaPagarService contaPagarService;
     private final CaixaService caixaService;
+    private final PlanoDeContasService planoDeContasService;
+    private final PessoaService pessoaService;
 
-    public ContaPagarController(ContaPagarService contaPagarService, CaixaService caixaService) {
+    public ContaPagarController(ContaPagarService contaPagarService, CaixaService caixaService, PlanoDeContasService planoDeContasService, PessoaService pessoaService) {
         this.contaPagarService = contaPagarService;
         this.caixaService = caixaService;
+        this.planoDeContasService = planoDeContasService;
+        this.pessoaService = pessoaService;
     }
 
 
@@ -40,6 +50,19 @@ public class ContaPagarController {
     public String visualizarContaPagar(@PathVariable Long id, Model model) {
         model.addAttribute("contaPagar", contaPagarService.findCpById(id));
         return "contaPagar/contaPagarVisu";
+    }
+
+    @GetMapping("/cadastro")
+    public String formContaAvulsa(Model model) {
+        model.addAttribute("contaPagar", new ContaPagar());
+        List<NaturezaContaPlanoContas> naturezasDeSaida = Arrays.asList(
+                NaturezaContaPlanoContas.DESPESA,
+                NaturezaContaPlanoContas.CUSTO,
+                NaturezaContaPlanoContas.PASSIVO
+        );
+        model.addAttribute("contasDeDespesa", planoDeContasService.buscarContasIn(TipoContaPlanoContas.ANALITICA, naturezasDeSaida));
+        model.addAttribute("fornecedores", pessoaService.buscaFornecedores());
+        return "contaPagar/formContaPagAvulsa";
     }
 
     @GetMapping("/registrar-pagamento/{id}")

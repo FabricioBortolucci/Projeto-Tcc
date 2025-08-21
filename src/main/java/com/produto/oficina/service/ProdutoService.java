@@ -37,6 +37,9 @@ public class ProdutoService {
         return produtoRepository.findAllByAtivo(true);
     }
 
+    public void saveEdit(Produto produto) {
+        produtoRepository.save(produto);
+    }
     public void save(Produto produto) {
         Produto prodDB = produtoRepository.findById(produto.getId()).get();
         if (!produto.getEstoque().equals(prodDB.getEstoque())) {

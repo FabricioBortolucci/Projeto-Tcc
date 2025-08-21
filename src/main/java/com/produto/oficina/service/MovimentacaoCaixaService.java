@@ -42,9 +42,9 @@ public class MovimentacaoCaixaService {
                 pessoaService.salvarEdit(cliente);
             }
             if (caixaAtual != null) {
-                caixaAtual.getMovimentacoes().add(movimento);
                 movimento.setCaixa(caixaAtual);
                 movimento.setDataMovimentacao(LocalDateTime.now());
+                caixaAtual.getMovimentacoes().add(movimento);
                 movimentacaoCaixaRepository.saveAndFlush(movimento);
                 caixaService.salvarCaixaAposMovimento(caixaAtual);
             }

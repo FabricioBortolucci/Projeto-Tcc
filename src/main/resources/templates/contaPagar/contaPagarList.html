@@ -105,7 +105,13 @@
                     <td th:text="${conta.dataVencimento != null ? #temporals.format(conta.dataVencimento, 'dd/MM/yyyy') : 'N/A'}"></td>
                     <td th:text="${conta.numeroParcela}"></td>
                     <td th:text="${conta.dataPagamento != null ? #temporals.format(conta.dataPagamento, 'dd/MM/yyyy') : '-'}"></td>
-                    <td th:text="${conta.compra.id}"></td>
+                    <td>
+                        <a th:if="${conta.compra?.id != null}"
+                           th:href="@{/compra/visualizar/{id}(id=${conta.compra.id})}"
+                           th:text="'#' + ${conta.compra.id}"
+                           class="link-light"></a>
+                        <span th:if="${conta.compra == null}">N/A</span>
+                    </td>
                     <td class="text-start-md" th:text="${conta.tipoPagamento?.descricao ?: 'N/A'}"></td>
                     <td class="text-end"
                         th:text="${conta.valor != null ? #numbers.formatCurrency(conta.valor) : 'R$ 0,00'}"></td>
@@ -132,10 +138,7 @@
                                title="Visualizar Conta">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
-                            <form th:if="${!#strings.equals(conta.status, 'CANCELADO') and !#strings.equals(conta.status, 'CANCELADO_CREDITO')
-                            and (#strings.equals(conta.tipoPagamento, 'DINHEIRO')
-                            or #strings.equals(conta.tipoPagamento, 'PIX')
-                            or #strings.equals(conta.tipoPagamento, 'BOLETO'))}"
+                            <form th:if="${conta.compra == null}"
                                   th:action="@{/contas-pagar/cancelar/{id}(id=${conta.id})}" method="post"
                                   class="d-inline-block">
                                 <button class="btn btn-danger btn-sm" type="submit"

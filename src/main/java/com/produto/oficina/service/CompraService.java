@@ -5,6 +5,7 @@ import com.produto.oficina.model.*;
 import com.produto.oficina.model.enums.*;
 import com.produto.oficina.repository.CompraRepository;
 import com.produto.oficina.repository.MovimentacaoEstoqueRepository;
+import com.produto.oficina.repository.PlanoDeContasRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,14 +30,16 @@ public class CompraService {
     private final ContaPagarService contaPagarService;
     private final PessoaService pessoaService;
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
+    private final PlanoDeContasRepository planoDeContasRepository;
 
-    public CompraService(CompraRepository compraRepository, ProdutoService produtoService, CaixaService caixaService, ContaPagarService contaPagarService, PessoaService pessoaService, MovimentacaoEstoqueRepository movimentacaoEstoqueRepository) {
+    public CompraService(CompraRepository compraRepository, ProdutoService produtoService, CaixaService caixaService, ContaPagarService contaPagarService, PessoaService pessoaService, MovimentacaoEstoqueRepository movimentacaoEstoqueRepository, PlanoDeContasRepository planoDeContasRepository) {
         this.compraRepository = compraRepository;
         this.produtoService = produtoService;
         this.caixaService = caixaService;
         this.contaPagarService = contaPagarService;
         this.pessoaService = pessoaService;
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
+        this.planoDeContasRepository = planoDeContasRepository;
     }
 
     public Page<Compra> findAll(Pageable pageable) {
@@ -48,6 +51,9 @@ public class CompraService {
         if (compra != null) {
             Compra novaCompra = dtoToClass(compra);
 
+            PlanoDeContas contaFornecedores = planoDeContasRepository.findByCodigo("4.01.01") // Exemplo
+                    .orElseThrow(() -> new RuntimeException("Conta 'Fornecedores' (4.01.01) não encontrada no Plano de Contas."));
+
             List<ContaPagar> contasPagar = new ArrayList<>();
             ContaPagar contaPagar;
             if (novaCompra.getPlanoPagamento().equals(PlanoPagamento.APRAZO)) {
@@ -56,6 +62,7 @@ public class CompraService {
                     contaPagar = new ContaPagar();
                     contaPagar.setCompra(novaCompra);
                     contaPagar.setFornecedor(novaCompra.getFornecedor());
+                    contaPagar.setPlanoDeContas(contaFornecedores);
                     contaPagar.setNumeroParcela(i);
                     contaPagar.setStatus(StatusConta.PENDENTE);
                     contaPagar.setTotalParcelas(novaCompra.getTotalParcelas());
@@ -70,6 +77,7 @@ public class CompraService {
                 contaPagar = new ContaPagar();
                 contaPagar.setCompra(novaCompra);
                 contaPagar.setFornecedor(novaCompra.getFornecedor());
+                contaPagar.setPlanoDeContas(contaFornecedores);
                 contaPagar.setNumeroParcela(1);
                 contaPagar.setStatus(StatusConta.PAGO);
                 contaPagar.setTotalParcelas(novaCompra.getTotalParcelas());
@@ -88,11 +96,13 @@ public class CompraService {
 
                 MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
                 movEstoque.setProduto(prodAtual);
-                movEstoque.setCustoUnitario(prodAtual.getPrecoUnitario());
+                movEstoque.setCustoUnitario(item.getValorUnitario());
                 movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
                 movEstoque.setQuantidade(BigDecimal.valueOf(item.getQuantidade()));
                 movEstoque.setTipo(TipoMovimentacao.ENTRADA);
                 movEstoque.setDataMovimentacao(LocalDateTime.now());
+                movEstoque.setContaEstoque(prodAtual.getContaEstoque());
+                movEstoque.setContaContrapartida(contaFornecedores);
                 movEstoque.setOrigemId(novaCompra.getId());
                 movEstoque.setOrigemTipo("COMPRA");
                 movEstoque.setObservacao("Entrada de material da Compra nº " + novaCompra.getId());
@@ -206,45 +216,62 @@ public class CompraService {
     @Transactional
     public void cancelarCompra(Long id) {
         compraRepository.findById(id).ifPresent(compra -> {
-            List<Produto> produtos = new ArrayList<>();
-            BigDecimal valorTotalCredito = BigDecimal.ZERO;
-            if (compra.getStatusCompra().equals(StatusCompra.FINALIZADA)) {
-                for (ContaPagar cp : compra.getContaPagars()) {
-                    if (cp.getStatus().equals(StatusConta.PAGO)) {
-                        valorTotalCredito = valorTotalCredito.add(cp.getValor());
-                        cp.setStatus(StatusConta.CANCELADO_CREDITO);
-                    } else {
-                        cp.setStatus(StatusConta.CANCELADO);
-                    }
-                }
-                for (ItemCompra item : compra.getItens()) {
-                    Produto prodAtual = produtoService.findById(item.getProduto().getId());
-                    prodAtual.setEstoque(prodAtual.getEstoque() - item.getQuantidade());
-                    if (prodAtual.getEstoque() < 0) {
-                        prodAtual.setEstoque(0);
-                    }
-                    produtos.add(prodAtual);
+            if (!compra.getStatusCompra().equals(StatusCompra.FINALIZADA)) {
+                throw new IllegalStateException("Apenas compras com status 'Finalizada' podem ser canceladas.");
+            }
 
-                    MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
-                    movEstoque.setProduto(prodAtual);
-                    movEstoque.setCustoUnitario(prodAtual.getPrecoUnitario());
-                    movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
-                    movEstoque.setQuantidade(BigDecimal.valueOf(item.getQuantidade()));
-                    movEstoque.setTipo(TipoMovimentacao.SAIDA);
-                    movEstoque.setDataMovimentacao(LocalDateTime.now());
-                    movEstoque.setOrigemId(compra.getId());
-                    movEstoque.setOrigemTipo("COMPRA");
-                    movEstoque.setObservacao("Saída de material da Compra nº " + compra.getId());
-                    movimentacaoEstoqueRepository.save(movEstoque);
+            BigDecimal valorTotalCredito = BigDecimal.ZERO;
+
+            for (ContaPagar cp : compra.getContaPagars()) {
+                if (cp.getStatus().equals(StatusConta.PAGO)) {
+                    valorTotalCredito = valorTotalCredito.add(cp.getValor());
+                    cp.setStatus(StatusConta.CANCELADO_CREDITO);
+                } else {
+                    cp.setStatus(StatusConta.CANCELADO);
                 }
             }
-            compra.getFornecedor().setPesCredito(compra.getFornecedor().getPesCredito().add(valorTotalCredito));
+
+            PlanoDeContas contaFornecedores = planoDeContasRepository.findByCodigo("4.01.01")
+                    .orElseThrow(() -> new RuntimeException("Conta 'Fornecedores' (4.01.01) não encontrada."));
+
+            for (ItemCompra item : compra.getItens()) {
+                Produto prodAtual = produtoService.findById(item.getProduto().getId());
+                if (prodAtual == null) {
+                    throw new RuntimeException("Produto do item de compra não encontrado: " + item.getProduto().getId());
+                }
+                if (prodAtual.getEstoque() < item.getQuantidade()) {
+                    throw new IllegalStateException("Estoque insuficiente para devolver o produto '" + prodAtual.getNome() +
+                            "'. Estoque atual: " + prodAtual.getEstoque() + ", Quantidade a devolver: " + item.getQuantidade());
+                }
+
+                prodAtual.setEstoque(prodAtual.getEstoque() - item.getQuantidade());
+                produtoService.saveEdit(prodAtual);
+
+                MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
+                movEstoque.setProduto(prodAtual);
+                movEstoque.setCustoUnitario(item.getValorUnitario());
+                movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
+                movEstoque.setQuantidade(BigDecimal.valueOf(item.getQuantidade()));
+                movEstoque.setTipo(TipoMovimentacao.SAIDA);
+                movEstoque.setDataMovimentacao(LocalDateTime.now());
+                movEstoque.setOrigemId(compra.getId());
+                movEstoque.setContaEstoque(prodAtual.getContaEstoque());
+                movEstoque.setContaContrapartida(contaFornecedores);
+                movEstoque.setOrigemTipo("CANCELAMENTO_COMPRA");
+                movEstoque.setObservacao("Saída por cancelamento/devolução da Compra #" + compra.getId());
+                movimentacaoEstoqueRepository.save(movEstoque);
+            }
+
+            if (valorTotalCredito.compareTo(BigDecimal.ZERO) > 0) {
+                Pessoa fornecedor = compra.getFornecedor();
+                BigDecimal creditoAtual = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
+                fornecedor.setPesCredito(creditoAtual.add(valorTotalCredito));
+                pessoaService.salvarEdit(fornecedor);
+            }
+
             compra.setDataCompraCancelamento(LocalDateTime.now());
             compra.setUsuarioCancelou(pessoaService.buscaUsuarioLogado());
             compra.setStatusCompra(StatusCompra.CANCELADA);
-
-            produtoService.salvarTodos(produtos);
-            pessoaService.salvarEdit(compra.getFornecedor());
             compraRepository.save(compra);
         });
     }
