@@ -2,7 +2,6 @@ package com.produto.oficina.service;
 
 import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.*;
-import com.produto.oficina.model.enums.PlanoPagamento;
 import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoMovimentacao;
 import com.produto.oficina.model.enums.TipoPagamento;

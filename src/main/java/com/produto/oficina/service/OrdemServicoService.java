@@ -153,62 +153,51 @@ public class OrdemServicoService {
             Produto produto = produtoRepository.findById(item.getProduto().getId())
                     .orElseThrow(() -> new IllegalStateException("Produto com ID " + item.getProduto().getId() + " não encontrado."));
 
-            if (produto.getProdutoTipo().equals(ProdutoTipo.PECA)) {
-
-                if (produto.getContaReceitaPadrao() == null || produto.getContaCusto() == null || produto.getContaEstoque() == null) {
-                    throw new IllegalStateException("A peça '" + produto.getNome() +
-                            "' não possui todas as contas financeiras (Receita, Custo, Estoque) configuradas.");
-                }
-
-                lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
-                        "Receita da peça '" + produto.getNome() + "' na OS #" + os.getId(),
-                        item.getSubTotal(),
-                        hoje,
-                        produto.getContaReceitaPadrao(),
-                        os
-                ));
-
-                BigDecimal custoTotalItem = produto.getPrecoCusto().multiply(item.getQuantidade());
-                lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
-                        "Custo da peça '" + produto.getNome() + "' na OS #" + os.getId(), // Descrição correta
-                        custoTotalItem,
-                        hoje,
-                        produto.getContaCusto(),
-                        os
-                ));
-
-            } else if (produto.getProdutoTipo().equals(ProdutoTipo.MATERIA_PRIMA)) {
-
-                if (produto.getContaCusto() == null || produto.getContaEstoque() == null) {
-                    throw new IllegalStateException("A matéria-prima '" + produto.getNome() +
-                            "' não possui as contas de Custo e/ou Estoque configuradas.");
-                }
-
-                BigDecimal custoTotalItem = produto.getPrecoCusto().multiply(item.getQuantidade());
-                lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
-                        "Custo da matéria-prima '" + produto.getNome() + "' na OS #" + os.getId(),
-                        custoTotalItem,
-                        hoje,
-                        produto.getContaCusto(),
-                        os
-                ));
-
-            } else {
-                throw new IllegalStateException("O produto '" + produto.getNome() + "' está com um tipo inválido ou não definido.");
+            if (produto.getContaReceitaPadrao() == null || produto.getContaCusto() == null || produto.getContaEstoque() == null) {
+                throw new IllegalStateException("O produto '" + produto.getNome() + "' não possui todas as contas financeiras necessárias configuradas.");
             }
+
+            lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
+                    "Receita da venda de '" + produto.getNome() + "' na OS #" + os.getId(),
+                    item.getSubTotal(),
+                    hoje,
+                    produto.getContaReceitaPadrao(),
+                    os
+            ));
+
+
+            BigDecimal custoTotalItem = produto.getPrecoCusto().multiply(item.getQuantidade());
+            lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
+                    "Custo do(a) '" + produto.getNome() + "' na OS #" + os.getId(),
+                    custoTotalItem,
+                    hoje,
+                    produto.getContaCusto(),
+                    os
+            ));
         }
 
         for (OrdemServicoItem servicoPrestado : os.getItensServico()) {
-            Servico servico = servicoRepository.findById(servicoPrestado.getServico().getId()).get();
+            Servico servico = servicoRepository.findById(servicoPrestado.getServico().getId())
+                    .orElseThrow(() -> new IllegalStateException("Serviço com ID " + servicoPrestado.getServico().getId() + " não encontrado."));
+
             if (servico.getContaReceitaPadrao() == null || servico.getContaCusto() == null) {
                 throw new IllegalStateException("O serviço '" + servico.getDescricao() + "' não possui Conta de Receita e/ou Custo configurada.");
             }
 
             lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
                     "Receita do serviço '" + servico.getDescricao() + "' na OS #" + os.getId(),
-                    servicoPrestado.getValorUnitario(),
+                    servicoPrestado.getSubTotal(),
                     hoje,
                     servico.getContaReceitaPadrao(),
+                    os
+            ));
+
+            BigDecimal custoTotalServico = servico.getPrecoCusto() != null ? servico.getPrecoCusto() : BigDecimal.ZERO;
+            lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
+                    "Custo do serviço '" + servico.getDescricao() + "' na OS #" + os.getId(),
+                    custoTotalServico,
+                    hoje,
+                    servico.getContaCusto(),
                     os
             ));
         }
@@ -236,6 +225,7 @@ public class OrdemServicoService {
             cr.setCliente(os.getCliente());
             cr.setValor(os.getValorTotal());
             cr.setValorTotalOriginal(os.getValorTotal());
+            cr.setValorRecebido(os.getValorTotal());
             cr.setStatus(StatusConta.PAGO);
             cr.setNumeroParcela(1);
             cr.setTotalParcelas(os.getQuantParcelas());

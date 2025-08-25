@@ -1,0 +1,149 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="relatorio_DRE" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c4e1eb28-c262-4650-80fa-548b1adb0438">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Produto"/>
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<style name="Title" fontName="Arial" fontSize="26.0" bold="true"/>
+	<style name="SubTitle" fontName="Arial" fontSize="12.0"/>
+	<style name="ColumnHeader" forecolor="#FFFFFF" backcolor="#4F81BD" fontName="Arial" fontSize="10.0" bold="true"/>
+	<style name="GroupHeader" backcolor="#DEEAF6" fontName="Arial" fontSize="12.0" bold="true"/>
+	<style name="Detail" fontName="Arial" fontSize="10.0"/>
+	<style name="TotalLabel" hTextAlign="Right" fontName="Arial" fontSize="11.0" bold="true"/>
+	<style name="TotalValue" hTextAlign="Right" fontName="Arial" fontSize="11.0" bold="true"/>
+	<style name="FinalResult" hTextAlign="Right" fontName="Arial" fontSize="14.0" bold="true"/>
+	<style name="FinalResultNegative" style="FinalResult" forecolor="#FF0000"/>
+	<parameter name="NOME_EMPRESA" class="java.lang.String"/>
+	<parameter name="PERIODO" class="java.lang.String"/>
+	<parameter name="TOTAL_RECEITAS" class="java.math.BigDecimal"/>
+	<parameter name="TOTAL_CUSTOS" class="java.math.BigDecimal"/>
+	<parameter name="TOTAL_DESPESAS" class="java.math.BigDecimal"/>
+	<parameter name="LUCRO_BRUTO" class="java.math.BigDecimal"/>
+	<parameter name="LUCRO_LIQUIDO" class="java.math.BigDecimal"/>
+	<parameter name="dataInicio" class="java.time.LocalDate"/>
+	<parameter name="dataFim" class="java.time.LocalDate"/>
+	<query language="SQL"><![CDATA[select p.codigo,
+       p.descricao,
+       p.natureza_conta,
+       sum(l.lan_valor)
+from lancamento_financeiro l
+         inner join plano_de_contas p on l.plano_contas_id = p.id
+where l.lan_data_comp between  '$P!{dataInicio} ' and  '$P!{dataFim}'
+group by l.plano_contas_id, p.codigo, p.descricao, p.natureza_conta
+order by p.codigo]]></query>
+	<field name="codigo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="codigo"/>
+		<property name="com.jaspersoft.studio.field.label" value="codigo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="plano_de_contas"/>
+	</field>
+	<field name="descricao" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="descricao"/>
+		<property name="com.jaspersoft.studio.field.label" value="descricao"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="plano_de_contas"/>
+	</field>
+	<field name="natureza_conta" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="natureza_conta"/>
+		<property name="com.jaspersoft.studio.field.label" value="natureza_conta"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="plano_de_contas"/>
+	</field>
+	<field name="sum" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="sum"/>
+		<property name="com.jaspersoft.studio.field.label" value="sum"/>
+	</field>
+	<variable name="subtotal_grupo" resetType="Group" calculation="Sum" resetGroup="group_natureza" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{sum}]]></expression>
+	</variable>
+	<group name="group_natureza">
+		<expression><![CDATA[$F{natureza_conta}]]></expression>
+		<groupHeader>
+			<band height="20">
+				<element kind="textField" uuid="d6e30894-6869-42b3-8b77-2d88a1012574" x="0" y="0" width="555" height="20" vTextAlign="Middle" style="GroupHeader">
+					<expression><![CDATA[$F{natureza_conta}.toUpperCase()]]></expression>
+					<box leftPadding="5" style="GroupHeader"/>
+				</element>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="35">
+				<element kind="textField" uuid="16c8736d-17e9-4670-b184-250c95971a81" x="355" y="0" width="100" height="20" vTextAlign="Middle" style="TotalLabel">
+					<expression><![CDATA["Total " + $F{natureza_conta} + ":"]]></expression>
+				</element>
+				<element kind="textField" uuid="09477041-35b9-4a47-a8a9-46210f836592" x="455" y="0" width="100" height="20" pattern="R$ #,##0.00" vTextAlign="Middle" style="TotalValue">
+					<expression><![CDATA[$V{subtotal_grupo}]]></expression>
+					<box rightPadding="5" style="TotalValue"/>
+				</element>
+				<element kind="line" uuid="b398b941-e90a-4890-ad5e-e4097f48cad9" x="0" y="34" width="554" height="1">
+					<pen lineStyle="Dashed"/>
+				</element>
+			</band>
+		</groupFooter>
+	</group>
+	<title height="66">
+		<element kind="staticText" uuid="9292157e-aac4-4f76-b8f3-cfa88344add0" x="142" y="0" width="270" height="30" fontSize="16.0">
+			<text><![CDATA[Demonstrativo de Resultados (DRE)]]></text>
+		</element>
+		<element kind="textField" uuid="dba43532-11d7-4bce-b04e-4f840e86cfa7" x="0" y="40" width="220" height="16" bold="true">
+			<expression><![CDATA["De " + $P{dataInicio} + " Até " + $P{dataFim}]]></expression>
+		</element>
+		<element kind="line" uuid="5f7485ee-82ce-4136-932a-e0775c82f84c" x="0" y="60" width="554" height="1">
+			<pen lineStyle="Dashed"/>
+		</element>
+	</title>
+	<columnHeader height="24" splitType="Stretch">
+		<element kind="staticText" uuid="f888c85a-daa6-495b-9a13-fb3ca8b93535" x="0" y="0" width="100" height="20" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Código]]></text>
+		</element>
+		<element kind="staticText" uuid="1707af14-8007-465a-92ae-e846ba11c439" x="100" y="0" width="354" height="20" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Descrição da Conta]]></text>
+		</element>
+		<element kind="staticText" uuid="dcfb51ce-daff-4d79-a06a-48fa41fe5a56" x="454" y="0" width="100" height="20" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Valor]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="15" splitType="Stretch">
+			<element kind="textField" uuid="e618f029-793e-473d-82d2-5a21437198e3" x="0" y="0" width="100" height="15" textAdjust="StretchHeight" vTextAlign="Middle" style="Detail">
+				<expression><![CDATA[$F{codigo}]]></expression>
+				<box leftPadding="5" style="Detail"/>
+			</element>
+			<element kind="textField" uuid="525208b5-e7ab-43f1-b8ae-ff0327f1c93a" x="100" y="0" width="355" height="15" textAdjust="StretchHeight" vTextAlign="Middle" style="Detail">
+				<expression><![CDATA[$F{descricao}]]></expression>
+				<box leftPadding="5" style="Detail"/>
+			</element>
+			<element kind="textField" uuid="16d56d77-6f81-4202-a1f7-e435948f2b7f" x="455" y="0" width="100" height="15" textAdjust="StretchHeight" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Right" vTextAlign="Middle" style="Detail">
+				<expression><![CDATA[$F{sum}]]></expression>
+				<box rightPadding="5" style="Detail"/>
+			</element>
+		</band>
+	</detail>
+	<pageFooter height="25">
+		<element kind="textField" uuid="75b48615-555e-425b-867c-17e997f7762f" x="455" y="0" width="100" height="25" hTextAlign="Right" vTextAlign="Bottom">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+		<element kind="textField" uuid="3d21390d-2b44-42f0-a931-50e56598c17c" x="0" y="0" width="200" height="25" evaluationTime="Report" vTextAlign="Bottom">
+			<expression><![CDATA["Gerado em: " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></expression>
+		</element>
+	</pageFooter>
+	<summary height="82" splitType="Stretch">
+		<element kind="staticText" uuid="d6f35b6d-a602-4b71-92f7-7b8c71b0521e" x="335" y="10" width="120" height="20" hTextAlign="Center" vTextAlign="Middle" style="TotalLabel">
+			<text><![CDATA[(=) Lucro Bruto:]]></text>
+		</element>
+		<element kind="textField" uuid="3d8e5782-b7e1-455b-bf73-c8d451b68019" x="455" y="10" width="100" height="20" pattern="R$ #,##0.00;R$ -#,##0.00" vTextAlign="Middle" style="TotalValue">
+			<expression><![CDATA[$P{LUCRO_BRUTO}]]></expression>
+			<box rightPadding="5" style="TotalValue"/>
+		</element>
+		<element kind="staticText" uuid="7950c4aa-4396-48b4-963e-790176d91062" x="335" y="30" width="120" height="20" hTextAlign="Center" vTextAlign="Middle" style="TotalLabel">
+			<text><![CDATA[(-) Total de Despesas:]]></text>
+		</element>
+		<element kind="textField" uuid="5df50b32-bb91-4560-b6ab-e1898ef479bd" x="455" y="30" width="100" height="20" pattern="R$ #,##0.00" vTextAlign="Middle" style="TotalValue">
+			<expression><![CDATA[$P{TOTAL_DESPESAS}]]></expression>
+			<box rightPadding="5" style="TotalValue"/>
+		</element>
+		<element kind="line" uuid="96a92823-3b10-4389-98a2-15f98cf2e09a" x="455" y="55" width="100" height="1"/>
+		<element kind="staticText" uuid="e064977c-7833-4f96-b0e2-668b55d9d701" x="335" y="62" width="120" height="20" hTextAlign="Center" vTextAlign="Middle" style="TotalLabel">
+			<text><![CDATA[(=) Lucro Líquido:]]></text>
+		</element>
+		<element kind="textField" uuid="009488b8-1b5f-4c90-98de-e1c1925b4ebe" x="455" y="62" width="100" height="20" pattern="R$ #,##0.00" vTextAlign="Middle" style="TotalValue">
+			<expression><![CDATA[$P{LUCRO_LIQUIDO}]]></expression>
+			<box rightPadding="5" style="TotalValue"/>
+		</element>
+	</summary>
+</jasperReport>

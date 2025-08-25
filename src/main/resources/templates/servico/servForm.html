@@ -54,13 +54,24 @@
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label" for="preco">Preço <span class="text-danger">*</span></label>
+                            <label class="form-label" for="preco">Preço Venda<span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">R$</span>
                                 <input class="form-control" id="preco" type="text" th:field="*{precoTotal}"
                                        placeholder="0,00"/>
                             </div>
                             <span th:if="${#fields.hasErrors('precoTotal')}" th:errors="*{precoTotal}"
+                                  class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label" for="precoC">Preço Custo<span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input class="form-control" id="precoC" type="text" th:field="*{precoCusto}"
+                                       placeholder="0,00"/>
+                            </div>
+                            <span th:if="${#fields.hasErrors('precoCusto')}" th:errors="*{precoCusto}"
                                   class="text-danger"></span>
                         </div>
 
@@ -120,6 +131,11 @@
             unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
             delimiter: '.', affixesStay: false, allowZero: true, allowNegative: true, precision: 2
         });
+        const precoCInputInitial = document.getElementById('precoC');
+        VMasker(precoCInputInitial).maskMoney({
+            unit: 'R$', suffix: '', thousands: '.', decimal: ',', separator: ',',
+            delimiter: '.', affixesStay: false, allowZero: true, allowNegative: true, precision: 2
+        });
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -128,8 +144,10 @@
 
     function formatarCampoPrecoServico() {
         const precoInput = document.getElementById('preco');
+        const precoCInput = document.getElementById('precoC');
         if (precoInput && precoInput.value) {
             precoInput.value = precoInput.value.replace(/[^\d,]/g, '').replace(',', '.');
+            precoCInput.value = precoCInput.value.replace(/[^\d,]/g, '').replace(',', '.');
         }
     }
 

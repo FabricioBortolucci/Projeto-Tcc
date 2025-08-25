@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Relatório de DRE - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .table th, .table td {
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        .table-dark .badge.bg-light {
+            color: #000 !important;
+        }
+
+        .table td.text-start-md, .table th.text-start-md {
+            text-align: left;
+        }
+
+        /* Estilos para a hierarquia do DRE na tabela */
+        .dre-item[data-nivel="1"] {
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .dre-item[data-nivel="2"] {
+            font-weight: 500;
+        }
+
+        .dre-item[data-nivel="3"] {
+            font-style: italic;
+        }
+
+        .dre-indent-1 {
+            padding-left: 1.5rem !important;
+        }
+
+        .dre-indent-2 {
+            padding-left: 2.5rem !important;
+        }
+
+        .dre-indent-3 {
+            padding-left: 3.5rem !important;
+        }
+
+        .valor-negativo {
+            color: var(--bs-danger);
+            font-weight: bold;
+        }
+
+        .valor-positivo {
+            color: var(--bs-success);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-3">
+
+        <h1 class="h3 mb-0">Relatório de DRE (Demonstrativo de Resultado)</h1>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-semibold">Filtro do Relatório</h5>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="@{/relatorios/dre-gerar}" method="get" class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="dataInicio" class="form-label">Data de Início:</label>
+                        <input type="date" class="form-control" id="dataInicio" name="dataInicio" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="dataFim" class="form-label">Data Final:</label>
+                        <input type="date" class="form-control" id="dataFim" name="dataFim" required>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-graph-up-arrow me-1"></i> Gerar Relatório
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

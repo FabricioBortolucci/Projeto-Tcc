@@ -29,6 +29,9 @@ public class Servico {
     @DecimalMin(value = "0.01", message = "O preço deve ser maior que zero.")
     private BigDecimal precoTotal;
 
+    @Column(name = "serv_preco_custo", precision = 10, scale = 2)
+    private BigDecimal precoCusto;
+
     @Column(name = "serv_desc")
     @NotBlank(message = "A descrição do serviço é obrigatória.")
     private String descricao;

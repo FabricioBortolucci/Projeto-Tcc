@@ -60,9 +60,6 @@ public class ProdutoService {
             movEstoque.setOrigemTipo("CADASTRO_" + produto.getProdutoTipo().descricao.toUpperCase());
             movimentacaoEstoqueRepository.save(movEstoque);
         }
-        if (produto.getProdutoTipo().equals(ProdutoTipo.MATERIA_PRIMA)) {
-            produto.setPrecoUnitario(produto.getPrecoCusto());
-        }
         produtoRepository.saveAndFlush(produto);
     }
 

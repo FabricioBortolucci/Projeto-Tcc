@@ -168,52 +168,6 @@
             delimiter: '.'
         });
 
-        // --- NOVA LÓGICA DINÂMICA PARA O TIPO DE PRODUTO ---
-        const tipoProdutoSelect = document.getElementById('tipoProdutoSelect');
-        const containerPrecoVenda = document.getElementById('containerPrecoVenda');
-        const inputPrecoVenda = document.getElementById('precoVendaProd');
-        const containerContaReceita = document.getElementById('containerContaReceita');
-        const selectContaReceita = document.getElementById('contaReceita');
-        const asteriscoReceita = document.getElementById('asteriscoReceita');
-
-        function ajustarCamposPorTipoProduto() {
-            const tipoSelecionado = tipoProdutoSelect.value;
-
-            if (tipoSelecionado === 'PECA') {
-                // Se for PEÇA, o Preço de Venda e a Conta de Receita são visíveis e obrigatórios
-                containerPrecoVenda.style.display = 'block';
-                inputPrecoVenda.required = true;
-
-                containerContaReceita.style.display = 'block';
-                selectContaReceita.required = true;
-                asteriscoReceita.style.display = 'inline';
-
-            } else if (tipoSelecionado === 'MATERIA_PRIMA') {
-                // Se for MATÉRIA-PRIMA, Preço de Venda e Conta de Receita são ocultados e não são obrigatórios
-                containerPrecoVenda.style.display = 'none';
-                inputPrecoVenda.required = false;
-                inputPrecoVenda.value = ''; // Limpa o valor para não ser enviado
-
-                containerContaReceita.style.display = 'none';
-                selectContaReceita.required = false;
-                selectContaReceita.value = ''; // Limpa a seleção
-                asteriscoReceita.style.display = 'none';
-
-            } else {
-                // Estado inicial ou "Selecione..."
-                containerPrecoVenda.style.display = 'block'; // Mostra por padrão
-                inputPrecoVenda.required = true;
-                containerContaReceita.style.display = 'block'; // Mostra por padrão
-                selectContaReceita.required = true;
-                asteriscoReceita.style.display = 'inline';
-            }
-        }
-
-        // Adiciona o listener para o evento 'change'
-        tipoProdutoSelect.addEventListener('change', ajustarCamposPorTipoProduto);
-
-        // Chama a função uma vez no carregamento da página para definir o estado inicial correto (caso esteja editando)
-        ajustarCamposPorTipoProduto();
     });
 
     // Função para preparar os valores para o backend (similar à sua)
