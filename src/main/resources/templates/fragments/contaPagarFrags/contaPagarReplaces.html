@@ -20,5 +20,20 @@
     </div>
 </div>
 
+<div class="col-md-4" id="replacePagamento" th:fragment="pagamentoCP">
+    <label for="tipoPagamentoUtilizado" class="form-label">Tipo de Pagamento Utilizado:
+        <span class="text-danger">*</span>
+    </label>
+    <select id="tipoPagamentoUtilizado"
+            class="form-select"
+            th:field="*{tipoPagamento}"
+            required>
+        <option value="" disabled selected>Selecione...</option>
+        <option th:each="tp : ${tipoPagamento}"
+                th:value="${tp}" th:text="${tp.descricao}"></option>
+    </select>
+    <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('tipoPagamento')}"
+         th:errors="*{tipoPagamento}"></div>
+</div>
 </body>
 </html>

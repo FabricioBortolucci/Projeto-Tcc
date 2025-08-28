@@ -1,6 +1,5 @@
 package com.produto.oficina.service;
 
-import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.*;
 import com.produto.oficina.model.enums.NaturezaContaPlanoContas;
 import com.produto.oficina.model.enums.StatusConta;
@@ -77,28 +76,20 @@ public class ContaPagarService {
     }
 
     @Transactional
-    public void processarPagamentoContasPagar(ContaPagar contaPagar) {
+    public void processarPagamentoContasPagar(ContaPagar contaPagar, String usarCredito) {
         Optional<ContaPagar> opContaPagar = contaPagarRepository.findById(contaPagar.getId());
         if (opContaPagar.isPresent()) {
             ContaPagar cp = opContaPagar.get();
+            if (usarCredito.equals("S_CR")) {
+                Pessoa fornecedor = pessoaService.buscaFornecedorPorId(contaPagar.getFornecedor().getId()).get();
+                fornecedor.setPesCredito(fornecedor.getPesCredito().subtract(cp.getValor()));
+                pessoaService.salvarEdit(fornecedor);
+            }
             cp.setDataPagamento(contaPagar.getDataPagamento());
             cp.setValorPago(contaPagar.getValorPago());
             cp.setTipoPagamento(contaPagar.getTipoPagamento());
             cp.setObservacao(contaPagar.getObservacao());
             cp.setStatus(StatusConta.PAGO);
-            PlanoDeContas planoDeContasDaFatura = contaPagar.getPlanoDeContas();
-            if (planoDeContasDaFatura.getNaturezaConta() == NaturezaContaPlanoContas.DESPESA ||
-                    planoDeContasDaFatura.getNaturezaConta() == NaturezaContaPlanoContas.CUSTO) {
-
-                LancamentoFinanceiro lancamentoDespesa = new LancamentoFinanceiro(
-                        "Pagamento de despesa/custo: " + planoDeContasDaFatura.getDescricao(),
-                        contaPagar.getValorPago(),
-                        contaPagar.getDataPagamento(),
-                        planoDeContasDaFatura,
-                        null
-                );
-                lancamentoFinanceiroRepository.save(lancamentoDespesa);
-            }
             cp = contaPagarRepository.save(cp);
             if (cp.getTipoPagamento().equals(TipoPagamento.PIX) || cp.getTipoPagamento().equals(TipoPagamento.DINHEIRO)) {
                 movimentaCaixaContaPagar(cp, TipoMovimentacao.SAIDA, false);
@@ -107,16 +98,30 @@ public class ContaPagarService {
     }
 
     public boolean verificaContaPagarLegivel(ContaPagar contaPagar) {
-        Compra compra = compraRepository.findById(contaPagar.getCompra().getId()).get();
-        compra.getContaPagars().sort(Comparator.comparing(ContaPagar::getNumeroParcela));
-        for (ContaPagar cp : compra.getContaPagars()) {
-            if (!cp.getNumeroParcela().equals(contaPagar.getNumeroParcela())) {
-                if (!cp.getStatus().equals(StatusConta.PAGO)) {
-                    return true;
+        if (contaPagar.getCompra() != null) {
+            Compra compra = compraRepository.findById(contaPagar.getCompra().getId()).get();
+            compra.getContaPagars().sort(Comparator.comparing(ContaPagar::getNumeroParcela));
+            for (ContaPagar cp : compra.getContaPagars()) {
+                if (!cp.getNumeroParcela().equals(contaPagar.getNumeroParcela())) {
+                    if (!cp.getStatus().equals(StatusConta.PAGO)) {
+                        return true;
+                    }
+                } else {
+                    if (contaPagar.getStatus().equals(StatusConta.PENDENTE)) {
+                        return false;
+                    }
                 }
-            } else {
-                if (contaPagar.getStatus().equals(StatusConta.PENDENTE)) {
-                    return false;
+            }
+        } else {
+            for (int i = 1; i <= contaPagar.getTotalParcelas(); i++) {
+                if (i != contaPagar.getNumeroParcela()) {
+                    if (!contaPagar.getStatus().equals(StatusConta.PAGO)) {
+                        return true;
+                    }
+                } else {
+                    if (contaPagar.getStatus().equals(StatusConta.PENDENTE)) {
+                        return false;
+                    }
                 }
             }
         }
@@ -142,7 +147,7 @@ public class ContaPagarService {
 
 
     @Transactional
-    public List<ContaPagar> criarContaPagarAvulsa(ContaPagar dadosDoFormulario) {
+    public void criarContaPagarAvulsa(ContaPagar dadosDoFormulario) {
         if (dadosDoFormulario.getFornecedor() == null || dadosDoFormulario.getValor() == null ||
                 dadosDoFormulario.getDataVencimento() == null || dadosDoFormulario.getPlanoDeContas() == null) {
             throw new IllegalArgumentException("Fornecedor, valor, vencimento e plano de contas são obrigatórios.");
@@ -185,7 +190,7 @@ public class ContaPagarService {
         for (ContaPagar p : parcelasSalvas) {
             p.setDespesaAvulsaId(idDaDespesa);
         }
-        return contaPagarRepository.saveAll(parcelasSalvas);
+        contaPagarRepository.saveAll(parcelasSalvas);
     }
 
     @Transactional

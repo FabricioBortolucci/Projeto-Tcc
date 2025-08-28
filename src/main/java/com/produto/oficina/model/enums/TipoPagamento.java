@@ -6,7 +6,8 @@ public enum TipoPagamento {
     BOLETO("Boleto"),
     CARTAO_CREDITO("Cartão de Crédito"),
     PIX("Pix"),
-    CHEQUE("Cheque");
+    CHEQUE("Cheque"),
+    CREDITO_FORNECEDOR("Utilização de Crédito");
 
     public final String descricao;
 
@@ -22,5 +23,8 @@ public enum TipoPagamento {
     }
     public static TipoPagamento[] apenasAprovado() {
         return new TipoPagamento[]{BOLETO, PIX, CHEQUE, DINHEIRO, CARTAO_CREDITO};
+    }
+    public static TipoPagamento[] onlyCredito() {
+        return new TipoPagamento[]{CREDITO_FORNECEDOR};
     }
 }

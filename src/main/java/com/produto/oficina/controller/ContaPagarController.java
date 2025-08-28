@@ -3,6 +3,7 @@ package com.produto.oficina.controller;
 import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.ContaPagar;
 import com.produto.oficina.model.ContaReceber;
+import com.produto.oficina.model.Pessoa;
 import com.produto.oficina.model.enums.NaturezaContaPlanoContas;
 import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoContaPlanoContas;
@@ -16,6 +17,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -84,9 +87,10 @@ public class ContaPagarController {
 
     @PostMapping("/confirmar-pagamento")
     public String confirmarPagamento(@ModelAttribute ContaPagar contaPagar,
+                                     @RequestParam("usarCredito") String usarCredito,
                                      RedirectAttributes redirectAttributes,
                                      Model model) {
-        contaPagarService.processarPagamentoContasPagar(contaPagar);
+        contaPagarService.processarPagamentoContasPagar(contaPagar, usarCredito);
         redirectAttributes.addFlashAttribute("mensagem", "Pagamento da Conta ID " + contaPagar.getId() +
                 " no valor de " + JavaUtils.formatMonetaryString(contaPagar.getValorPago()) + " registrado com sucesso!");
         redirectAttributes.addFlashAttribute("conta_paga_mensagem", true);
@@ -113,5 +117,16 @@ public class ContaPagarController {
         redirectAttributes.addFlashAttribute("mensagem", "Conta Pagar criada com sucesso!");
         redirectAttributes.addFlashAttribute("conta_paga_mensagem", true);
         return "redirect:/contas-pagar";
+    }
+
+    @GetMapping("/aplicar-credito")
+    public String aplicarCreditoContaPagar(Model model,
+                                           @RequestParam("usarCredito") String credito) {
+        if (credito.equals("S_CR")) {
+            model.addAttribute("tipoPagamento", TipoPagamento.onlyCredito());
+        } else {
+            model.addAttribute("tipoPagamento", TipoPagamento.apenasAprovado());
+        }
+        return "fragments/contaPagarFrags/contaPagarReplaces :: pagamentoCP";
     }
 }

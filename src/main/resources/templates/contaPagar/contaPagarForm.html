@@ -115,12 +115,43 @@
                         class="bi bi-credit-card-fill me-2"></i>Informações do Pagamento</h5>
                 </div>
                 <div class="card-body p-4">
+                    <fieldset class="mb-4 p-3 border rounded bg-light"
+                              th:if="*{fornecedor?.pesCredito != null and fornecedor.pesCredito.compareTo(valor) > 0}">
+                        <legend class="col-form-label pt-0 fs-6 fw-semibold">
+                            <i class="bi bi-wallet2 me-1"></i> Usar Crédito do Fornecedor?
+                            <span class="fw-normal text-success"
+                                  th:text="'(Disponível: ' + ${#numbers.formatCurrency(contaPagar.fornecedor.pesCredito)} + ').' + ' Após o uso: ' + ${#numbers.formatCurrency(contaPagar.fornecedor.pesCredito.subtract(contaPagar.valor))}"></span>
+                        </legend>
+                        <div class="d-flex flex-wrap gap-4">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="usarCredito"
+                                       id="radioCreditoSim"
+                                       value="S_CR"
+                                       th:hx-get="@{/contas-pagar/aplicar-credito}"
+                                       hx-trigger="click"
+                                       hx-target="#replacePagamento"
+                                       hx-swap="outerHTML">
+                                <label class="form-check-label" for="radioCreditoSim">Sim, usar crédito</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="usarCredito"
+                                       id="radioCreditoNao" checked
+                                       th:hx-get="@{/contas-pagar/aplicar-credito}"
+                                       value="N_CR"
+                                       hx-trigger="click"
+                                       hx-target="#replacePagamento"
+                                       hx-swap="outerHTML">
+                                <label class="form-check-label" for="radioCreditoNao">Não, pagar com outros
+                                    meios</label>
+                            </div>
+                        </div>
+                    </fieldset>
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label for="dataPagamento" class="form-label">Data do Pagamento: <span
                                     class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="dataPagamento" th:field="*{dataPagamento}"
-                                   required/>
+                                   readonly/>
                             <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('dataPagamento')}"
                                  th:errors="*{dataPagamento}"></div>
                         </div>
@@ -131,13 +162,13 @@
                             <div class="input-group">
                                 <span class="input-group-text">R$</span>
                                 <input type="text" class="form-control" id="valorPago" th:field="*{valorPago}"
-                                       placeholder="0,00" required/>
+                                       placeholder="0,00" readonly/>
                             </div>
                             <div class="text-danger mt-1 small" th:if="${#fields.hasErrors('valorPago')}"
                                  th:errors="*{valorPago}"></div>
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-md-4" id="replacePagamento">
                             <label for="tipoPagamentoUtilizado" class="form-label">Tipo de Pagamento Utilizado:
                                 <span class="text-danger">*</span>
                             </label>
@@ -164,12 +195,13 @@
                             </label>
                             <input type="text" class="form-control" id="caixaAbertoDisplay"
                                    th:value="'Caixa #' + ${caixaAberto.id} + ' (Aberto em: ' + ${#temporals.format(caixaAberto.dataAbertura, 'dd/MM HH:mm')} + ')'"
-                                   disabled readonly />
-                            <input type="hidden" name="caixaId" id="hiddenCaixaId" th:if="${caixaAberto.id != null}" th:value="${caixaAberto.id}" />
+                                   disabled readonly/>
+                            <input type="hidden" name="caixaId" id="hiddenCaixaId" th:if="${caixaAberto.id != null}"
+                                   th:value="${caixaAberto.id}"/>
                         </div>
                         <div class="col-md-4" th:if="${caixaAberto == null}">
                             <label class="form-label">Caixa:</label>
-                            <input type="text" class="form-control" value="Nenhum caixa aberto" disabled readonly />
+                            <input type="text" class="form-control" value="Nenhum caixa aberto" disabled readonly/>
                         </div>
 
 
@@ -201,9 +233,32 @@
 
 <script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
 <script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/htmx/htmx.min.js}"></script>
 <script src="//cdn.jsdelivr.net/npm/vanilla-masker@1.1.1/build/vanilla-masker.min.js"></script>
 <script th:inline="javascript">
     /*<![CDATA[*/
+    window.choicesInstances = window.choicesInstances || {};
+
+    // Função segura para inicializar ou reinicializar o Choices.js
+    function initializeChoices(elementId, options) {
+        const el = document.getElementById(elementId);
+        if (!el || typeof Choices !== 'function') return;
+
+        // Se uma instância já existe para este ID, destrua-a primeiro
+        if (window.choicesInstances[elementId]) {
+            try {
+                window.choicesInstances[elementId].destroy();
+            } catch (e) { /* Ignora o erro se a instância já foi removida do DOM */ }
+        }
+
+        // Cria a nova instância e a armazena
+        try {
+            window.choicesInstances[elementId] = new Choices(el, options || { searchEnabled: false, itemSelectText: '' });
+        } catch(e) {
+            console.error("Falha ao inicializar Choices.js em #" + elementId, e);
+        }
+    }
+
     function aplicarMascaraComVerificacao(elementId, options) {
         const el = document.getElementById(elementId);
         if (el && typeof VMasker === "function" && !el.classList.contains('vm-masked-payment')) {
@@ -211,7 +266,22 @@
             el.classList.add('vm-masked-payment');
         }
     }
+    document.body.addEventListener('htmx:afterSwap', function (event) {
+        // Verifica se o alvo do swap foi o container dos nossos campos de pagamento
+        if (event.detail.target.id === 'replacePagamento') {
+            console.log("HTMX atualizou #replacePagamento. Reinicializando componentes JS...");
 
+            // Reinicializa a máscara de valor no campo que foi trocado
+            aplicarMascaraComVerificacao('valorPago');
+
+            // Reinicializa o tooltip no campo de caixa (se ele estiver no fragmento)
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); });
+
+            // Reinicializa o Choices.js no select de tipo de pagamento que foi trocado
+            initializeChoices('tipoPagamentoUtilizado', { searchEnabled: false, itemSelectText: '' });
+        }
+    });
     document.addEventListener('DOMContentLoaded', function () {
         aplicarMascaraComVerificacao('valorPago');
         aplicarMascaraComVerificacao('jurosMulta');
@@ -220,7 +290,7 @@
         const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-
+        initializeChoices('tipoPagamentoUtilizado', { searchEnabled: false, itemSelectText: '' });
         // Inicializa Choices.js para selects, se presentes
         const tipoPagSelect = document.getElementById('tipoPagamentoUtilizado');
         if (tipoPagSelect && typeof Choices === "function") {
