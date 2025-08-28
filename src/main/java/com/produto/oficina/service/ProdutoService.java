@@ -40,25 +40,28 @@ public class ProdutoService {
     public void saveEdit(Produto produto) {
         produtoRepository.save(produto);
     }
+
     public void save(Produto produto) {
-        Produto prodDB = produtoRepository.findById(produto.getId()).get();
-        if (!produto.getEstoque().equals(prodDB.getEstoque())) {
-            MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
-            movEstoque.setProduto(produto);
-            movEstoque.setCustoUnitario(produto.getPrecoUnitario());
-            movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
-            movEstoque.setQuantidade(BigDecimal.valueOf(produto.getEstoque()));
-            if (produto.getEstoque() > prodDB.getEstoque()) {
-                movEstoque.setTipo(TipoMovimentacao.ENTRADA);
-                movEstoque.setObservacao("Entrada de material. ID [" + produto.getId() + "]");
-            } else if (produto.getEstoque() < prodDB.getEstoque()) {
-                movEstoque.setTipo(TipoMovimentacao.SAIDA);
-                movEstoque.setObservacao("Saída de material. ID [" + produto.getId() + "]");
+        if (produto.getId() != null) {
+            Produto prodDB = produtoRepository.findById(produto.getId()).get();
+            if (!produto.getEstoque().equals(prodDB.getEstoque())) {
+                MovimentacaoEstoque movEstoque = new MovimentacaoEstoque();
+                movEstoque.setProduto(produto);
+                movEstoque.setCustoUnitario(produto.getPrecoUnitario());
+                movEstoque.setUsuarioResponsavel(pessoaService.buscaPessoaLogada());
+                movEstoque.setQuantidade(BigDecimal.valueOf(produto.getEstoque()));
+                if (produto.getEstoque() > prodDB.getEstoque()) {
+                    movEstoque.setTipo(TipoMovimentacao.ENTRADA);
+                    movEstoque.setObservacao("Entrada de material. ID [" + produto.getId() + "]");
+                } else if (produto.getEstoque() < prodDB.getEstoque()) {
+                    movEstoque.setTipo(TipoMovimentacao.SAIDA);
+                    movEstoque.setObservacao("Saída de material. ID [" + produto.getId() + "]");
+                }
+                movEstoque.setDataMovimentacao(LocalDateTime.now());
+                movEstoque.setOrigemId(produto.getId());
+                movEstoque.setOrigemTipo("CADASTRO_" + produto.getProdutoTipo().descricao.toUpperCase());
+                movimentacaoEstoqueRepository.save(movEstoque);
             }
-            movEstoque.setDataMovimentacao(LocalDateTime.now());
-            movEstoque.setOrigemId(produto.getId());
-            movEstoque.setOrigemTipo("CADASTRO_" + produto.getProdutoTipo().descricao.toUpperCase());
-            movimentacaoEstoqueRepository.save(movEstoque);
         }
         produtoRepository.saveAndFlush(produto);
     }

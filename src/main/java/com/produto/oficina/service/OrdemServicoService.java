@@ -31,8 +31,10 @@ public class OrdemServicoService {
     private final PessoaService pessoaService;
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
+    private final PlanoDeContasService planoDeContasService;
+    private final PlanoDeContasRepository planoDeContasRepository;
 
-    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository, PessoaRepository pessoaRepository, CaixaService caixaService, ContaReceberService contaReceberService, PessoaService pessoaService, MovimentacaoEstoqueRepository movimentacaoEstoqueRepository, LancamentoFinanceiroRepository lancamentoFinanceiroRepository) {
+    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, ServicoRepository servicoRepository, ProdutoRepository produtoRepository, PessoaRepository pessoaRepository, CaixaService caixaService, ContaReceberService contaReceberService, PessoaService pessoaService, MovimentacaoEstoqueRepository movimentacaoEstoqueRepository, LancamentoFinanceiroRepository lancamentoFinanceiroRepository, PlanoDeContasService planoDeContasService, PlanoDeContasRepository planoDeContasRepository) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.servicoRepository = servicoRepository;
         this.produtoRepository = produtoRepository;
@@ -42,6 +44,8 @@ public class OrdemServicoService {
         this.pessoaService = pessoaService;
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
         this.lancamentoFinanceiroRepository = lancamentoFinanceiroRepository;
+        this.planoDeContasService = planoDeContasService;
+        this.planoDeContasRepository = planoDeContasRepository;
     }
 
     public Page<OrdemServico> findAll(Pageable pageable) {
@@ -146,7 +150,7 @@ public class OrdemServicoService {
 
 
     @Transactional
-    public void finalizarOs(OrdemServico os) {
+    public void finalizarOs(OrdemServico os, BigDecimal creditoUtilizado) {
         LocalDate hoje = LocalDate.now();
 
         for (OrdemServicoPeca item : os.getPecasUsadas()) {
@@ -202,15 +206,36 @@ public class OrdemServicoService {
             ));
         }
 
+
+        BigDecimal valorAPagar;
+        if (creditoUtilizado != null && creditoUtilizado.compareTo(BigDecimal.ZERO) > 0) {
+            PlanoDeContas contaCreditoCliente = planoDeContasService.buscarContaPorCodigo("2.1.3.01")
+                    .orElseThrow(() -> new RuntimeException("Conta 'Créditos a Liquidar com Clientes' (2.1.3.01) não encontrada."));
+            lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
+                    "Liquidação de crédito de cliente na OS #" + os.getId(),
+                    creditoUtilizado.negate(),
+                    hoje,
+                    contaCreditoCliente,
+                    os
+            ));
+
+            os.getCliente().setPesCredito(os.getCliente().getPesCredito().subtract(creditoUtilizado));
+            pessoaRepository.save(os.getCliente());
+            valorAPagar = os.getValorTotal().subtract(creditoUtilizado);
+        } else {
+            valorAPagar = os.getValorTotal();
+        }
+
+
         List<ContaReceber> contasReceber = new ArrayList<>();
 
         if (os.getPlanoPagamento().equals(PlanoPagamento.APRAZO)) {
-            BigDecimal valorParcela = os.getValorTotal().divide(BigDecimal.valueOf(os.getQuantParcelas()), RoundingMode.HALF_UP);
+            valorAPagar = valorAPagar.divide(BigDecimal.valueOf(os.getQuantParcelas()), RoundingMode.HALF_UP);
             for (int i = 1; i <= os.getQuantParcelas(); i++) {
                 ContaReceber cr = new ContaReceber();
                 cr.setOrdemServico(os);
                 cr.setCliente(os.getCliente());
-                cr.setValor(valorParcela);
+                cr.setValor(valorAPagar);
                 cr.setValorTotalOriginal(os.getValorTotal());
                 cr.setStatus(StatusConta.PENDENTE);
                 cr.setNumeroParcela(i);
@@ -223,7 +248,7 @@ public class OrdemServicoService {
             ContaReceber cr = new ContaReceber();
             cr.setOrdemServico(os);
             cr.setCliente(os.getCliente());
-            cr.setValor(os.getValorTotal());
+            cr.setValor(valorAPagar);
             cr.setValorTotalOriginal(os.getValorTotal());
             cr.setValorRecebido(os.getValorTotal());
             cr.setStatus(StatusConta.PAGO);
@@ -269,7 +294,10 @@ public class OrdemServicoService {
             MovimentacaoCaixa novoMovimento = new MovimentacaoCaixa();
             novoMovimento.setCaixa(caixaAtual);
             novoMovimento.setTipo(TipoMovimentacao.ENTRADA);
-            novoMovimento.setValor(osFinalizada.getValorTotal());
+            novoMovimento.setValor(valorAPagar);
+            PlanoDeContas contaContasReceber = planoDeContasRepository.findByCodigo("1.1.2.01")
+                    .orElseThrow(() -> new RuntimeException("Conta 'Contas a Receber de Clientes' (1.1.2.01) não encontrada."));
+            novoMovimento.setPlanoDeContas(contaContasReceber);
             novoMovimento.setContaReceber(osFinalizada.getContaRecebers().getFirst());
             novoMovimento.setDescricao("Recebimento da OS #" + osFinalizada.getId() + " - Cliente: " + osFinalizada.getCliente().getPesNome());
             novoMovimento.setDataMovimentacao(LocalDateTime.now());
@@ -384,6 +412,9 @@ public class OrdemServicoService {
                 movimentoReembolso.setCaixa(caixaAtual);
                 movimentoReembolso.setDataMovimentacao(LocalDateTime.now());
                 movimentoReembolso.setTipo(TipoMovimentacao.SAIDA);
+                PlanoDeContas contaCreditoCliente = planoDeContasRepository.findByCodigo("2.1.3.01")
+                        .orElseThrow(() -> new RuntimeException("Conta 'Créditos a Liquidar com Clientes' (2.1.3.01) não encontrada."));
+                movimentoReembolso.setPlanoDeContas(contaCreditoCliente);
                 movimentoReembolso.setValor(valorTotalPagoPeloCliente);
                 movimentoReembolso.setDescricao("Reembolso da OS #" + os.getId() + " - Cliente: " + os.getCliente().getPesNome());
                 caixaService.salvarCaixaAposMovimento(caixaAtual, movimentoReembolso);

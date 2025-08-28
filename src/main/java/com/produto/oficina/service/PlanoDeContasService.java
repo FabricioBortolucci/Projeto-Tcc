@@ -148,4 +148,7 @@ public class PlanoDeContasService {
     public List<PlanoDeContas> buscarContasPorCodigo(String codigo) {
         return planoDeContasRepository.findAllByCodigoStartsWithOrderByCodigoAsc(codigo);
     }
+    public Optional<PlanoDeContas> buscarContaPorCodigo(String codigo) {
+        return planoDeContasRepository.findByCodigo(codigo);
+    }
 }

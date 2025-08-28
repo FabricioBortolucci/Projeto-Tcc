@@ -2,19 +2,23 @@ package com.produto.oficina.service;
 
 import com.produto.oficina.Utils.JavaUtils;
 import com.produto.oficina.model.*;
+import com.produto.oficina.model.enums.NaturezaContaPlanoContas;
 import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoMovimentacao;
 import com.produto.oficina.model.enums.TipoPagamento;
 import com.produto.oficina.repository.CompraRepository;
 import com.produto.oficina.repository.ContaPagarRepository;
+import com.produto.oficina.repository.LancamentoFinanceiroRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -26,12 +30,14 @@ public class ContaPagarService {
     private final CompraRepository compraRepository;
     private final CaixaService caixaService;
     private final PessoaService pessoaService;
+    private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
 
-    public ContaPagarService(ContaPagarRepository contaPagarRepository, CompraRepository compraRepository, CaixaService caixaService, PessoaService pessoaService) {
+    public ContaPagarService(ContaPagarRepository contaPagarRepository, CompraRepository compraRepository, CaixaService caixaService, PessoaService pessoaService, LancamentoFinanceiroRepository lancamentoFinanceiroRepository) {
         this.contaPagarRepository = contaPagarRepository;
         this.compraRepository = compraRepository;
         this.caixaService = caixaService;
         this.pessoaService = pessoaService;
+        this.lancamentoFinanceiroRepository = lancamentoFinanceiroRepository;
     }
 
     public void salvar(ContaPagar contaPagar) {
@@ -80,9 +86,22 @@ public class ContaPagarService {
             cp.setTipoPagamento(contaPagar.getTipoPagamento());
             cp.setObservacao(contaPagar.getObservacao());
             cp.setStatus(StatusConta.PAGO);
+            PlanoDeContas planoDeContasDaFatura = contaPagar.getPlanoDeContas();
+            if (planoDeContasDaFatura.getNaturezaConta() == NaturezaContaPlanoContas.DESPESA ||
+                    planoDeContasDaFatura.getNaturezaConta() == NaturezaContaPlanoContas.CUSTO) {
+
+                LancamentoFinanceiro lancamentoDespesa = new LancamentoFinanceiro(
+                        "Pagamento de despesa/custo: " + planoDeContasDaFatura.getDescricao(),
+                        contaPagar.getValorPago(),
+                        contaPagar.getDataPagamento(),
+                        planoDeContasDaFatura,
+                        null
+                );
+                lancamentoFinanceiroRepository.save(lancamentoDespesa);
+            }
             cp = contaPagarRepository.save(cp);
             if (cp.getTipoPagamento().equals(TipoPagamento.PIX) || cp.getTipoPagamento().equals(TipoPagamento.DINHEIRO)) {
-                movimentaCaixaContaPagar(cp);
+                movimentaCaixaContaPagar(cp, TipoMovimentacao.SAIDA, false);
             }
         }
     }
@@ -105,55 +124,107 @@ public class ContaPagarService {
     }
 
     @Transactional
-    public void movimentaCaixaContaPagar(ContaPagar contaPagar) {
+    public void movimentaCaixaContaPagar(ContaPagar contaPagar, TipoMovimentacao tipoMovimentacao, boolean avulsa) {
         MovimentacaoCaixa mv = new MovimentacaoCaixa();
         Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
         mv.setCaixa(caixaAtual);
         mv.setContaPagar(contaPagar);
-        mv.setTipo(TipoMovimentacao.SAIDA);
+        mv.setTipo(tipoMovimentacao);
         mv.setValor(contaPagar.getValorPago());
         mv.setDataMovimentacao(LocalDateTime.now());
         mv.setPlanoDeContas(contaPagar.getPlanoDeContas());
         mv.setOrigemId(contaPagar.getId());
         mv.setOrigemTipo("PAGAMENTO_CONTA_PAGAR");
-        mv.setDescricao("Pagamento da Conta a Pagar ID " + contaPagar.getId() + ", Fornecedor " + contaPagar.getFornecedor().getPesNome());
+        mv.setDescricao("Pagamento da Conta a Pagar ID " + contaPagar.getId());
         caixaAtual.getMovimentacoes().add(mv);
         caixaService.salvarCaixaAposMovimento(caixaAtual);
     }
 
+
     @Transactional
-    public void cancelarContaPagar(Long id) {
-        ContaPagar contaPagar = contaPagarRepository.findById(id).get();
-        if (contaPagar.getStatus().equals(StatusConta.PENDENTE)) {
-            contaPagar.setStatus(StatusConta.CANCELADO);
-            String obsOriginalPendente = contaPagar.getObservacao() != null ? contaPagar.getObservacao() : "";
-            contaPagar.setObservacao(obsOriginalPendente + " [Cancelada em " +
-                    JavaUtils.formatLocalDate(LocalDate.now()) + " por " +
-                    pessoaService.buscaUsuarioLogado().getUsuNome() + "]");
-
-        } else if (contaPagar.getStatus().equals(StatusConta.PAGO)) {
-            Pessoa fornecedor = pessoaService.buscaFornecedorPorId(contaPagar.getFornecedor().getId()).get();
-            BigDecimal valorEstornar = contaPagar.getValorPago() != null ? contaPagar.getValorPago() : BigDecimal.ZERO;
-            BigDecimal valorCredito = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
-            fornecedor.setPesCredito(valorCredito.add(valorEstornar));
-
-            String observacaoOriginal = contaPagar.getObservacao() != null ? contaPagar.getObservacao() : "";
-            String detalheEstorno = " [Pagamento de " +
-                    (contaPagar.getDataPagamento() != null ? JavaUtils.formatLocalDate(contaPagar.getDataPagamento()) : "data desconhecida") +
-                    " no valor de " + JavaUtils.formatMonetaryString(valorEstornar) +
-                    " estornado em " + JavaUtils.formatLocalDate(LocalDate.now()) +
-                    " por usuário " + pessoaService.buscaUsuarioLogado().getUsuNome() +
-                    ". Valor convertido em crédito com fornecedor.]";
-
-            contaPagar.setObservacao(observacaoOriginal.isEmpty() ? detalheEstorno.trim() : observacaoOriginal + detalheEstorno);
-
-            contaPagar.setStatus(StatusConta.PENDENTE);
-            contaPagar.setDataPagamento(null);
-            contaPagar.setTipoPagamento(null);
-            contaPagar.setValorPago(BigDecimal.ZERO);
-
-            pessoaService.salvarEdit(fornecedor);
+    public List<ContaPagar> criarContaPagarAvulsa(ContaPagar dadosDoFormulario) {
+        if (dadosDoFormulario.getFornecedor() == null || dadosDoFormulario.getValor() == null ||
+                dadosDoFormulario.getDataVencimento() == null || dadosDoFormulario.getPlanoDeContas() == null) {
+            throw new IllegalArgumentException("Fornecedor, valor, vencimento e plano de contas são obrigatórios.");
         }
-        contaPagarRepository.save(contaPagar);
+        NaturezaContaPlanoContas natureza = dadosDoFormulario.getPlanoDeContas().getNaturezaConta();
+        if (natureza != NaturezaContaPlanoContas.DESPESA && natureza != NaturezaContaPlanoContas.CUSTO) {
+            throw new IllegalArgumentException("A conta do plano de contas para uma C.P. avulsa deve ser de natureza DESPESA ou CUSTO.");
+        }
+
+        LancamentoFinanceiro lancamentoDespesa = new LancamentoFinanceiro(
+                "Despesa avulsa: " + (dadosDoFormulario.getObservacao() != null ? dadosDoFormulario.getObservacao() : dadosDoFormulario.getPlanoDeContas().getDescricao()),
+                dadosDoFormulario.getValor(),
+                LocalDate.now(),
+                dadosDoFormulario.getPlanoDeContas(),
+                null
+        );
+        lancamentoFinanceiroRepository.save(lancamentoDespesa);
+
+        List<ContaPagar> parcelasParaSalvar = new ArrayList<>();
+        BigDecimal valorParcela = dadosDoFormulario.getValor().divide(BigDecimal.valueOf(dadosDoFormulario.getTotalParcelas()), RoundingMode.HALF_UP);
+
+        for (int i = 1; i <= dadosDoFormulario.getTotalParcelas(); i++) {
+            ContaPagar parcela = new ContaPagar();
+            parcela.setFornecedor(dadosDoFormulario.getFornecedor());
+            parcela.setValor(valorParcela);
+            parcela.setDataVencimento(dadosDoFormulario.getDataVencimento().plusMonths(i - 1));
+            parcela.setStatus(StatusConta.PENDENTE);
+            parcela.setValorPago(BigDecimal.ZERO);
+            parcela.setNumeroParcela(i);
+            parcela.setPlanoDeContas(dadosDoFormulario.getPlanoDeContas());
+            parcela.setTotalParcelas(dadosDoFormulario.getTotalParcelas());
+            parcela.setValorTotalOriginal(dadosDoFormulario.getValor());
+            parcela.setObservacao(dadosDoFormulario.getObservacao());
+            parcelasParaSalvar.add(parcela);
+        }
+
+        List<ContaPagar> parcelasSalvas = contaPagarRepository.saveAll(parcelasParaSalvar);
+
+        Long idDaDespesa = parcelasSalvas.getFirst().getId();
+        for (ContaPagar p : parcelasSalvas) {
+            p.setDespesaAvulsaId(idDaDespesa);
+        }
+        return contaPagarRepository.saveAll(parcelasSalvas);
+    }
+
+    @Transactional
+    public void cancelarContaPagarAvulsa(Long umaParcelaId) {
+        ContaPagar umaDasParcelas = contaPagarRepository.findById(umaParcelaId)
+                .orElseThrow(() -> new RuntimeException("Conta a Pagar com ID " + umaParcelaId + " não encontrada."));
+
+        if (umaDasParcelas.getCompra() != null || umaDasParcelas.getDespesaAvulsaId() == null) {
+            throw new IllegalStateException("Esta operação é válida apenas para Contas a Pagar avulsas.");
+        }
+
+        List<ContaPagar> todasAsParcelas = contaPagarRepository.findByDespesaAvulsaId(umaDasParcelas.getDespesaAvulsaId());
+
+        BigDecimal valorTotalOriginalDaDespesa = BigDecimal.ZERO;
+        BigDecimal valorTotalJaPago = BigDecimal.ZERO;
+
+        for (ContaPagar parcela : todasAsParcelas) {
+            valorTotalOriginalDaDespesa = valorTotalOriginalDaDespesa.add(parcela.getValor());
+            if (parcela.getStatus() == StatusConta.PAGO) {
+                valorTotalJaPago = valorTotalJaPago.add(parcela.getValorPago());
+            }
+            parcela.setStatus(StatusConta.CANCELADO);
+        }
+        contaPagarRepository.saveAll(todasAsParcelas);
+
+        LancamentoFinanceiro estornoDespesa = new LancamentoFinanceiro(
+                "Estorno da Despesa (originada pela CP #" + umaParcelaId + ")",
+                valorTotalOriginalDaDespesa.negate(),
+                LocalDate.now(),
+                umaDasParcelas.getPlanoDeContas(),
+                null
+        );
+        lancamentoFinanceiroRepository.save(estornoDespesa);
+
+        Pessoa fornecedor = umaDasParcelas.getFornecedor();
+        BigDecimal creditoAtual = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
+        fornecedor.setPesCredito(creditoAtual.add(valorTotalJaPago));
+        pessoaService.salvarEdit(fornecedor);
     }
 }
+
+

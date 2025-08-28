@@ -51,19 +51,21 @@
                 <tr>
                     <th class="text-center" style="width: 10%;">Id</th>
                     <th class="text-center" style="width: 40%;">Descrição</th>
-                    <th class="text-center" style="width: 15%;">Valor</th>
+                    <th class="text-center" style="width: 15%;">Valor Venda</th>
+                    <th class="text-center" style="width: 15%;">Valor Custo</th>
                     <th class="text-center" style="width: 10%;">Ativo</th>
                     <th class="text-center" style="min-width: 150px;">Opções</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:if="${servicoPage == null or servicoPage.empty}">
-                    <td colspan="5" class="text-center text-muted p-3">Nenhum serviço encontrado.</td>
+                    <td colspan="6" class="text-center text-muted p-3">Nenhum serviço encontrado.</td>
                 </tr>
                 <tr th:each="serv : ${servicoPage.content}">
                     <td class="text-center" th:text="${serv.id}"></td>
                     <td th:text="${#strings.abbreviate(serv.descricao, 70)}"></td>
                     <td class="text-center" th:text="${#numbers.formatCurrency(serv.precoTotal)}"></td>
+                    <td class="text-center" th:text="${#numbers.formatCurrency(serv.precoCusto)}"></td>
                     <td class="text-center">
                         <span th:classappend="${serv.ativo} ? 'badge bg-success' : 'badge bg-danger'"
                               th:text="${serv.ativo ? 'Sim' : 'Não'}"></span>

@@ -26,7 +26,8 @@
        sum(l.lan_valor)
 from lancamento_financeiro l
          inner join plano_de_contas p on l.plano_contas_id = p.id
-where l.lan_data_comp between  '$P!{dataInicio} ' and  '$P!{dataFim}'
+where l.lan_data_comp between  '$P!{dataInicio} ' and  '$P!{dataFim}' 
+and (p.natureza_conta = 'RECEITA' or p.natureza_conta = 'CUSTO' or p.natureza_conta = 'DESPESA')
 group by l.plano_contas_id, p.codigo, p.descricao, p.natureza_conta
 order by p.codigo]]></query>
 	<field name="codigo" class="java.lang.String">

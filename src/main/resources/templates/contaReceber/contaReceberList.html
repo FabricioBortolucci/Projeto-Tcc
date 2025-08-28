@@ -132,13 +132,12 @@
                                title="Visualizar Conta">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
-                            <form th:if="${conta.ordemServico?.id == null}"
-                                  th:action="@{/contas-receber/cancelar/{id}(id=${conta.id})}" method="post"
-                                  class="d-inline-block">
-                                <button class="btn btn-danger btn-sm" type="submit" title="Cancelar Conta">
-                                    <i class="bi bi-x-octagon-fill"></i>
-                                </button>
-                            </form>
+
+                            <a th:if="${conta.ordemServico?.id == null and !#strings.equals(conta.status, 'CANCELADO')}"
+                               th:href="@{/contas-receber/cancelar/{id}(id=${conta.id})}"
+                               class="btn btn-danger btn-sm" type="submit" title="Cancelar Conta">
+                                <i class="bi bi-x-octagon-fill"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>

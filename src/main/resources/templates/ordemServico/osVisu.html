@@ -166,9 +166,17 @@
                                     <p th:if="*{observacaoCancelamento == null or observacaoCancelamento.isEmpty()}"
                                        class="text-muted fst-italic mb-0">Sem observações de Cancelamento.</p>
                                 </dd>
-                                <dt class="col-sm-3">Valor Total da O.S.:</dt>
+                                <dt class="col-sm-3">Valor Total Original da O.S.:</dt>
                                 <dd class="col-sm-9 h5 fw-bold text-success"
-                                    th:text="*{valorTotal != null ? #numbers.formatCurrency(valorTotal) : 'R$ 0,00'}"></dd>
+                                    th:text="*{valorTotal != null ? #numbers.formatCurrency(valorTotal) : 'R$ 0,00'}">
+                                </dd>
+                                <dt class="col-sm-3" th:if="${creditoTrue}">Crédito Utilizado no Pagamento:</dt>
+                                <dd class="col-sm-9 h5 fw-bold text-success" th:if="${creditoTrue}"
+                                    th:text="${valorPagoCredito != null ? #numbers.formatCurrency(valorPagoCredito) : 'R$ 0,00'}"></dd>
+                                <dt class="col-sm-3" th:if="${creditoTrue}">Valor Total Pago:</dt>
+                                <dd class="col-sm-9 h5 fw-bold text-success" th:if="${creditoTrue}"
+                                    th:text="${valorTotalCredito != null ? #numbers.formatCurrency(valorTotalCredito) : 'R$ 0,00'}"></dd>
+
                             </dl>
                             <div class="pt-3 mt-4 border-top d-flex justify-content-start gap-2">
                                 <a class="btn btn-outline-secondary" th:href="@{/ordem-servico}"><i

@@ -54,6 +54,7 @@ public class ContaReceberController {
         return "contaReceber/formContaRecAvulsa";
     }
 
+
     @GetMapping("/visualizar/{id}")
     public String visualizarContaReceber(@PathVariable Long id, Model model) {
         model.addAttribute("contaReceber", contaReceberService.findCrById(id));
@@ -86,26 +87,25 @@ public class ContaReceberController {
         return "redirect:/contas-receber";
     }
 
-    @PostMapping("/cancelar/{id}")
-    public String modalPagamento(@PathVariable Long id,
-                                 RedirectAttributes redirectAttributes) {
-        contaReceberService.cancelarContaReceber(id);
-        ContaReceber cr = contaReceberService.findCrById(id);
+    @GetMapping("/cancelar/{id}")
+    public String cancelarContaReceber(@PathVariable Long id, Model model) {
+        model.addAttribute("contaReceber", contaReceberService.findCrById(id));
+        return "contaReceber/formCancelamento";
+    }
+
+    @PostMapping("/cancelar-confirmado/{id}")
+    public String cancelarConfirmadoContaReceber(@PathVariable Long id,
+                                                 @RequestParam("acaoFinanceira") String acaoFinanceira) {
+        contaReceberService.cancelarContaReceberAvulsa(id, acaoFinanceira);
+        return "redirect:/contas-receber";
+    }
+
+    @PostMapping("/salvar-avulsa")
+    public String salvarContaReceberAvulsa(@ModelAttribute("contaReceber") ContaReceber contaReceber,
+                                           RedirectAttributes redirectAttributes) {
+        contaReceberService.criarContaReceberAvulsa(contaReceber);
+        redirectAttributes.addFlashAttribute("mensagem", "Conta Receber criada com sucesso!");
         redirectAttributes.addFlashAttribute("conta_recebida_mensagem", true);
-        if (cr.getStatus().equals(StatusConta.PENDENTE)) {
-            if (cr.getOrdemServico().getPlanoPagamento().equals(PlanoPagamento.AVISTA)) {
-                redirectAttributes.addFlashAttribute("mensagem", "Estorno do recebimento da parcela [" + id + "] realizado com sucesso." +
-                        " Um total de " + JavaUtils.formatMonetaryString(cr.getValor()) + " foi retirado do caixa." +
-                        " A parcela agora consta como 'Pendente'.");
-            } else {
-                redirectAttributes.addFlashAttribute("mensagem", "Estorno do recebimento da parcela [" + id + "] realizado com sucesso." +
-                        " Um total de " + JavaUtils.formatMonetaryString(cr.getValor()) + " foi adicionado como crédito com o fornecedor." +
-                        " A parcela agora consta como 'Pendente'.");
-            }
-        } else if (cr.getStatus().equals(StatusConta.CANCELADO)) {
-            redirectAttributes.addFlashAttribute("mensagem", "Parcela [" + id + "] cancelada com sucesso." +
-                    " A parcela agora consta como 'Cancelado'.");
-        }
         return "redirect:/contas-receber";
     }
 }

@@ -213,6 +213,7 @@
                                     <th>Conta Receber Id</th>
                                     <th>Origem Id</th>
                                     <th>Origem Tipo</th>
+                                    <th>Plano De Contas</th>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -221,14 +222,15 @@
                                     <td th:text="${#numbers.formatCurrency(mov.valor)}"></td>
                                     <td th:text="${#temporals.format(mov.dataMovimentacao, 'dd/MM/yyyy HH:mm')}"></td>
                                     <td th:text="${mov.tipo.descricao}"></td>
-                                    <td th:text="${mov.descricao}"></td>
+                                    <td th:text="${!mov.descricao.isEmpty() ? mov.descricao : 'N/A'}"></td>
                                     <td th:text="${mov.contaPagar != null ? mov.contaPagar.id : 'N/A'}"></td>
                                     <td th:text="${mov.contaReceber != null ? mov.contaReceber.id : 'N/A'}"></td>
                                     <td th:text="${mov.origemId != null ? mov.origemId : 'N/A'}"></td>
                                     <td th:text="${mov.origemTipo != null ? mov.origemTipo : 'N/A'}"></td>
+                                    <td th:text="${mov.planoDeContas.codigo + ' - ' +  mov.planoDeContas.descricao}"></td>
                                 </tr>
                                 <tr th:if="${listaMovimentacao == null or #lists.isEmpty(listaMovimentacao)}">
-                                    <td colspan="9" class="text-center">Nenhuma movimentação encontrada para este
+                                    <td colspan="10" class="text-center">Nenhuma movimentação encontrada para este
                                         caixa.
                                     </td>
                                 </tr>

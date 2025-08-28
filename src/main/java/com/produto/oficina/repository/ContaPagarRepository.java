@@ -11,4 +11,6 @@ public interface ContaPagarRepository extends JpaRepository<ContaPagar, Long> {
 
 
     List<ContaPagar> findAllByCompra_Id(Long compraId);
+
+    List<ContaPagar> findByDespesaAvulsaId(Long despesaAvulsaId);
 }

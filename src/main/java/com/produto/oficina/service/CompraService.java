@@ -51,8 +51,8 @@ public class CompraService {
         if (compra != null) {
             Compra novaCompra = dtoToClass(compra);
 
-            PlanoDeContas contaFornecedores = planoDeContasRepository.findByCodigo("4.01.01") // Exemplo
-                    .orElseThrow(() -> new RuntimeException("Conta 'Fornecedores' (4.01.01) não encontrada no Plano de Contas."));
+            PlanoDeContas contaFornecedores = planoDeContasRepository.findByCodigo("2.1.1") // Exemplo
+                    .orElseThrow(() -> new RuntimeException("Conta 'Fornecedores' (2.1.1) não encontrada no Plano de Contas."));
 
             List<ContaPagar> contasPagar = new ArrayList<>();
             ContaPagar contaPagar;
@@ -121,6 +121,7 @@ public class CompraService {
                 novoMovimento.setDataMovimentacao(LocalDateTime.now());
                 novoMovimento.setTipo(TipoMovimentacao.SAIDA);
                 novoMovimento.setContaPagar(novaCompra.getContaPagars().getFirst());
+                novoMovimento.setPlanoDeContas(contaFornecedores);
                 novoMovimento.setValor(novaCompra.getValorTotal());
                 novoMovimento.setDescricao("Compra de produtos realizada em " + novaCompra.getDataCompra().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) + ".");
                 caixaAtual.getMovimentacoes().add(novoMovimento);
@@ -231,8 +232,8 @@ public class CompraService {
                 }
             }
 
-            PlanoDeContas contaFornecedores = planoDeContasRepository.findByCodigo("4.01.01")
-                    .orElseThrow(() -> new RuntimeException("Conta 'Fornecedores' (4.01.01) não encontrada."));
+            PlanoDeContas contaFornecedores = planoDeContasRepository.findByCodigo("2.1.1")
+                    .orElseThrow(() -> new RuntimeException("Conta 'Fornecedores' (2.1.1) não encontrada."));
 
             for (ItemCompra item : compra.getItens()) {
                 Produto prodAtual = produtoService.findById(item.getProduto().getId());

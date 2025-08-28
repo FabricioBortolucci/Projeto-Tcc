@@ -6,6 +6,7 @@ import com.produto.oficina.model.enums.StatusConta;
 import com.produto.oficina.model.enums.TipoMovimentacao;
 import com.produto.oficina.model.enums.TipoPagamento;
 import com.produto.oficina.repository.ContaReceberRepository;
+import com.produto.oficina.repository.LancamentoFinanceiroRepository;
 import com.produto.oficina.repository.OrdemServicoRepository;
 import com.produto.oficina.repository.PlanoDeContasRepository;
 import org.springframework.data.domain.Page;
@@ -14,8 +15,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -28,13 +31,15 @@ public class ContaReceberService {
     private final CaixaService caixaService;
     private final PessoaService pessoaService;
     private final PlanoDeContasRepository planoDeContasRepository;
+    private final LancamentoFinanceiroRepository lancamentoFinanceiroRepository;
 
-    public ContaReceberService(ContaReceberRepository contaReceberRepository, OrdemServicoRepository ordemServicoRepository, CaixaService caixaService, PessoaService pessoaService, PlanoDeContasRepository planoDeContasRepository) {
+    public ContaReceberService(ContaReceberRepository contaReceberRepository, OrdemServicoRepository ordemServicoRepository, CaixaService caixaService, PessoaService pessoaService, PlanoDeContasRepository planoDeContasRepository, LancamentoFinanceiroRepository lancamentoFinanceiroRepository) {
         this.contaReceberRepository = contaReceberRepository;
         this.ordemServicoRepository = ordemServicoRepository;
         this.caixaService = caixaService;
         this.pessoaService = pessoaService;
         this.planoDeContasRepository = planoDeContasRepository;
+        this.lancamentoFinanceiroRepository = lancamentoFinanceiroRepository;
     }
 
     public Page<ContaReceber> findAll(Pageable pageable) {
@@ -50,16 +55,30 @@ public class ContaReceberService {
     }
 
     public boolean verificaContaReceberLegivel(ContaReceber contaReceber) {
-        OrdemServico os = ordemServicoRepository.findById(contaReceber.getOrdemServico().getId()).get();
-        os.getContaRecebers().sort(Comparator.comparing(ContaReceber::getNumeroParcela));
-        for (ContaReceber cr : os.getContaRecebers()) {
-            if (!cr.getNumeroParcela().equals(contaReceber.getNumeroParcela())) {
-                if (!cr.getStatus().equals(StatusConta.PAGO)) {
-                    return true;
+        if (contaReceber.getOrdemServico() != null) {
+            OrdemServico os = ordemServicoRepository.findById(contaReceber.getOrdemServico().getId()).get();
+            os.getContaRecebers().sort(Comparator.comparing(ContaReceber::getNumeroParcela));
+            for (ContaReceber cr : os.getContaRecebers()) {
+                if (!cr.getNumeroParcela().equals(contaReceber.getNumeroParcela())) {
+                    if (!cr.getStatus().equals(StatusConta.PAGO)) {
+                        return true;
+                    }
+                } else {
+                    if (contaReceber.getStatus().equals(StatusConta.PENDENTE)) {
+                        return false;
+                    }
                 }
-            } else {
-                if (contaReceber.getStatus().equals(StatusConta.PENDENTE)) {
-                    return false;
+            }
+        } else {
+            for (int i = 1; i <= contaReceber.getTotalParcelas(); i++) {
+                if (i != contaReceber.getNumeroParcela()) {
+                    if (!contaReceber.getStatus().equals(StatusConta.PAGO)) {
+                        return true;
+                    }
+                } else {
+                    if (contaReceber.getStatus().equals(StatusConta.PENDENTE)) {
+                        return false;
+                    }
                 }
             }
         }
@@ -78,78 +97,133 @@ public class ContaReceberService {
             cr.setStatus(StatusConta.PAGO);
             cr = contaReceberRepository.save(cr);
             if (cr.getTipoPagamento().equals(TipoPagamento.PIX) || cr.getTipoPagamento().equals(TipoPagamento.DINHEIRO)) {
-                movimentaCaixaContaReceber(cr, TipoMovimentacao.ENTRADA);
+                movimentaCaixaContaReceber(cr, TipoMovimentacao.ENTRADA, contaReceber.getOrdemServico() == null);
             }
         }
     }
 
     @Transactional
-    public void movimentaCaixaContaReceber(ContaReceber contaReceber, TipoMovimentacao tipoMovimentacao) {
+    public void movimentaCaixaContaReceber(ContaReceber contaReceber, TipoMovimentacao tipoMovimentacao, boolean avulsa) {
         MovimentacaoCaixa mv = new MovimentacaoCaixa();
         Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
         mv.setCaixa(caixaAtual);
         mv.setContaReceber(contaReceber);
         mv.setTipo(tipoMovimentacao);
-        mv.setValor(contaReceber.getValorRecebido() == null ? contaReceber.getValor() : contaReceber.getValorRecebido());
         mv.setDataMovimentacao(LocalDateTime.now());
         mv.setOrigemId(contaReceber.getId());
-        mv.setOrigemTipo("PAGAMENTO_CONTA_RECEBER");
-        if (contaReceber.getOrdemServico() != null) {
-            PlanoDeContas contaContasReceber = planoDeContasRepository.findByCodigo("3.01.03")
-                    .orElseThrow(() -> new RuntimeException("Conta 'Contas a Receber de Clientes' (3.01.03) não encontrada."));
-
+        if (contaReceber.getOrdemServico() != null && !avulsa) {
+            mv.setValor(contaReceber.getValorRecebido() == null ? contaReceber.getValor() : contaReceber.getValorRecebido());
+            PlanoDeContas contaContasReceber = planoDeContasRepository.findByCodigo("1.1.2.01")
+                    .orElseThrow(() -> new RuntimeException("Conta 'Contas a Receber de Clientes' (1.1.2.01) não encontrada."));
             mv.setPlanoDeContas(contaContasReceber);
         } else {
+            BigDecimal valorTotalJaPago = BigDecimal.ZERO;
+            List<ContaReceber> todasAsParcelasDaVenda = contaReceberRepository.findByVendaAvulsaId(contaReceber.getVendaAvulsaId());
+            for (ContaReceber parcela : todasAsParcelasDaVenda) {
+                if (parcela.getStatus() == StatusConta.PAGO) {
+                    valorTotalJaPago = valorTotalJaPago.add(parcela.getValorRecebido());
+                }
+            }
+            mv.setValor(valorTotalJaPago);
             mv.setPlanoDeContas(contaReceber.getPlanoDeContas());
         }
-
         if (tipoMovimentacao.equals(TipoMovimentacao.ENTRADA)) {
-            mv.setDescricao("Recebimento da Conta a Receber ID " + contaReceber.getId() + ", Cliente: " + contaReceber.getCliente().getPesNome());
+            mv.setDescricao("Recebimento da Conta a Receber ID " + contaReceber.getId());
+            mv.setOrigemTipo("PAGAMENTO_CONTA_RECEBER");
         } else if (tipoMovimentacao.equals(TipoMovimentacao.SAIDA)) {
-            mv.setDescricao("Cancelamento da Conta a Receber ID " + contaReceber.getId() + ", Cliente: " + contaReceber.getCliente().getPesNome());
+            mv.setDescricao("Cancelamento da Conta a Receber ID " + contaReceber.getId());
+            mv.setOrigemTipo("CANCELAMENTO_CONTA_RECEBER");
         }
         caixaAtual.getMovimentacoes().add(mv);
         caixaService.salvarCaixaAposMovimento(caixaAtual);
     }
 
+
     @Transactional
-    public void cancelarContaReceber(Long id) {
-        ContaReceber contaReceber = contaReceberRepository.findById(id).get();
-        OrdemServico ordemServico = ordemServicoRepository.findById(contaReceber.getOrdemServico().getId()).get();
-        if (contaReceber.getStatus().equals(StatusConta.PENDENTE)) {
-            contaReceber.setStatus(StatusConta.CANCELADO);
-            String obsOriginalPendente = contaReceber.getObservacao() != null ? contaReceber.getObservacao() : "";
-            contaReceber.setObservacao(obsOriginalPendente + " [Cancelada em " +
-                    JavaUtils.formatLocalDate(LocalDate.now()) + " por " +
-                    pessoaService.buscaUsuarioLogado().getUsuNome() + "]");
+    public void criarContaReceberAvulsa(ContaReceber dadosDoFormulario) {
+        LancamentoFinanceiro lancamentoReceita = new LancamentoFinanceiro(
+                "Receita avulsa: " + (dadosDoFormulario.getObservacao() != null ? dadosDoFormulario.getObservacao() : dadosDoFormulario.getPlanoDeContas().getDescricao()),
+                dadosDoFormulario.getValor(),
+                LocalDate.now(),
+                dadosDoFormulario.getPlanoDeContas(),
+                null
+        );
+        lancamentoFinanceiroRepository.save(lancamentoReceita);
 
-        } else if (contaReceber.getStatus().equals(StatusConta.PAGO)) {
-            if (contaReceber.getTipoPagamento().equals(TipoPagamento.DINHEIRO) ||
-                    contaReceber.getTipoPagamento().equals(TipoPagamento.PIX) ||
-                    contaReceber.getTipoPagamento().equals(TipoPagamento.BOLETO)) {
-                movimentaCaixaContaReceber(contaReceber, TipoMovimentacao.SAIDA);
-            } else {
-                Pessoa cliente = pessoaService.buscaClientePorId(contaReceber.getCliente().getId());
-                BigDecimal valorEstornar = contaReceber.getValorRecebido() != null ? contaReceber.getValorRecebido() : BigDecimal.ZERO;
-                BigDecimal valorCredito = cliente.getPesCredito() != null ? cliente.getPesCredito() : BigDecimal.ZERO;
-                cliente.setPesCredito(valorCredito.add(valorEstornar));
+        List<ContaReceber> parcelasParaSalvar = new ArrayList<>();
+        BigDecimal valorParcela = dadosDoFormulario.getValor().divide(BigDecimal.valueOf(dadosDoFormulario.getTotalParcelas()), RoundingMode.HALF_UP);
 
-                String observacaoOriginal = contaReceber.getObservacao() != null ? contaReceber.getObservacao() : "";
-                String detalheEstorno = " [Recebimento de " +
-                        (contaReceber.getDataRecebimento() != null ? JavaUtils.formatLocalDate(contaReceber.getDataRecebimento()) : "data desconhecida") +
-                        " no valor de " + JavaUtils.formatMonetaryString(valorEstornar) +
-                        " reembolsado em " + JavaUtils.formatLocalDate(LocalDate.now()) +
-                        " por usuário " + pessoaService.buscaUsuarioLogado().getUsuNome() +
-                        ". Valor convertido em crédito com fornecedor.]";
-                contaReceber.setObservacao(observacaoOriginal.isEmpty() ? detalheEstorno.trim() : observacaoOriginal + detalheEstorno);
-
-                pessoaService.salvarEdit(cliente);
-            }
-            contaReceber.setStatus(StatusConta.PENDENTE);
-            contaReceber.setDataRecebimento(null);
-            contaReceber.setTipoPagamento(null);
-            contaReceber.setValorRecebido(BigDecimal.ZERO);
+        for (int i = 1; i <= dadosDoFormulario.getTotalParcelas(); i++) {
+            ContaReceber parcela = new ContaReceber();
+            parcela.setCliente(dadosDoFormulario.getCliente());
+            parcela.setValor(valorParcela);
+            parcela.setDataVencimento(dadosDoFormulario.getDataVencimento().plusMonths(i - 1));
+            parcela.setStatus(StatusConta.PENDENTE);
+            parcela.setValorRecebido(BigDecimal.ZERO);
+            parcela.setNumeroParcela(i);
+            parcela.setPlanoDeContas(dadosDoFormulario.getPlanoDeContas());
+            parcela.setValorTotalOriginal(dadosDoFormulario.getValor());
+            parcela.setTotalParcelas(dadosDoFormulario.getTotalParcelas());
+            parcela.setValor(valorParcela);
+            parcelasParaSalvar.add(parcela);
         }
-        contaReceberRepository.save(contaReceber);
+
+        List<ContaReceber> parcelasSalvas = contaReceberRepository.saveAll(parcelasParaSalvar);
+
+        Long idDaVenda = parcelasSalvas.getFirst().getId();
+        for (ContaReceber p : parcelasSalvas) {
+            p.setVendaAvulsaId(idDaVenda);
+        }
+        contaReceberRepository.saveAll(parcelasSalvas);
     }
+
+    @Transactional
+    public void cancelarContaReceberAvulsa(Long umaParcelaId, String acaoFinanceira) {
+        ContaReceber umaDasParcelas = contaReceberRepository.findById(umaParcelaId)
+                .orElseThrow(() -> new RuntimeException("Conta a Receber com ID " + umaParcelaId + " não encontrada."));
+
+        if (umaDasParcelas.getOrdemServico() != null || umaDasParcelas.getVendaAvulsaId() == null) {
+            throw new IllegalStateException("Esta operação é válida apenas para Contas a Receber avulsas e parceladas.");
+        }
+
+        List<ContaReceber> todasAsParcelasDaVenda = contaReceberRepository.findByVendaAvulsaId(umaDasParcelas.getVendaAvulsaId());
+
+        BigDecimal valorTotalOriginalDaVenda = BigDecimal.ZERO;
+        BigDecimal valorTotalJaPago = BigDecimal.ZERO;
+
+        for (ContaReceber parcela : todasAsParcelasDaVenda) {
+            valorTotalOriginalDaVenda = valorTotalOriginalDaVenda.add(parcela.getValor());
+            if (parcela.getStatus() == StatusConta.PAGO) {
+                valorTotalJaPago = valorTotalJaPago.add(parcela.getValorRecebido());
+            }
+            if ("GERAR_CREDITO".equals(acaoFinanceira)) {
+                parcela.setStatus(StatusConta.CANCELADO_CREDITO);
+            } else if ("REEMBOLSAR".equals(acaoFinanceira)) {
+                parcela.setStatus(StatusConta.CANCELADO_REEMBOLSO);
+            } else {
+                parcela.setStatus(StatusConta.CANCELADO);
+            }
+        }
+
+        LancamentoFinanceiro estornoReceita = new LancamentoFinanceiro(
+                "Estorno da Venda Avulsa (originada pela CR #" + umaParcelaId + ")",
+                umaDasParcelas.getValorTotalOriginal().negate(),
+                LocalDate.now(),
+                umaDasParcelas.getPlanoDeContas(),
+                null
+        );
+        lancamentoFinanceiroRepository.save(estornoReceita);
+
+        if (valorTotalJaPago.compareTo(BigDecimal.ZERO) > 0) {
+            if ("GERAR_CREDITO".equals(acaoFinanceira)) {
+                Pessoa cliente = umaDasParcelas.getCliente();
+                BigDecimal creditoAtual = cliente.getPesCredito() != null ? cliente.getPesCredito() : BigDecimal.ZERO;
+                cliente.setPesCredito(creditoAtual.add(valorTotalJaPago));
+                pessoaService.salvarEdit(cliente);
+            } else if ("REEMBOLSAR".equals(acaoFinanceira)) {
+                movimentaCaixaContaReceber(umaDasParcelas, TipoMovimentacao.SAIDA, true);
+            }
+        }
+    }
+
 }

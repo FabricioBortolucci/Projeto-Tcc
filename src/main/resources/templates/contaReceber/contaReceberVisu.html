@@ -140,6 +140,9 @@
                                 <dt class="col-sm-3">Data de Vencimento:</dt>
                                 <dd class="col-sm-9"
                                     th:text="*{dataVencimento != null ? #temporals.format(dataVencimento, 'dd/MM/yyyy') : 'N/A'}"></dd>
+                                <dt class="col-sm-3">Valor Total:</dt>
+                                <dd class="col-sm-9 fw-bold"
+                                    th:text="*{valor != null ? #numbers.formatCurrency(valor.multiply(totalParcelas)) : 'R$ 0,00'}"></dd>
                                 <dt class="col-sm-3">Valor a Receber:</dt>
                                 <dd class="col-sm-9 fw-bold"
                                     th:text="*{valor != null ? #numbers.formatCurrency(valor) : 'R$ 0,00'}"></dd>

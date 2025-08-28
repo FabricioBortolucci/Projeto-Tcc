@@ -46,7 +46,7 @@ public class ProdutoController {
         model.addAttribute("produto", new Produto());
         model.addAttribute("tipo_lista", ProdutoTipo.values());
         model.addAttribute("contasEstoque", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.ATIVO));
-        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorCodigo("2.01"));
+        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.CUSTO));
         model.addAttribute("contasReceita", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.RECEITA));
         return "produto/prodForm";
     }
@@ -71,7 +71,7 @@ public class ProdutoController {
         model.addAttribute("produto", prod);
         model.addAttribute("tipo_lista", ProdutoTipo.values());
         model.addAttribute("contasEstoque", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.ATIVO));
-        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorCodigo("2.01"));
+        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.CUSTO));
         model.addAttribute("contasReceita", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.RECEITA));
         return "produto/prodForm";
     }

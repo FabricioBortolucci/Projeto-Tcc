@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface ContaReceberRepository extends JpaRepository<ContaReceber, Long> {
     List<ContaReceber> findAllByOrdemServico_Id(Long ordemServicoId);
+
+    List<ContaReceber> findByVendaAvulsaId(Long vendaAvulsaId);
 }

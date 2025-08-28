@@ -27,12 +27,14 @@ public class ContaPagarController {
     private final CaixaService caixaService;
     private final PlanoDeContasService planoDeContasService;
     private final PessoaService pessoaService;
+    private final ContaReceberService contaReceberService;
 
-    public ContaPagarController(ContaPagarService contaPagarService, CaixaService caixaService, PlanoDeContasService planoDeContasService, PessoaService pessoaService) {
+    public ContaPagarController(ContaPagarService contaPagarService, CaixaService caixaService, PlanoDeContasService planoDeContasService, PessoaService pessoaService, ContaReceberService contaReceberService) {
         this.contaPagarService = contaPagarService;
         this.caixaService = caixaService;
         this.planoDeContasService = planoDeContasService;
         this.pessoaService = pessoaService;
+        this.contaReceberService = contaReceberService;
     }
 
 
@@ -60,7 +62,7 @@ public class ContaPagarController {
                 NaturezaContaPlanoContas.CUSTO,
                 NaturezaContaPlanoContas.PASSIVO
         );
-        model.addAttribute("contasDeDespesa", planoDeContasService.buscarContasIn(TipoContaPlanoContas.ANALITICA, naturezasDeSaida));
+        model.addAttribute("planoDeContas", planoDeContasService.buscarContasIn(TipoContaPlanoContas.ANALITICA, naturezasDeSaida));
         model.addAttribute("fornecedores", pessoaService.buscaFornecedores());
         return "contaPagar/formContaPagAvulsa";
     }
@@ -91,21 +93,25 @@ public class ContaPagarController {
         return "redirect:/contas-pagar";
     }
 
-    @PostMapping("/cancelar/{id}")
-    public String modalPagamento(@PathVariable Long id,
-                                 RedirectAttributes redirectAttributes) {
-        contaPagarService.cancelarContaPagar(id);
-        ContaPagar cp = contaPagarService.findCpById(id);
-        redirectAttributes.addFlashAttribute("conta_paga_mensagem", true);
-        if (cp.getStatus().equals(StatusConta.PENDENTE)) {
-            redirectAttributes.addFlashAttribute("mensagem", "Estorno do pagamento da parcela [" + id + "] realizado com sucesso." +
-                    " Um total de " + JavaUtils.formatMonetaryString(cp.getValor()) + " foi adicionado como crédito com o fornecedor." +
-                    " A parcela agora consta como 'Pendente'.");
-        } else if (cp.getStatus().equals(StatusConta.CANCELADO)) {
-            redirectAttributes.addFlashAttribute("mensagem", "Parcela [" + id + "] cancelada com sucesso." +
-                    " A parcela agora consta como 'Cancelado'.");
-        }
+    @GetMapping("/cancelar/{id}")
+    public String cancelarContaPagar(@PathVariable Long id,
+                                     Model model) {
+        model.addAttribute("contaPagar", contaPagarService.findCpById(id));
+        return "contaPagar/formCancelamento";
+    }
+
+    @PostMapping("/cancelar-confirmado/{id}")
+    public String cancelarConfirmadoContaPagar(@PathVariable Long id) {
+        contaPagarService.cancelarContaPagarAvulsa(id);
         return "redirect:/contas-pagar";
     }
 
+    @PostMapping("/salvar-avulsa")
+    public String salvarContaPagarAvulsa(@ModelAttribute("contaPagar") ContaPagar contaPagar,
+                                         RedirectAttributes redirectAttributes) {
+        contaPagarService.criarContaPagarAvulsa(contaPagar);
+        redirectAttributes.addFlashAttribute("mensagem", "Conta Pagar criada com sucesso!");
+        redirectAttributes.addFlashAttribute("conta_paga_mensagem", true);
+        return "redirect:/contas-pagar";
+    }
 }

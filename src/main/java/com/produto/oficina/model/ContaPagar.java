@@ -70,6 +70,9 @@ public class ContaPagar implements Comparable<ContaPagar> {
     @JoinColumn(name = "plano_contas_id")
     private PlanoDeContas planoDeContas;
 
+    @Column(name = "despesa_avulsa_id")
+    private Long despesaAvulsaId;
+
     public ContaPagar(Long id, BigDecimal valor, LocalDate dataVencimento, LocalDate dataPagamento, Integer numeroParcela, Integer totalParcelas, BigDecimal valorTotalOriginal, TipoPagamento tipoPagamento, StatusConta status, Pessoa fornecedor, Compra compra, String observacao) {
         this.id = id;
         this.valor = valor;

@@ -128,7 +128,7 @@ public class CaixaController extends AbstractController {
 
     @PostMapping("/editar/movimentarFundos")
     public String addFundos(@ModelAttribute MovimentacaoCaixa movimento,
-                            @RequestParam("clienteSelect") Long idCliente,
+                            @RequestParam(value = "clienteSelect", required = false) Long idCliente,
                             RedirectAttributes redirectAttributes,
                             Model model) {
         mvService.salvarMovimentacao(movimento, caixaId, idCliente);

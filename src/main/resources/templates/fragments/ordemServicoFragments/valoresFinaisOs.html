@@ -1,0 +1,9 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="valoresFinais">
+    <span id="valorRestanteAPagar" th:text="${#numbers.formatCurrency(novoTotalAPagar)}"></span>
+    <input type="hidden" id="valorParaParcelar" name="valorParaParcelar" th:value="${novoTotalAPagar}"/>
+</th:block>
+</body>
+</html>

@@ -1,9 +1,11 @@
 package com.produto.oficina.controller;
 
+import com.produto.oficina.model.ContaReceber;
 import com.produto.oficina.model.OrdemServico;
 import com.produto.oficina.model.Produto;
 import com.produto.oficina.model.Servico;
 import com.produto.oficina.model.enums.PlanoPagamento;
+import com.produto.oficina.model.enums.StatusOS;
 import com.produto.oficina.model.enums.TipoPagamento;
 import com.produto.oficina.service.*;
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,7 +50,7 @@ public class OrdemServicoController extends AbstractController {
     public String osList(Model model,
                          @RequestParam(defaultValue = "0") int page,
                          @RequestParam(defaultValue = "5") int size) {
-        Page<OrdemServico> osPage = osService.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC,  "id")));
+        Page<OrdemServico> osPage = osService.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id")));
         model.addAttribute("ordemServicoPage", osPage);
         model.addAttribute("currentPage", page);
         return "ordemServico/osList";
@@ -81,6 +83,16 @@ public class OrdemServicoController extends AbstractController {
 
     @GetMapping("/visualizar/{id}")
     public String visualizar(Model model, @PathVariable Long id) {
+        OrdemServico os = osService.findById(id);
+        BigDecimal total = BigDecimal.ZERO;
+        for (ContaReceber cr : os.getContaRecebers()) {
+            total = total.add(cr.getValor());
+        }
+        if (!total.equals(os.getValorTotal()) && os.getStatus().equals(StatusOS.FINALIZADA)) {
+            model.addAttribute("creditoTrue", true);
+            model.addAttribute("valorPagoCredito", os.getValorTotal().subtract(total));
+            model.addAttribute("valorTotalCredito", total);
+        }
         model.addAttribute("os", osService.findById(id));
         return "ordemServico/osVisu";
     }
@@ -131,8 +143,10 @@ public class OrdemServicoController extends AbstractController {
     }
 
     @PostMapping("/finalizar-confirmado")
-    public String finalizarConfirmarOs(@ModelAttribute("os") OrdemServico ordemServico, RedirectAttributes redirectAttributes) {
-        osService.finalizarOs(ordemServico);
+    public String finalizarConfirmarOs(@ModelAttribute("os") OrdemServico ordemServico,
+                                       @RequestParam(value = "creditoUtilizado", required = false) BigDecimal creditoUtilizado,
+                                       RedirectAttributes redirectAttributes) {
+        osService.finalizarOs(ordemServico, creditoUtilizado);
         redirectAttributes.addFlashAttribute("os_mensagem_sucesso", "O.S finalizada com sucesso!");
         return "redirect:/ordem-servico";
     }
@@ -221,13 +235,21 @@ public class OrdemServicoController extends AbstractController {
     }
 
     @GetMapping("/gerar-parcelas")
-    public String gerarPagamentos(@ModelAttribute("os") OrdemServico ordemServico, Model model) {
+    public String gerarPagamentos(@ModelAttribute("os") OrdemServico ordemServico,
+                                  @RequestParam(value = "valorParaParcelar", required = false) BigDecimal valorParaParcelar,
+                                  Model model) {
         if (ordemServico.getQuantParcelas() < 1 || ordemServico.getQuantParcelas() > 12 || ordemServico.getCalculaTotalProdsItens().add(ordemServico.getCalculaTotalServicoItens()).compareTo(BigDecimal.ZERO) <= 0) {
             return "fragments/ordemServicoFragments/osReplace :: listaParcelas";
         }
         ordemServico.setParcelas(new ArrayList<>());
-        for (int i = 1; i <= ordemServico.getQuantParcelas(); i++) {
-            ordemServico.getParcelas().add((ordemServico.getCalculaTotalProdsItens().add(ordemServico.getCalculaTotalServicoItens())).divide(BigDecimal.valueOf(ordemServico.getQuantParcelas()), RoundingMode.HALF_UP));
+        if (valorParaParcelar != null && valorParaParcelar.compareTo(BigDecimal.ZERO) > 0) {
+            for (int i = 1; i <= ordemServico.getQuantParcelas(); i++) {
+                ordemServico.getParcelas().add(valorParaParcelar.divide(BigDecimal.valueOf(ordemServico.getQuantParcelas()), RoundingMode.HALF_UP));
+            }
+        } else {
+            for (int i = 1; i <= ordemServico.getQuantParcelas(); i++) {
+                ordemServico.getParcelas().add((ordemServico.getCalculaTotalProdsItens().add(ordemServico.getCalculaTotalServicoItens())).divide(BigDecimal.valueOf(ordemServico.getQuantParcelas()), RoundingMode.HALF_UP));
+            }
         }
         model.addAttribute("os", ordemServico);
         return "fragments/ordemServicoFragments/osReplace :: listaParcelas";
@@ -257,4 +279,20 @@ public class OrdemServicoController extends AbstractController {
         return "redirect:/ordem-servico";
     }
 
+    @PostMapping("/finalizar/recalcular-total")
+    public String recalcularTotalParaFinalizacao(
+            @RequestParam("valorTotalOriginal") BigDecimal valorTotalOriginal,
+            @RequestParam(name = "creditoUtilizado", required = false) BigDecimal creditoUtilizado,
+            Model model) {
+
+        BigDecimal creditoAplicado = (creditoUtilizado != null) ? creditoUtilizado : BigDecimal.ZERO;
+        BigDecimal novoTotal = valorTotalOriginal.subtract(creditoAplicado);
+
+        if (novoTotal.compareTo(BigDecimal.ZERO) < 0) {
+            novoTotal = BigDecimal.ZERO;
+        }
+
+        model.addAttribute("novoTotalAPagar", novoTotal);
+        return "fragments/ordemServicoFragments/valoresFinaisOs :: valoresFinais";
+    }
 }

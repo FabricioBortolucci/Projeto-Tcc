@@ -68,7 +68,7 @@
                                     class="text-danger">*</span></label>
                             <select id="planoContasSelect" class="form-select" th:field="*{planoDeContas}" required>
                                 <option value="">Selecione uma conta de despesa...</option>
-                                <option th:each="conta : ${contasDeDespesa}"
+                                <option th:each="conta : ${planoDeContas}"
                                         th:value="${conta.id}"
                                         th:text="${conta.codigo + ' - ' + conta.descricao}"
                                         th:disabled="${#strings.equals(conta.tipoConta, 'SINTETICA')}"></option>

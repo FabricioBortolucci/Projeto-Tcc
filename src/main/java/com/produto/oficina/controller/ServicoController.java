@@ -40,7 +40,7 @@ public class ServicoController extends AbstractController {
     public String servicoForm(Model model) {
         model.addAttribute("servico", new Servico());
         model.addAttribute("contasReceita", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.RECEITA));
-        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorCodigo("2.01"));
+        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.CUSTO));
         return "servico/servForm";
     }
 
@@ -63,7 +63,7 @@ public class ServicoController extends AbstractController {
     public String servicoEditar(@PathVariable Long index, Model model) {
         model.addAttribute("servico", servicoService.buscaServico(index));
         model.addAttribute("contasReceita", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.RECEITA));
-        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorCodigo("2.01"));
+        model.addAttribute("contasCusto", planoDeContasService.buscarContasPorNatureza(NaturezaContaPlanoContas.CUSTO));
         return "servico/servForm";
     }
 

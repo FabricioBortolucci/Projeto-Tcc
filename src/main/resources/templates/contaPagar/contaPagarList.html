@@ -97,7 +97,7 @@
                 </thead>
                 <tbody>
                 <tr th:if="${contaPagarPage == null or contaPagarPage.isEmpty()}">
-                    <td colspan="8" class="text-muted p-3">Nenhuma conta a pagar encontrada.</td>
+                    <td colspan="10" class="text-muted p-3">Nenhuma conta a pagar encontrada.</td>
                 </tr>
                 <tr th:each="conta : ${contaPagarPage.content}">
                     <td th:text="${conta.id}"></td>
@@ -138,14 +138,12 @@
                                title="Visualizar Conta">
                                 <i class="bi bi-eye-fill"></i>
                             </a>
-                            <form th:if="${conta.compra == null}"
-                                  th:action="@{/contas-pagar/cancelar/{id}(id=${conta.id})}" method="post"
-                                  class="d-inline-block">
-                                <button class="btn btn-danger btn-sm" type="submit"
-                                        title="Cancelar Conta">
-                                    <i class="bi bi-x-octagon-fill"></i>
-                                </button>
-                            </form>
+                            <a th:if="${conta.compra == null and !#strings.equals(conta.status, 'CANCELADO')}"
+                               th:href="@{/contas-pagar/cancelar/{id}(id=${conta.id})}"
+                               class="btn btn-danger btn-sm" type="submit"
+                               title="Cancelar Conta">
+                                <i class="bi bi-x-octagon-fill"></i>
+                            </a>
                         </div>
                     </td>
                 </tr>

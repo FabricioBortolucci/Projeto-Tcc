@@ -97,7 +97,7 @@
                 </thead>
                 <tbody>
                 <tr th:if="${ordemServicoPage == null or ordemServicoPage.isEmpty()}">
-                    <td colspan="8" class="text-muted p-3">Nenhuma Ordem de Serviço encontrada.</td>
+                    <td colspan="11" class="text-muted p-3">Nenhuma Ordem de Serviço encontrada.</td>
                 </tr>
                 <tr th:each="os : ${ordemServicoPage.content}">
                     <td th:text="${os.id}"></td>
