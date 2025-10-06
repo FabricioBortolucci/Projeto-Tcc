@@ -16,7 +16,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.DateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +40,11 @@ public class RelatorioController extends AbstractController {
     @GetMapping("/dre")
     public String dre(Model model) {
         return "relatorios/dre";
+    }
+
+    @GetMapping("/fdc")
+    public String fdc(Model model) {
+        return "relatorios/fdc";
     }
 
     @GetMapping("/dre-gerar")
@@ -65,6 +75,27 @@ public class RelatorioController extends AbstractController {
                     parametros,
                     connection,
                     "relatorio_DRE_" + dataInicio + "_a_" + dataFim + ".pdf"
+            );
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/fc-gerar")
+    public ResponseEntity<byte[]> gerarFluxoCaixa(
+            @RequestParam("dataInicio") LocalDate dataInicio,
+            @RequestParam("dataFim") LocalDate dataFim) throws IOException, JRException {
+
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("dataFim", dataFim);
+        parametros.put("dataInicio", dataInicio);
+
+        try (Connection connection = dataSource.getConnection()) {
+            return gerarPdfResponseComConexao(
+                    "fluxoCaixa/relatorio_FDC.jasper",
+                    parametros,
+                    connection,
+                    "rel_fluxo_caixa.pdf"
             );
         } catch (SQLException e) {
             throw new RuntimeException(e);

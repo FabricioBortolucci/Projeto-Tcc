@@ -1,0 +1,180 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="relatorio_DRE" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dc333486-5706-443c-8ae6-9a65a9206996">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Produto"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="dataInicio" class="java.time.LocalDate"/>
+	<parameter name="dataFim" class="java.time.LocalDate"/>
+	<query language="SQL"><![CDATA[SELECT mc.data_movimentacao AS data_mov,
+	mc.descricao AS mov_desc,
+	mc.tipo_movimentacao AS tipo_mov,
+	pdc.codigo AS pdc_codigo,
+	pdc.descricao AS pdc_desc,
+	mc.valor AS moc_valor,
+	(SELECT sum( mc1.valor)
+FROM movimentacao_caixa mc1
+WHERE 
+	 mc1.tipo_movimentacao = 'SAIDA' 
+	 AND mc1.data_movimentacao::date BETWEEN $P{dataInicio} AND $P{dataFim} ) AS saida,
+	(SELECT sum( mc2.valor)
+FROM movimentacao_caixa mc2
+WHERE 
+	 mc2.tipo_movimentacao = 'ENTRADA' 
+	 AND mc2.data_movimentacao::date BETWEEN $P{dataInicio} AND $P{dataFim} ) AS entrada
+FROM movimentacao_caixa mc
+	inner join plano_de_contas pdc ON 
+	 mc.plano_contas_id = pdc.id 
+WHERE 
+	 mc.data_movimentacao::date BETWEEN $P{dataInicio} AND $P{dataFim} 
+ORDER BY mc.data_movimentacao DESC]]></query>
+	<field name="data_mov" class="java.time.LocalDate">
+		<property name="com.jaspersoft.studio.field.name" value="data_mov"/>
+		<property name="com.jaspersoft.studio.field.label" value="data_mov"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_caixa"/>
+	</field>
+	<field name="mov_desc" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="mov_desc"/>
+		<property name="com.jaspersoft.studio.field.label" value="mov_desc"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_caixa"/>
+	</field>
+	<field name="tipo_mov" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="tipo_mov"/>
+		<property name="com.jaspersoft.studio.field.label" value="tipo_mov"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_caixa"/>
+	</field>
+	<field name="pdc_codigo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="pdc_codigo"/>
+		<property name="com.jaspersoft.studio.field.label" value="pdc_codigo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="plano_de_contas"/>
+	</field>
+	<field name="pdc_desc" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="pdc_desc"/>
+		<property name="com.jaspersoft.studio.field.label" value="pdc_desc"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="plano_de_contas"/>
+	</field>
+	<field name="moc_valor" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="moc_valor"/>
+		<property name="com.jaspersoft.studio.field.label" value="moc_valor"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_caixa"/>
+	</field>
+	<field name="saida" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="saida"/>
+		<property name="com.jaspersoft.studio.field.label" value="saida"/>
+	</field>
+	<field name="entrada" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="entrada"/>
+		<property name="com.jaspersoft.studio.field.label" value="entrada"/>
+	</field>
+	<variable name="totalSaldo" class="java.math.BigDecimal">
+		<expression><![CDATA[$V{entradaParam}.subtract($V{saidaParam})]]></expression>
+	</variable>
+	<variable name="dataInicioFormat" class="java.sql.Timestamp">
+		<expression><![CDATA[$P{dataInicio}]]></expression>
+	</variable>
+	<variable name="dataFinalFormat" class="java.sql.Timestamp">
+		<expression><![CDATA[$P{dataFim}]]></expression>
+	</variable>
+	<variable name="saidaParam" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{saida}]]></expression>
+	</variable>
+	<variable name="entradaParam" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{entrada}]]></expression>
+	</variable>
+	<background/>
+	<title height="72">
+		<element kind="frame" uuid="983e13e0-383d-4a74-b8e8-bfa675850230" mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699">
+			<element kind="staticText" uuid="c36b1792-166a-444d-acc7-490de1071092" x="20" y="20" width="190" height="20" forecolor="#FFFFFF" backcolor="#FFFFFF" fontSize="14.0" bold="true">
+				<text><![CDATA[Relatório de Fluxo de Caixa]]></text>
+			</element>
+			<element kind="staticText" uuid="efb2e48a-ce82-4a21-b4f6-f10e68ad2374" x="464" y="10" width="120" height="20" forecolor="#FFFFFF" fontSize="14.0" bold="false" hTextAlign="Right">
+				<text><![CDATA[Oficina - Bortolucci]]></text>
+			</element>
+			<element kind="textField" uuid="ae2af60d-10b9-46f3-ae76-27bac0bb5dad" x="9" y="70" width="221" height="16" forecolor="#FFFFFF" pattern="dd/MM/yyyy" bold="true">
+				<expression><![CDATA["De " + $P{dataInicio}  + " Até " + $P{dataFim}]]></expression>
+			</element>
+		</element>
+	</title>
+	<pageHeader height="13"/>
+	<columnHeader height="21">
+		<element kind="line" uuid="a4a1a047-2d2e-4790-9f32-5bded8384d9d" x="-20" y="20" width="595" height="1" forecolor="#666666"/>
+		<element kind="staticText" uuid="a8133038-1220-437c-a68f-e19ccae9e629" x="0" y="0" width="100" height="20" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Data Movimentação]]></text>
+		</element>
+		<element kind="staticText" uuid="6c07fa8c-dbcc-4634-b9e4-9f0775939eb6" x="100" y="0" width="196" height="20" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Desc. da Movimentação]]></text>
+		</element>
+		<element kind="staticText" uuid="3b8b524f-8587-4fca-81fc-ddee4963d881" x="490" y="0" width="64" height="20" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Valor]]></text>
+		</element>
+		<element kind="staticText" uuid="77676de6-8215-45d3-b38e-dfe3ace9d8eb" x="296" y="0" width="114" height="20" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Desc. Plano de Contas]]></text>
+		</element>
+		<element kind="staticText" uuid="e022a83c-6568-492c-a755-c603d61e0e9b" x="410" y="0" width="80" height="20" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[ Movimentação]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="20">
+			<element kind="textField" uuid="65d99d3c-33c9-4bf1-9d0c-67120b3d7833" x="0" y="0" width="100" height="15" textAdjust="StretchHeight" pattern="dd/MM/yyyy" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{data_mov}]]></expression>
+				<box leftPadding="5"/>
+			</element>
+			<element kind="textField" uuid="8f48e230-4254-443c-924a-25bf82b8fe03" x="100" y="0" width="196" height="15" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{mov_desc}]]></expression>
+				<box leftPadding="5"/>
+			</element>
+			<element kind="textField" uuid="8b2bd77a-14e5-49fb-84e8-94e906f28d32" x="490" y="0" width="64" height="15" textAdjust="StretchHeight" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{moc_valor}]]></expression>
+				<box rightPadding="5"/>
+			</element>
+			<element kind="textField" uuid="8a47297a-bd79-46f4-ac7d-5eb1ae0a5c11" x="296" y="0" width="114" height="15" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{pdc_codigo} + " - " + $F{pdc_desc}]]></expression>
+				<box leftPadding="5"/>
+			</element>
+			<element kind="textField" uuid="a19cfeac-402b-45ce-a54b-2ce9d94239c8" x="410" y="0" width="80" height="15" textAdjust="StretchHeight" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{tipo_mov}]]></expression>
+				<box leftPadding="5"/>
+			</element>
+		</band>
+	</detail>
+	<columnFooter/>
+	<pageFooter height="36">
+		<element kind="line" uuid="d9bdbe90-4ca4-49b6-ae9f-406da94859c5" x="1" y="0" width="554" height="1">
+			<pen lineStyle="Dashed"/>
+		</element>
+		<element kind="textField" uuid="5b1f9286-121a-463d-96f0-f6616002d91e" x="0" y="0" width="200" height="20" evaluationTime="Report" vTextAlign="Bottom">
+			<expression><![CDATA["Gerado em: " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></expression>
+		</element>
+		<element kind="textField" uuid="11c14bb3-97d9-4a95-843b-d3d73be4ad12" x="455" y="0" width="100" height="20" hTextAlign="Right" vTextAlign="Bottom">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+	<summary height="64">
+		<element kind="textField" uuid="67adc9f2-9d45-4965-a2a0-20c7cab4bf32" x="454" y="10" width="100" height="18" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$V{saidaParam} != null ? $V{saidaParam} : BigDecimal.ZERO]]></expression>
+		</element>
+		<element kind="staticText" uuid="9b91fabb-c0e3-4bde-9862-c55ef55a587d" x="380" y="10" width="74" height="18" hTextAlign="Center">
+			<text><![CDATA[Total Saidas:]]></text>
+		</element>
+		<element kind="staticText" uuid="30a2656b-9898-4c54-a395-26e05588efcb" x="380" y="28" width="74" height="18" hTextAlign="Center">
+			<text><![CDATA[Total Entrada:]]></text>
+		</element>
+		<element kind="textField" uuid="169741ec-3e17-41e1-8193-d224fb1063e1" x="454" y="28" width="100" height="18" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$V{entradaParam} != null ? $V{entradaParam} : BigDecimal.ZERO]]></expression>
+		</element>
+		<element kind="staticText" uuid="cc06a7ab-eef2-4319-984b-d4533c2554b6" x="380" y="46" width="74" height="18" hTextAlign="Center">
+			<text><![CDATA[Saldo Final:]]></text>
+		</element>
+		<element kind="textField" uuid="5a5c10eb-0631-4069-9cbb-e3aedf602066" x="454" y="46" width="100" height="18" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$V{totalSaldo} != null ? $V{totalSaldo} : $V{entradaParam}]]></expression>
+		</element>
+	</summary>
+</jasperReport>
