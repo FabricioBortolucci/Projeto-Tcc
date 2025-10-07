@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Relatório de Ordens de Serviço - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/choices.min.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .choices__inner {
+            background-color: var(--bs-body-bg);
+            border: var(--bs-border-width) solid var(--bs-border-color);
+            border-radius: var(--bs-border-radius);
+            font-size: 1rem;
+            min-height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+        }
+
+        .choices.is-focused .choices__inner, .choices.is-open .choices__inner {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-3">
+
+        <h1 class="h3 mb-0">Relatório de Ordens de Serviço</h1>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-filter me-2"></i>Filtros do Relatório</h5>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="@{/relatorios/os-gerar}" method="get" class="row g-3">
+
+                    <div class="col-md-6">
+                        <label for="clienteId" class="form-label">Filtrar por Cliente:</label>
+                        <select class="form-select" id="clienteId" name="clienteId">
+                            <option value="">Todos os Clientes</option>
+                            <option th:each="cliente : ${clientes}"
+                                    th:value="${cliente.id}"
+                                    th:text="${cliente.pesNome}"
+                                    th:selected="${param.clienteId != null and #strings.equals(param.clienteId, cliente.id)}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="status" class="form-label">Filtrar por Status:</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">Todos os Status</option>
+                            <option th:each="st : ${statusOS}"
+                                    th:value="${st}"
+                                    th:text="${st.descricao}"
+                                    th:selected="${param.status != null and #strings.equals(param.status, st)}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="dataInicio" class="form-label">Data de Abertura (Início):</label>
+                        <input type="date" class="form-control" id="dataInicio" name="dataInicio"
+                               th:value="${dataInicio}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="dataFim" class="form-label">Data de Abertura (Fim):</label>
+                        <input type="date" class="form-control" id="dataFim" name="dataFim" th:value="${dataFim}">
+                    </div>
+
+                    <div class="col-12 pt-3 mt-3 border-top d-flex justify-content-end gap-2">
+                        <a th:href="@{/relatorios/osRel}" class="btn btn-outline-secondary">
+                            <i class="bi bi-eraser me-1"></i> Limpar Filtros
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Gerar Relatório
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Inicializa o Choices.js para o select de cliente
+        const clienteSelect = document.getElementById('clienteId');
+        if (clienteSelect) {
+            new Choices(clienteSelect, {
+                searchEnabled: true,
+                itemSelectText: '',
+                placeholder: true,
+                searchPlaceholderValue: 'Buscar cliente...'
+            });
+        }
+
+        // Inicializa o Choices.js para o select de status (sem busca)
+        const statusSelect = document.getElementById('status');
+        if (statusSelect) {
+            new Choices(statusSelect, {searchEnabled: false, itemSelectText: ''});
+        }
+    });
+</script>
+</body>
+</html>

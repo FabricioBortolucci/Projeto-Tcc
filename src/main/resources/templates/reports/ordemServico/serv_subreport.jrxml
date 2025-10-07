@@ -1,0 +1,68 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="relatorio_DRE" language="java" columnCount="1" pageWidth="290" pageHeight="72" columnWidth="290" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="dc333486-5706-443c-8ae6-9a65a9206996">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Produto"/>
+	<parameter name="osID" class="java.lang.Long"/>
+	<parameter name="dataInicio" class="java.time.LocalDate"/>
+	<parameter name="dataFim" class="java.time.LocalDate"/>
+	<query language="SQL"><![CDATA[select serv.serv_id,
+       serv.serv_desc,
+       serv.serv_preco
+from servico serv
+         left join ordem_servico_item ost on serv.serv_id = ost.ost_servico_id
+         left join ordem_servico os on ost.ost_ordem_servico_id = os.os_id
+where os.os_id = $P{osID}]]></query>
+	<field name="serv_id" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="serv_id"/>
+		<property name="com.jaspersoft.studio.field.label" value="serv_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="servico"/>
+	</field>
+	<field name="serv_desc" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="serv_desc"/>
+		<property name="com.jaspersoft.studio.field.label" value="serv_desc"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="servico"/>
+	</field>
+	<field name="serv_preco" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="serv_preco"/>
+		<property name="com.jaspersoft.studio.field.label" value="serv_preco"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="servico"/>
+	</field>
+	<variable name="totalServ" calculation="Sum" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{serv_preco}]]></expression>
+	</variable>
+	<columnHeader height="16">
+		<element kind="line" uuid="a4a1a047-2d2e-4790-9f32-5bded8384d9d" x="0" y="15" width="290" height="1" forecolor="#666666"/>
+		<element kind="staticText" uuid="e03cd332-158f-4a88-a1a5-ad73b34a75f4" x="0" y="0" width="50" height="15" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Serviço ID]]></text>
+		</element>
+		<element kind="staticText" uuid="02e0c9de-331a-4427-bd90-8879537fa8a2" x="50" y="0" width="160" height="15" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Descrição Serviço]]></text>
+		</element>
+		<element kind="staticText" uuid="7195a331-adad-4def-aa89-ec89b4cdc351" x="210" y="0" width="80" height="15" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Preço Serviço]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="14">
+			<element kind="rectangle" uuid="b2b5099e-e53a-4925-8198-fd5b6af572b3" x="0" y="0" width="290" height="14" forecolor="#D9D9D9" backcolor="#D9D9D9"/>
+			<element kind="textField" uuid="83dc3611-e8c7-4eb5-8db4-3513e46467bc" x="0" y="-1" width="50" height="15" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{serv_id}]]></expression>
+			</element>
+			<element kind="textField" uuid="0ddfe8bb-3e1b-4e63-9ead-885716301536" x="50" y="-1" width="160" height="15" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{serv_desc}]]></expression>
+			</element>
+			<element kind="textField" uuid="d658510b-ab62-4358-a385-e08373dcc571" x="210" y="0" width="80" height="14" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{serv_preco}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter height="23">
+		<element kind="staticText" uuid="09f35a98-213f-4882-8e55-0433c70301f2" x="-1" y="5" width="110" height="14" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Valor Total Serviços:]]></text>
+		</element>
+		<element kind="textField" uuid="715b26f1-7bfb-4644-82ab-c434059224e9" x="109" y="5" width="80" height="14" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$V{totalServ}]]></expression>
+		</element>
+		<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+	</columnFooter>
+</jasperReport>

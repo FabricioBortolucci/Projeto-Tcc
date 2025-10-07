@@ -1,0 +1,104 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="relatorio_DRE" language="java" columnCount="1" pageWidth="360" pageHeight="842" orientation="Landscape" columnWidth="360" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="dc333486-5706-443c-8ae6-9a65a9206996">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Produto"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="condicao" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dataInicio" class="java.time.LocalDate"/>
+	<parameter name="dataFim" class="java.time.LocalDate"/>
+	<parameter name="osID" class="java.lang.Long"/>
+	<query language="SQL"><![CDATA[select prod.prod_id,
+       prod.prod_nome,
+       prod.prod_tipo,
+       prod.prod_preco,
+       osp.ost_quantidade
+from produto prod
+         left join ordem_servico_peca osp on prod.prod_id = osp.ost_produto_id
+         left join ordem_servico os on osp.ost_ordem_servico_id = os.os_id
+where os.os_id =  $P{osID} ]]></query>
+	<field name="prod_id" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="prod_id"/>
+		<property name="com.jaspersoft.studio.field.label" value="prod_id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="produto"/>
+	</field>
+	<field name="prod_nome" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="prod_nome"/>
+		<property name="com.jaspersoft.studio.field.label" value="prod_nome"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="produto"/>
+	</field>
+	<field name="prod_tipo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="prod_tipo"/>
+		<property name="com.jaspersoft.studio.field.label" value="prod_tipo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="produto"/>
+	</field>
+	<field name="prod_preco" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="prod_preco"/>
+		<property name="com.jaspersoft.studio.field.label" value="prod_preco"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="produto"/>
+	</field>
+	<field name="ost_quantidade" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ost_quantidade"/>
+		<property name="com.jaspersoft.studio.field.label" value="ost_quantidade"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="ordem_servico_peca"/>
+	</field>
+	<variable name="totalProd" calculation="Sum" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{prod_preco}]]></expression>
+	</variable>
+	<columnHeader height="16">
+		<element kind="line" uuid="a4a1a047-2d2e-4790-9f32-5bded8384d9d" x="0" y="15" width="360" height="1" forecolor="#666666"/>
+		<element kind="staticText" uuid="e03cd332-158f-4a88-a1a5-ad73b34a75f4" x="0" y="0" width="50" height="15" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Prod ID]]></text>
+		</element>
+		<element kind="staticText" uuid="02e0c9de-331a-4427-bd90-8879537fa8a2" x="50" y="0" width="90" height="15" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Produto Nome]]></text>
+		</element>
+		<element kind="staticText" uuid="88ba323e-3896-4540-9cf8-c45442b57a9c" x="140" y="0" width="70" height="15" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Produto Tipo]]></text>
+		</element>
+		<element kind="staticText" uuid="7195a331-adad-4def-aa89-ec89b4cdc351" x="210" y="0" width="80" height="15" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Produto Preço]]></text>
+		</element>
+		<element kind="staticText" uuid="d280cdb8-2c93-48eb-be64-9d69ddff137c" x="290" y="0" width="70" height="15" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Quantidade]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="14">
+			<element kind="rectangle" uuid="b2b5099e-e53a-4925-8198-fd5b6af572b3" x="0" y="0" width="360" height="14" forecolor="#D9D9D9" backcolor="#D9D9D9"/>
+			<element kind="textField" uuid="83dc3611-e8c7-4eb5-8db4-3513e46467bc" x="0" y="-1" width="50" height="15" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{prod_id}]]></expression>
+			</element>
+			<element kind="textField" uuid="0ddfe8bb-3e1b-4e63-9ead-885716301536" x="50" y="-1" width="90" height="15" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{prod_nome}]]></expression>
+			</element>
+			<element kind="textField" uuid="730e6897-2c13-4c60-9575-9585c70eb989" x="140" y="0" width="70" height="14" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{prod_tipo}.equals("MATERIA_PRIMA") ? "Matéria-Prima" : "Peça"]]></expression>
+			</element>
+			<element kind="textField" uuid="d658510b-ab62-4358-a385-e08373dcc571" x="210" y="0" width="80" height="14" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{prod_preco}]]></expression>
+			</element>
+			<element kind="textField" uuid="3b9076fb-332d-4bba-9ef7-b2bd210d7c85" x="290" y="0" width="70" height="14" pattern="#,##0.###;(#,##0.###-)" hTextAlign="Center" vTextAlign="Middle">
+				<expression><![CDATA[$F{ost_quantidade}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter height="32">
+		<element kind="staticText" uuid="d1023168-4e7d-4d42-a099-5bbfbd48bf9c" x="0" y="10" width="100" height="15" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Valor Total Produtos]]></text>
+		</element>
+		<element kind="textField" uuid="3cf7c1e9-a552-4567-9170-42211a8469ba" x="100" y="10" width="80" height="15" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$V{totalProd}]]></expression>
+		</element>
+		<property name="com.jaspersoft.studio.layout" value="com.jaspersoft.studio.editor.layout.FreeLayout"/>
+	</columnFooter>
+</jasperReport>

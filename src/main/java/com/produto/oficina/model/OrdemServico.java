@@ -78,6 +78,7 @@ public class OrdemServico {
     private List<ContaReceber> contaRecebers = new ArrayList<>();
 
     @Column(name = "os_status")
+    @Enumerated(EnumType.STRING)
     private StatusOS status;
 
     @Column(name = "os_obs")
