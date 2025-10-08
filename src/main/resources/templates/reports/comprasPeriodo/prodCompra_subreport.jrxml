@@ -1,5 +1,5 @@
 <!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
-<jasperReport name="relatorio_DRE" language="java" columnCount="1" pageWidth="360" pageHeight="842" orientation="Landscape" columnWidth="360" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="dc333486-5706-443c-8ae6-9a65a9206996">
+<jasperReport name="relatorio_prodCompraSub" language="java" columnCount="1" pageWidth="360" pageHeight="842" orientation="Landscape" columnWidth="360" leftMargin="0" rightMargin="0" topMargin="0" bottomMargin="0" uuid="dc333486-5706-443c-8ae6-9a65a9206996">
 	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
 	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Produto"/>
 	<property name="com.jaspersoft.studio.unit." value="pixel"/>
@@ -16,18 +16,17 @@
 	</parameter>
 	<parameter name="dataInicio" class="java.time.LocalDate"/>
 	<parameter name="dataFim" class="java.time.LocalDate"/>
-	<parameter name="osID" class="java.lang.Long"/>
+	<parameter name="compraID" class="java.lang.Long"/>
 	<query language="SQL"><![CDATA[select prod.prod_id,
        prod.prod_nome,
        prod.prod_tipo,
        prod.prod_preco,
-       osp.ost_quantidade,
-       osp.ost_valor_unitario,
-       osp.ost_valor_unitario * osp.ost_quantidade as precoTotal
+       ic.item_comp_quantidade,
+       ic.item_comp_valor_unitario,
+    	ic.item_comp_valor_unitario * ic.item_comp_quantidade as precoTotal
 from produto prod
-         left join ordem_servico_peca osp on prod.prod_id = osp.ost_produto_id
-         left join ordem_servico os on osp.ost_ordem_servico_id = os.os_id
-where os.os_id =  $P{osID} ]]></query>
+         left join item_compra ic on prod.prod_id = ic.produto_id
+where ic.mov_comp_id = $P{compraID} ]]></query>
 	<field name="prod_id" class="java.lang.Long">
 		<property name="com.jaspersoft.studio.field.name" value="prod_id"/>
 		<property name="com.jaspersoft.studio.field.label" value="prod_id"/>
@@ -48,15 +47,15 @@ where os.os_id =  $P{osID} ]]></query>
 		<property name="com.jaspersoft.studio.field.label" value="prod_preco"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="produto"/>
 	</field>
-	<field name="ost_quantidade" class="java.math.BigDecimal">
-		<property name="com.jaspersoft.studio.field.name" value="ost_quantidade"/>
-		<property name="com.jaspersoft.studio.field.label" value="ost_quantidade"/>
-		<property name="com.jaspersoft.studio.field.tree.path" value="ordem_servico_peca"/>
+	<field name="item_comp_quantidade" class="java.lang.Integer">
+		<property name="com.jaspersoft.studio.field.name" value="item_comp_quantidade"/>
+		<property name="com.jaspersoft.studio.field.label" value="item_comp_quantidade"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="item_compra"/>
 	</field>
-	<field name="ost_valor_unitario" class="java.math.BigDecimal">
-		<property name="com.jaspersoft.studio.field.name" value="ost_valor_unitario"/>
-		<property name="com.jaspersoft.studio.field.label" value="ost_valor_unitario"/>
-		<property name="com.jaspersoft.studio.field.tree.path" value="ordem_servico_peca"/>
+	<field name="item_comp_valor_unitario" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="item_comp_valor_unitario"/>
+		<property name="com.jaspersoft.studio.field.label" value="item_comp_valor_unitario"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="item_compra"/>
 	</field>
 	<field name="precototal" class="java.math.BigDecimal">
 		<property name="com.jaspersoft.studio.field.name" value="precototal"/>
@@ -96,10 +95,10 @@ where os.os_id =  $P{osID} ]]></query>
 				<expression><![CDATA[$F{prod_tipo}.equals("MATERIA_PRIMA") ? "Matéria-Prima" : "Peça"]]></expression>
 			</element>
 			<element kind="textField" uuid="d658510b-ab62-4358-a385-e08373dcc571" x="210" y="0" width="80" height="14" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
-				<expression><![CDATA[$F{ost_valor_unitario}]]></expression>
+				<expression><![CDATA[$F{item_comp_valor_unitario}]]></expression>
 			</element>
 			<element kind="textField" uuid="3b9076fb-332d-4bba-9ef7-b2bd210d7c85" x="290" y="0" width="70" height="14" pattern="#,##0.###;(#,##0.###-)" hTextAlign="Center" vTextAlign="Middle">
-				<expression><![CDATA[$F{ost_quantidade}]]></expression>
+				<expression><![CDATA[$F{item_comp_quantidade}]]></expression>
 			</element>
 		</band>
 	</detail>

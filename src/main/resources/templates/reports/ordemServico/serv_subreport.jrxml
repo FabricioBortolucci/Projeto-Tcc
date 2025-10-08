@@ -7,7 +7,8 @@
 	<parameter name="dataFim" class="java.time.LocalDate"/>
 	<query language="SQL"><![CDATA[select serv.serv_id,
        serv.serv_desc,
-       serv.serv_preco
+       serv.serv_preco,
+       ost.ost_valor_unitario
 from servico serv
          left join ordem_servico_item ost on serv.serv_id = ost.ost_servico_id
          left join ordem_servico os on ost.ost_ordem_servico_id = os.os_id
@@ -27,8 +28,13 @@ where os.os_id = $P{osID}]]></query>
 		<property name="com.jaspersoft.studio.field.label" value="serv_preco"/>
 		<property name="com.jaspersoft.studio.field.tree.path" value="servico"/>
 	</field>
+	<field name="ost_valor_unitario" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="ost_valor_unitario"/>
+		<property name="com.jaspersoft.studio.field.label" value="ost_valor_unitario"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="ordem_servico_item"/>
+	</field>
 	<variable name="totalServ" calculation="Sum" class="java.math.BigDecimal">
-		<expression><![CDATA[$F{serv_preco}]]></expression>
+		<expression><![CDATA[$F{ost_valor_unitario}]]></expression>
 	</variable>
 	<columnHeader height="16">
 		<element kind="line" uuid="a4a1a047-2d2e-4790-9f32-5bded8384d9d" x="0" y="15" width="290" height="1" forecolor="#666666"/>
@@ -52,7 +58,7 @@ where os.os_id = $P{osID}]]></query>
 				<expression><![CDATA[$F{serv_desc}]]></expression>
 			</element>
 			<element kind="textField" uuid="d658510b-ab62-4358-a385-e08373dcc571" x="210" y="0" width="80" height="14" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
-				<expression><![CDATA[$F{serv_preco}]]></expression>
+				<expression><![CDATA[$F{ost_valor_unitario}]]></expression>
 			</element>
 		</band>
 	</detail>

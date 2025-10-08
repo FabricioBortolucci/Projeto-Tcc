@@ -169,7 +169,6 @@ public class OrdemServicoService {
                     os
             ));
 
-
             BigDecimal custoTotalItem = produto.getPrecoCusto().multiply(item.getQuantidade());
             lancamentoFinanceiroRepository.save(new LancamentoFinanceiro(
                     "Custo do(a) '" + produto.getNome() + "' na OS #" + os.getId(),

@@ -1,7 +1,10 @@
 eclipse.preferences.version=1
+encoding//src/main/resources/templates/reports/comprasPeriodo/prodCompra_subreport.jrxml=UTF-8
+encoding//src/main/resources/templates/reports/comprasPeriodo/relatorio_compraPeriodo.jrxml=UTF-8
 encoding//src/main/resources/templates/reports/dre/relatorio_DRE.jrxml=UTF-8
 encoding//src/main/resources/templates/reports/estoque/relatorio_estoque.jrxml=UTF-8
 encoding//src/main/resources/templates/reports/fluxoCaixa/relatorio_FDC.jrxml=UTF-8
 encoding//src/main/resources/templates/reports/ordemServico/prod_subreport.jrxml=UTF-8
 encoding//src/main/resources/templates/reports/ordemServico/relatorio_os.jrxml=UTF-8
 encoding//src/main/resources/templates/reports/ordemServico/serv_subreport.jrxml=UTF-8
+encoding//src/main/resources/templates/reports/pessoa/relatorio_pessoa.jrxml=UTF-8

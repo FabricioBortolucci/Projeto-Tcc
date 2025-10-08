@@ -42,4 +42,13 @@ public abstract class AbstractController {
 
         return ResponseEntity.ok().headers(headers).body(pdfBytes);
     }
+
+    public String formatList(List<String> lista) {
+        StringBuilder cond = new StringBuilder();
+        for (String valor : lista) {
+            cond.append("'").append(valor.toUpperCase()).append("'").append(",");
+        }
+        cond.deleteCharAt(cond.length() - 1);
+        return cond.toString();
+    }
 }

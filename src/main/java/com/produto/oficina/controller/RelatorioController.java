@@ -2,6 +2,7 @@ package com.produto.oficina.controller;
 
 import com.produto.oficina.dto.reports.DRECompletoDTO;
 import com.produto.oficina.model.enums.ProdutoTipo;
+import com.produto.oficina.model.enums.StatusCompra;
 import com.produto.oficina.model.enums.StatusOS;
 import com.produto.oficina.service.PessoaService;
 import com.produto.oficina.service.RelatorioService;
@@ -22,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Controller
@@ -59,6 +61,18 @@ public class RelatorioController extends AbstractController {
         model.addAttribute("clientes", pessoaService.buscaClientes());
         model.addAttribute("statusOS", StatusOS.values());
         return "relatorios/ordemServico";
+    }
+
+    @GetMapping("/pesRel")
+    public String pessoa(Model model) {
+        return "relatorios/pessoa";
+    }
+
+    @GetMapping("/compraPeriodo")
+    public String compraPeriodo(Model model) {
+        model.addAttribute("fornecedores", pessoaService.buscaFornecedores());
+        model.addAttribute("statusCompra", StatusCompra.values());
+        return "relatorios/compraPeriodo";
     }
 
     @GetMapping("/dre-gerar")
@@ -118,27 +132,29 @@ public class RelatorioController extends AbstractController {
 
     @GetMapping("/estoque-gerar")
     public ResponseEntity<byte[]> gerarEstoque(
-            @RequestParam("apenasAtivos") Boolean ativo,
+            @RequestParam(value = "apenasAtivos", defaultValue = "false") Boolean ativo,
             @RequestParam("tipoProduto") String tipoProduto) throws IOException, JRException {
 
         String cond = "";
 
         if (ativo) {
             cond += " prod.prod_ativo = true";
+        } else {
+            cond += " prod.prod_ativo = false";
         }
 
         switch (tipoProduto) {
             case "PECA":
-                cond += ativo ? " and prod.prod_tipo = 'PECA'" : " prod.prod_tipo = 'PECA'";
+                cond += " and prod.prod_tipo = 'PECA'";
                 break;
             case "MATERIA_PRIMA":
-                cond += ativo ? " and prod.prod_tipo = 'MATERIA_PRIMA'" : " prod.prod_tipo = 'MATERIA_PRIMA'";
+                cond += " and prod.prod_tipo = 'MATERIA_PRIMA'";
                 break;
             default:
                 break;
         }
 
-        String condFinal = cond.isEmpty() ? "" : " where " + cond;
+        String condFinal = " where " + cond;
 
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("condicao", condFinal);
@@ -200,6 +216,87 @@ public class RelatorioController extends AbstractController {
                     parametros,
                     connection,
                     "rel_os.pdf"
+            );
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/pes-gerar")
+    public ResponseEntity<byte[]> gerarPessoa(
+            @RequestParam("tipos") List<String> tipos,
+            @RequestParam(value = "apenasAtivo", defaultValue = "false") Boolean ativo) throws IOException, JRException {
+
+        StringBuilder cond = new StringBuilder();
+        if (ativo) {
+            cond.append(" pes.pes_ativo = true");
+        } else {
+            cond.append(" pes.pes_ativo = false");
+        }
+
+        if (!tipos.isEmpty()) {
+            cond.append(" and").append(" pes.pes_tipo in (").append(formatList(tipos)).append(")");
+        }
+
+        String condFinal = " where " + cond;
+
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("condicao", condFinal);
+
+        try (Connection connection = dataSource.getConnection()) {
+            return gerarPdfResponseComConexao(
+                    "pessoa/relatorio_pessoa.jasper",
+                    parametros,
+                    connection,
+                    "rel_pessoa.pdf"
+            );
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/compra-gerar")
+    public ResponseEntity<byte[]> gerarCompraPeriodo(
+            @RequestParam("statusCompra") String status,
+            @RequestParam(value = "fornecedorId", required = false) Long fornecedorId,
+            @RequestParam("dataInicio") LocalDate dataInicio,
+            @RequestParam("dataFim") LocalDate dataFim) throws IOException, JRException {
+
+        LocalDateTime inicioDoPeriodo = dataInicio.atStartOfDay();
+        LocalDateTime fimDoPeriodo = dataFim.atTime(LocalTime.MAX);
+
+        String cond = " ";
+
+        switch (status) {
+            case "ABERTA":
+                cond += " and c.comp_status = 'ABERTA'";
+                break;
+            case "FINALIZADA":
+                cond += " and c.comp_status = 'FINALIZADA'";
+                break;
+            case "CANCELADA":
+                cond += " and c.comp_status = 'CANCELADA'";
+                break;
+            default:
+                break;
+        }
+
+        if (fornecedorId != null) {
+            cond += " and c.fornecedor_id = '" + fornecedorId + "'";
+        }
+
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("condicao", cond);
+        parametros.put("dataInicio", inicioDoPeriodo);
+        parametros.put("dataFim", fimDoPeriodo);
+        parametros.put("SUBREPORT_DIR", "templates/reports/comprasPeriodo/");
+
+        try (Connection connection = dataSource.getConnection()) {
+            return gerarPdfResponseComConexao(
+                    "comprasPeriodo/relatorio_compraPeriodo.jasper",
+                    parametros,
+                    connection,
+                    "rel_compra_por_periodo.pdf"
             );
         } catch (SQLException e) {
             throw new RuntimeException(e);
