@@ -1,0 +1,100 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="relatorio_DRE" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dc333486-5706-443c-8ae6-9a65a9206996">
+	<property name="com.jaspersoft.studio.data.sql.tables" value="bGFuY2FtZW50b19maW5hbmNlaXJvICwxNSwyNywyNzI5MDAyNC1kYWQzLTQxNWItYjRiYS02NDgw&#xa;NzhiZTRjNTM7cGxhbm9fZGVfY29udGFzICwxOTIsMTUsMmQ2Zjg4NmUtMmQxMi00NGMzLTkyZWIt&#xa;YjIyZjY0NWZmYTI3Ow=="/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Produto"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="ano" class="java.lang.Integer"/>
+	<query language="SQL"><![CDATA[SELECT EXTRACT(MONTH FROM lf.lan_data_comp) AS mes,
+
+       COALESCE(SUM(lf.lan_valor), 0)       AS total_mensal
+FROM lancamento_financeiro lf
+         INNER JOIN plano_de_contas pdc ON lf.plano_contas_id = pdc.id
+WHERE pdc.natureza_conta = 'RECEITA'
+  AND EXTRACT(YEAR FROM lf.lan_data_comp) =  $P{ano} 
+GROUP BY mes
+ORDER BY mes ASC]]></query>
+	<field name="mes" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="mes"/>
+		<property name="com.jaspersoft.studio.field.label" value="mes"/>
+	</field>
+	<field name="total_mensal" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="total_mensal"/>
+		<property name="com.jaspersoft.studio.field.label" value="total_mensal"/>
+	</field>
+	<variable name="totalMes" calculation="Sum" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{total_mensal}]]></expression>
+	</variable>
+	<background/>
+	<title height="72">
+		<element kind="frame" uuid="983e13e0-383d-4a74-b8e8-bfa675850230" mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699">
+			<element kind="staticText" uuid="c36b1792-166a-444d-acc7-490de1071092" x="20" y="20" width="270" height="20" forecolor="#FFFFFF" backcolor="#FFFFFF" fontSize="14.0" bold="true">
+				<text><![CDATA[Relatório de Faturamento Anual]]></text>
+			</element>
+			<element kind="staticText" uuid="efb2e48a-ce82-4a21-b4f6-f10e68ad2374" x="464" y="10" width="120" height="20" forecolor="#FFFFFF" fontSize="14.0" bold="false" hTextAlign="Right">
+				<text><![CDATA[Oficina - Bortolucci]]></text>
+			</element>
+			<element kind="textField" uuid="10f0a928-f46e-4860-84d3-c18eee028271" x="10" y="70" width="221" height="16" forecolor="#FFFFFF" bold="true">
+				<expression><![CDATA["Referente á " + $P{ano}]]></expression>
+			</element>
+		</element>
+	</title>
+	<pageHeader height="13"/>
+	<columnHeader height="21">
+		<element kind="line" uuid="a4a1a047-2d2e-4790-9f32-5bded8384d9d" x="-20" y="20" width="595" height="1" forecolor="#666666"/>
+		<element kind="staticText" uuid="a8133038-1220-437c-a68f-e19ccae9e629" x="0" y="7" width="80" height="14" fontSize="10.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Mês]]></text>
+		</element>
+		<element kind="staticText" uuid="e022a83c-6568-492c-a755-c603d61e0e9b" x="80" y="7" width="120" height="14" fontSize="10.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Valor Faturado]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="16" splitType="Stretch">
+			<element kind="textField" uuid="3e2a3a78-1d51-472a-9ce9-035e842d5657" x="0" y="0" width="80" height="16" fontSize="10.0" hTextAlign="Center">
+				<expression><![CDATA[($F{mes}.intValue() == 1) ? "Janeiro" : 
+($F{mes}.intValue() == 2) ? "Fevereiro" : 
+($F{mes}.intValue() == 3) ? "Março" : 
+($F{mes}.intValue() == 4) ? "Abril" : 
+($F{mes}.intValue() == 5) ? "Maio" : 
+($F{mes}.intValue() == 6) ? "Junho" : 
+($F{mes}.intValue() == 7) ? "Julho" : 
+($F{mes}.intValue() == 8) ? "Agosto" : 
+($F{mes}.intValue() == 9) ? "Setembro" : 
+($F{mes}.intValue() == 10) ? "Outubro" : 
+($F{mes}.intValue() == 11) ? "Novembro" : 
+($F{mes}.intValue() == 12) ? "Dezembro" : "Mês Inválido"]]></expression>
+			</element>
+			<element kind="textField" uuid="74e6f990-ee1a-4c29-bebe-9f54664c4153" x="80" y="0" width="120" height="16" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center">
+				<expression><![CDATA[$F{total_mensal}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter/>
+	<pageFooter height="20">
+		<element kind="line" uuid="d9bdbe90-4ca4-49b6-ae9f-406da94859c5" x="1" y="0" width="554" height="1">
+			<pen lineStyle="Dashed"/>
+		</element>
+		<element kind="textField" uuid="5b1f9286-121a-463d-96f0-f6616002d91e" x="0" y="0" width="200" height="20" evaluationTime="Report" vTextAlign="Bottom">
+			<expression><![CDATA["Gerado em: " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></expression>
+		</element>
+		<element kind="textField" uuid="11c14bb3-97d9-4a95-843b-d3d73be4ad12" x="455" y="0" width="100" height="20" hTextAlign="Right" vTextAlign="Bottom">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+	<summary height="35">
+		<element kind="textField" uuid="83c5b5e9-a8e2-4dd4-b86b-d5a05532f9d9" x="410" y="19" width="120" height="16" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center" vTextAlign="Middle">
+			<expression><![CDATA[$V{totalMes}]]></expression>
+		</element>
+		<element kind="staticText" uuid="b6a3db86-d476-4c1e-aa57-51e187a55b89" x="290" y="19" width="120" height="16" fontSize="10.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Total Movimentado:]]></text>
+		</element>
+	</summary>
+</jasperReport>

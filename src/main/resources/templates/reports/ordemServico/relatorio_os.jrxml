@@ -17,6 +17,8 @@
 	<parameter name="dataInicio" class="java.time.LocalDateTime"/>
 	<parameter name="dataFim" class="java.time.LocalDateTime"/>
 	<parameter name="SUBREPORT_DIR" class="java.lang.String"/>
+	<parameter name="dataInicioFormat" class="java.lang.String"/>
+	<parameter name="dataFimFormat" class="java.lang.String"/>
 	<query language="SQL"><![CDATA[select os.os_id,
        os.os_data_abertura,
        os.os_data_fechamento,
@@ -108,7 +110,7 @@ order by os.os_id DESC]]></query>
 				<text><![CDATA[Oficina - Bortolucci]]></text>
 			</element>
 			<element kind="textField" uuid="26341dfa-1446-4da6-8887-f4e6f1162b81" x="9" y="70" width="221" height="16" forecolor="#FFFFFF" bold="true">
-				<expression><![CDATA["De " + $P{dataInicio} + " Até " + $P{dataFim}]]></expression>
+				<expression><![CDATA["De " + $P{dataInicioFormat} + " Até " + $P{dataFimFormat}]]></expression>
 			</element>
 		</element>
 	</title>

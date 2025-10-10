@@ -5,6 +5,7 @@ import com.produto.oficina.model.enums.ProdutoTipo;
 import com.produto.oficina.model.enums.StatusCompra;
 import com.produto.oficina.model.enums.StatusOS;
 import com.produto.oficina.service.PessoaService;
+import com.produto.oficina.service.ProdutoService;
 import com.produto.oficina.service.RelatorioService;
 import net.sf.jasperreports.engine.JRException;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,11 +35,13 @@ public class RelatorioController extends AbstractController {
     private final RelatorioService relatorioService;
     private final DataSource dataSource;
     private final PessoaService pessoaService;
+    private final ProdutoService produtoService;
 
-    public RelatorioController(RelatorioService relatorioService, DataSource dataSource, PessoaService pessoaService) {
+    public RelatorioController(RelatorioService relatorioService, DataSource dataSource, PessoaService pessoaService, ProdutoService produtoService) {
         this.relatorioService = relatorioService;
         this.dataSource = dataSource;
         this.pessoaService = pessoaService;
+        this.produtoService = produtoService;
     }
 
     @GetMapping("/dre")
@@ -75,6 +79,23 @@ public class RelatorioController extends AbstractController {
         return "relatorios/compraPeriodo";
     }
 
+    @GetMapping("/movEstoque")
+    public String movEstoque(Model model) {
+        model.addAttribute("produtos", produtoService.findAll());
+        return "relatorios/movEstoque";
+    }
+
+    @GetMapping("/faturamentoRel")
+    public String faturamentoMensalAnual(Model model) {
+        return "relatorios/faturamento";
+    }
+
+    @GetMapping("/contasPendentes")
+    public String contasPendentes(Model model) {
+        model.addAttribute("pessoas", pessoaService.buscaFornecedoresEClientes());
+        return "relatorios/contasPendentes";
+    }
+
     @GetMapping("/dre-gerar")
     public ResponseEntity<byte[]> gerarDRE(
             @RequestParam("dataInicio") LocalDate dataInicio,
@@ -95,7 +116,8 @@ public class RelatorioController extends AbstractController {
         parametros.put("dataFim", dataFim);
         parametros.put("dataInicio", dataInicio);
         parametros.put("NOME_EMPRESA", "Oficina - Bortolucci");
-
+        parametros.put("dataInicioFormat", dataInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        parametros.put("dataFimFormat", dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
 
         try (Connection connection = dataSource.getConnection()) {
             return gerarPdfResponseComConexao(
@@ -117,7 +139,8 @@ public class RelatorioController extends AbstractController {
         Map<String, Object> parametros = new HashMap<>();
         parametros.put("dataFim", dataFim);
         parametros.put("dataInicio", dataInicio);
-
+        parametros.put("dataInicioFormat", dataInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        parametros.put("dataFimFormat", dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         try (Connection connection = dataSource.getConnection()) {
             return gerarPdfResponseComConexao(
                     "fluxoCaixa/relatorio_FDC.jasper",
@@ -208,6 +231,8 @@ public class RelatorioController extends AbstractController {
         parametros.put("condicao", cond);
         parametros.put("dataInicio", inicioDoPeriodo);
         parametros.put("dataFim", fimDoPeriodo);
+        parametros.put("dataInicioFormat", dataInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        parametros.put("dataFimFormat", dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         parametros.put("SUBREPORT_DIR", "templates/reports/ordemServico/");
 
         try (Connection connection = dataSource.getConnection()) {
@@ -289,6 +314,8 @@ public class RelatorioController extends AbstractController {
         parametros.put("condicao", cond);
         parametros.put("dataInicio", inicioDoPeriodo);
         parametros.put("dataFim", fimDoPeriodo);
+        parametros.put("dataInicioFormat", dataInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        parametros.put("dataFimFormat", dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
         parametros.put("SUBREPORT_DIR", "templates/reports/comprasPeriodo/");
 
         try (Connection connection = dataSource.getConnection()) {
@@ -300,6 +327,155 @@ public class RelatorioController extends AbstractController {
             );
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/estmov-gerar")
+    public ResponseEntity<byte[]> gerarMovEstoque(
+            @RequestParam("tipoMovimentacao") String tipoMovimentacao,
+            @RequestParam(value = "produtoId", required = false) Long prodId,
+            @RequestParam("dataInicio") LocalDate dataInicio,
+            @RequestParam("dataFim") LocalDate dataFim) throws IOException, JRException {
+
+        LocalDateTime inicioDoPeriodo = dataInicio.atStartOfDay();
+        LocalDateTime fimDoPeriodo = dataFim.atTime(LocalTime.MAX);
+        String cond = " ";
+
+        switch (tipoMovimentacao) {
+            case "ENTRADA":
+                cond += " and me.tipo = 'ABERTA'";
+                break;
+            case "SAIDA":
+                cond += " and me.tipo = 'FINALIZADA'";
+                break;
+            default:
+                break;
+        }
+
+        if (prodId != null) {
+            cond += " and me.produto_id = '" + prodId + "'";
+        }
+
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("condicao", cond);
+        parametros.put("dataInicio", inicioDoPeriodo);
+        parametros.put("dataFim", fimDoPeriodo);
+        parametros.put("dataInicioFormat", dataInicio.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        parametros.put("dataFimFormat", dataFim.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+
+        try (Connection connection = dataSource.getConnection()) {
+            return gerarPdfResponseComConexao(
+                    "movEstoque/relatorio_movEstoque.jasper",
+                    parametros,
+                    connection,
+                    "rel_compra_por_periodo.pdf"
+            );
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/fatAnual-gerar")
+    public ResponseEntity<byte[]> gerarFaturamentoAnual(@RequestParam("ano") int ano) throws IOException, JRException {
+
+
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("ano", ano);
+
+        try (Connection connection = dataSource.getConnection()) {
+            return gerarPdfResponseComConexao(
+                    "faturamentoMensalAnual/relatorio_fatAnual.jasper",
+                    parametros,
+                    connection,
+                    "rel_faturamento_anual.pdf"
+            );
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/fatMensal-gerar")
+    public ResponseEntity<byte[]> gerarFaturamentoMensal(@RequestParam("ano") int ano,
+                                                         @RequestParam("mes") int mes) throws IOException, JRException {
+
+
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("ano", ano);
+        parametros.put("mes", mes);
+        parametros.put("mesString", numeromMesParaString(mes));
+
+        try (Connection connection = dataSource.getConnection()) {
+            return gerarPdfResponseComConexao(
+                    "faturamentoMensalAnual/relatorio_fatMensal.jasper",
+                    parametros,
+                    connection,
+                    "rel_faturamento_mensal.pdf"
+            );
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @GetMapping("/contasPendentes-gerar")
+    public ResponseEntity<byte[]> gerarContasPendentes(@RequestParam("tipoConta") String tipoConta,
+                                                       @RequestParam(required = false) LocalDate dataInicio,
+                                                       @RequestParam(required = false) LocalDate dataFim,
+                                                       @RequestParam(required = false) Long pessoaId,
+                                                       @RequestParam(required = false) List<String> status) throws IOException, JRException {
+
+        String condCp = " where cp.conta_pagar_status in (" + formatList(status) + ")";
+        String condCr = " where cr.conta_receber_status in (" + formatList(status) + ")";
+
+        if (dataInicio != null && dataFim != null) {
+            condCp += " and cp.conta_pagar_data_vencimento between '" + dataInicio + "' and '" + dataFim + "' ";
+            condCr += " and cr.conta_receber_data_vencimento between '" + dataInicio + "' and '" + dataFim + "' ";
+        }
+
+        if (pessoaId != null) {
+            condCp += " and cp.fornecedor_id = '" + pessoaId + "'";
+            condCr += " and cr.cliente_id = '" + pessoaId + "'";
+        }
+
+        Map<String, Object> parametros = new HashMap<>();
+        parametros.put("dataInicio", dataInicio);
+        parametros.put("dataFim", dataFim);
+        parametros.put("pessoaId", pessoaId);
+        parametros.put("condCr", condCr);
+        parametros.put("condCp", condCp);
+
+        if (tipoConta.equals("RECEBER")) {
+            try (Connection connection = dataSource.getConnection()) {
+                return gerarPdfResponseComConexao(
+                        "contasPendentes/relatorio_contasReceber.jasper",
+                        parametros,
+                        connection,
+                        "rel_contas_receber_pendentes.pdf"
+                );
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        } else if (tipoConta.equals("PAGAR")) {
+            try (Connection connection = dataSource.getConnection()) {
+                return gerarPdfResponseComConexao(
+                        "contasPendentes/relatorio_contasPagar.jasper",
+                        parametros,
+                        connection,
+                        "rel_contas_pagar_pendentes.pdf"
+                );
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            try (Connection connection = dataSource.getConnection()) {
+                return gerarPdfResponseComConexao(
+                        "contasPendentes/relatorio_contasAmbas.jasper",
+                        parametros,
+                        connection,
+                        "rel_contas_pendentes.pdf"
+                );
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

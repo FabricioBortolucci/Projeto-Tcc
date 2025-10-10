@@ -1,0 +1,117 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="relatorio_DRE" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dc333486-5706-443c-8ae6-9a65a9206996">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Produto"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="ano" class="java.lang.Integer"/>
+	<parameter name="mes" forPrompting="false" class="java.lang.Integer"/>
+	<parameter name="mesString" class="java.lang.String"/>
+	<query language="SQL"><![CDATA[SELECT pdc.codigo                     AS codigo_conta,
+       pdc.descricao                  AS descricao_conta,
+       lf.lan_desc,
+       COALESCE(SUM(lf.lan_valor), 0) AS total
+FROM lancamento_financeiro lf
+         INNER JOIN
+     plano_de_contas pdc ON lf.plano_contas_id = pdc.id
+WHERE pdc.natureza_conta = 'RECEITA'
+  AND EXTRACT(YEAR FROM lf.lan_data_comp) =  $P{ano} 
+  AND EXTRACT(MONTH FROM lf.lan_data_comp) =  $P{mes} 
+GROUP BY pdc.codigo, pdc.descricao, lf.lan_desc
+ORDER BY pdc.codigo ASC]]></query>
+	<field name="codigo_conta" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="codigo_conta"/>
+		<property name="com.jaspersoft.studio.field.label" value="codigo_conta"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="plano_de_contas"/>
+	</field>
+	<field name="descricao_conta" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="descricao_conta"/>
+		<property name="com.jaspersoft.studio.field.label" value="descricao_conta"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="plano_de_contas"/>
+	</field>
+	<field name="lan_desc" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="lan_desc"/>
+		<property name="com.jaspersoft.studio.field.label" value="lan_desc"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="lancamento_financeiro"/>
+	</field>
+	<field name="total" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="total"/>
+		<property name="com.jaspersoft.studio.field.label" value="total"/>
+	</field>
+	<variable name="valorTotalReceita" calculation="Sum" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{total}]]></expression>
+	</variable>
+	<background/>
+	<title height="72">
+		<element kind="frame" uuid="983e13e0-383d-4a74-b8e8-bfa675850230" mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699">
+			<element kind="staticText" uuid="c36b1792-166a-444d-acc7-490de1071092" x="20" y="20" width="270" height="20" forecolor="#FFFFFF" backcolor="#FFFFFF" fontSize="14.0" bold="true">
+				<text><![CDATA[Relatório de Faturamento Mensal]]></text>
+			</element>
+			<element kind="staticText" uuid="efb2e48a-ce82-4a21-b4f6-f10e68ad2374" x="464" y="10" width="120" height="20" forecolor="#FFFFFF" fontSize="14.0" bold="false" hTextAlign="Right">
+				<text><![CDATA[Oficina - Bortolucci]]></text>
+			</element>
+			<element kind="textField" uuid="10f0a928-f46e-4860-84d3-c18eee028271" x="20" y="70" width="221" height="16" forecolor="#FFFFFF" bold="true">
+				<expression><![CDATA[$P{mesString}  + "  de  " + $P{ano}]]></expression>
+			</element>
+		</element>
+	</title>
+	<pageHeader height="13"/>
+	<columnHeader height="21">
+		<element kind="line" uuid="a4a1a047-2d2e-4790-9f32-5bded8384d9d" x="-20" y="20" width="595" height="1" forecolor="#666666"/>
+		<element kind="staticText" uuid="a8133038-1220-437c-a68f-e19ccae9e629" x="0" y="7" width="100" height="14" fontSize="10.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Codigo Conta]]></text>
+		</element>
+		<element kind="staticText" uuid="2ca3974f-d166-4ddb-9c21-4cff92a6b6ac" x="100" y="7" width="170" height="14" fontSize="10.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Descrição Conta]]></text>
+		</element>
+		<element kind="staticText" uuid="6f1f7098-664c-4c5e-b426-947c72e84bee" x="270" y="7" width="170" height="14" fontSize="10.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Descrição Lançamento]]></text>
+		</element>
+		<element kind="staticText" uuid="41fd8c5d-8895-4965-820f-c2f9aec16781" x="440" y="7" width="114" height="14" fontSize="10.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Valor]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="14" splitType="Stretch">
+			<element kind="textField" uuid="3e2a3a78-1d51-472a-9ce9-035e842d5657" x="0" y="0" width="100" height="14" fontSize="10.0" hTextAlign="Center">
+				<expression><![CDATA[$F{codigo_conta}]]></expression>
+			</element>
+			<element kind="textField" uuid="cd740173-897d-4321-8678-7117fbf78430" x="100" y="0" width="170" height="14" fontSize="10.0" hTextAlign="Center">
+				<expression><![CDATA[$F{descricao_conta}]]></expression>
+			</element>
+			<element kind="textField" uuid="1772cc0e-bf91-44b3-88a2-2bba558e7cd9" x="270" y="0" width="170" height="14" fontSize="10.0" hTextAlign="Center">
+				<expression><![CDATA[$F{lan_desc}]]></expression>
+			</element>
+			<element kind="textField" uuid="0a9f27fa-8b48-443a-b0bc-69d54645c014" x="440" y="0" width="114" height="14" fontSize="10.0" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center">
+				<expression><![CDATA[$F{total}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter/>
+	<pageFooter height="20">
+		<element kind="line" uuid="d9bdbe90-4ca4-49b6-ae9f-406da94859c5" x="1" y="0" width="554" height="1">
+			<pen lineStyle="Dashed"/>
+		</element>
+		<element kind="textField" uuid="5b1f9286-121a-463d-96f0-f6616002d91e" x="0" y="0" width="200" height="20" evaluationTime="Report" vTextAlign="Bottom">
+			<expression><![CDATA["Gerado em: " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></expression>
+		</element>
+		<element kind="textField" uuid="11c14bb3-97d9-4a95-843b-d3d73be4ad12" x="455" y="0" width="100" height="20" hTextAlign="Right" vTextAlign="Bottom">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+	<summary height="40">
+		<element kind="staticText" uuid="b87a89b3-2583-4ed8-85cd-d47435464ea8" x="330" y="10" width="110" height="14" fontSize="10.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Valor Total da Receita:]]></text>
+		</element>
+		<element kind="textField" uuid="1859e88c-33ea-453d-8507-f88659791a32" x="440" y="10" width="114" height="14" fontSize="10.0" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center">
+			<expression><![CDATA[$V{valorTotalReceita}]]></expression>
+		</element>
+	</summary>
+</jasperReport>

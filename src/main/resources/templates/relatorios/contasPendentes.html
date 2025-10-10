@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Relatório de Contas Pendentes - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/choices.min.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .choices__inner {
+            background-color: var(--bs-body-bg);
+            border: var(--bs-border-width) solid var(--bs-border-color);
+            border-radius: var(--bs-border-radius);
+            font-size: 1rem;
+            min-height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+        }
+
+        .choices.is-focused .choices__inner, .choices.is-open .choices__inner {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        /* Para o select múltiplo do Choices.js */
+        .choices__list--multiple .choices__item {
+            background-color: #0d6efd;
+            border-color: #0a58ca;
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-3">
+
+        <h1 class="h3 mb-0">Relatório de Contas Pendentes</h1>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-filter me-2"></i>Filtros do Relatório</h5>
+            </div>
+            <div class="card-body p-4">
+                <form th:action="@{/relatorios/contasPendentes-gerar}" method="get" class="row g-3">
+
+                    <div class="col-12">
+                        <fieldset>
+                            <legend class="col-form-label pt-0 fs-6 fw-semibold">Tipo de Conta:</legend>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="tipoConta" id="radioAmbas"
+                                           value="AMBAS" checked>
+                                    <label class="form-check-label" for="radioAmbas">Ambas</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="tipoConta" id="radioReceber"
+                                           value="RECEBER">
+                                    <label class="form-check-label" for="radioReceber">Apenas Contas a Receber</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="tipoConta" id="radioPagar"
+                                           value="PAGAR">
+                                    <label class="form-check-label" for="radioPagar">Apenas Contas a Pagar</label>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="dataVencimentoInicio" class="form-label">Período de Vencimento (Início):</label>
+                        <input type="date" class="form-control" id="dataVencimentoInicio" name="dataInicio"
+                               th:value="${param.dataInicio}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="dataVencimentoFim" class="form-label">Período de Vencimento (Fim):</label>
+                        <input type="date" class="form-control" id="dataVencimentoFim" name="dataFim"
+                               th:value="${param.dataFim}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="pessoaId" class="form-label">Filtrar por Cliente/Fornecedor:</label>
+                        <select class="form-select" id="pessoaId" name="pessoaId">
+                            <option value="">Todos</option>
+                            <option th:each="p : ${pessoas}"
+                                    th:value="${p.id}"
+                                    th:text="${p.pesNome}"
+                                    th:selected="${param.pessoaId != null and #strings.equals(param.pessoaId, p.id)}"></option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="statusContas" class="form-label">Filtrar por Status:</label>
+                        <select class="form-select" id="statusContas" name="status" multiple required>
+                            <option value="PENDENTE" selected>Pendente</option>
+                            <option value="ATRASADO" selected>Vencida / Atrasado</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 pt-3 mt-3 border-top d-flex justify-content-end gap-2">
+                        <a th:href="@{/relatorios/contasPendentes}" class="btn btn-outline-secondary">
+                            <i class="bi bi-eraser me-1"></i> Limpar Filtros
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Gerar Relatório
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Inicializa o Choices.js para o select de pessoa (com busca)
+        const pessoaSelect = document.getElementById('pessoaId');
+        if (pessoaSelect) {
+            new Choices(pessoaSelect, {
+                searchEnabled: true,
+                itemSelectText: '',
+                placeholder: true,
+                searchPlaceholderValue: 'Buscar cliente ou fornecedor...'
+            });
+        }
+
+        // Inicializa o Choices.js para o select de status (múltipla seleção)
+        const statusSelect = document.getElementById('statusContas');
+        if (statusSelect) {
+            new Choices(statusSelect, {
+                removeItemButton: true, // Permite remover itens selecionados
+                placeholder: true,
+                placeholderValue: 'Selecione os status...'
+            });
+        }
+    });
+</script>
+</body>
+</html>

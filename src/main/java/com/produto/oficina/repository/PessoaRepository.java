@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -74,4 +75,6 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     long countPessoaByPesAtivoAndPesTipo(Boolean pesAtivo, PesTipo pesTipo);
 
     List<Pessoa> findAllByPesAtivoAndPesTipoAndPesCreditoGreaterThan(Boolean pesAtivo, PesTipo pesTipo, BigDecimal pesCreditoIsGreaterThan);
+
+    List<Pessoa> findAllByPesAtivoAndPesTipoIn(Boolean pesAtivo, Collection<PesTipo> pesTipos);
 }

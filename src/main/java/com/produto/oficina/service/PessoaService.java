@@ -18,10 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class PessoaService {
@@ -160,6 +157,13 @@ public class PessoaService {
 
     public List<Pessoa> buscaFornecedores() {
         return repository.findAllByPesAtivoAndPesTipo(true, PesTipo.FORNECEDOR);
+    }
+
+    public List<Pessoa> buscaFornecedoresEClientes() {
+        List<PesTipo> tipoPes = new ArrayList<>();
+        tipoPes.add(PesTipo.FORNECEDOR);
+        tipoPes.add(PesTipo.CLIENTE);
+        return repository.findAllByPesAtivoAndPesTipoIn(true, tipoPes);
     }
 
     public static String getUsuarioLogadoUsername() {

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Relatório de Faturamento - Oficina</title>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/images/bootstrap-icons.css}"/>
+    <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/choices.min.css}"/>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .choices__inner {
+            background-color: var(--bs-body-bg);
+            border: var(--bs-border-width) solid var(--bs-border-color);
+            border-radius: var(--bs-border-radius);
+            font-size: 1rem;
+            min-height: calc(1.5em + .75rem + 2px);
+            padding: .375rem .75rem;
+        }
+
+        .choices.is-focused .choices__inner, .choices.is-open .choices__inner {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+    </style>
+</head>
+<body>
+<div class="d-flex">
+    <div th:insert="~{fragments/sidebar}"></div>
+
+    <main class="main-content-옆-sidebar-fixed d-flex flex-column w-100 min-vh-100 p-3 p-md-4 overflow-auto gap-3">
+
+        <h1 class="h3 mb-0">Relatório de Faturamento</h1>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-light py-3">
+                <h5 class="mb-0 fw-semibold"><i class="bi bi-filter me-2"></i>Filtros do Relatório</h5>
+            </div>
+            <div class="card-body p-4">
+                <form id="formRelatorioFaturamento"  method="get" class="row g-3">
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold">Tipo de Relatório:</label>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tipoRelatorio" id="radioMensal"
+                                       value="mensal" checked>
+                                <label class="form-check-label" for="radioMensal">Faturamento Mensal (Detalhado)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="tipoRelatorio" id="radioAnual"
+                                       value="anual">
+                                <label class="form-check-label" for="radioAnual">Faturamento Anual (Consolidado)</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-3">
+
+                    <div class="col-md-5" id="containerMes">
+                        <label for="mes" class="form-label">Mês: <span class="text-danger">*</span></label>
+                        <select class="form-select" id="mes" name="mes" required>
+                            <option th:each="i : ${#numbers.sequence(1, 12)}"
+                                    th:value="${i}"
+                                    th:text="${T(java.time.Month).of(i).getDisplayName(T(java.time.format.TextStyle).FULL, new java.util.Locale('pt', 'BR'))}"
+                                    th:selected="${#dates.month(#dates.createNow()) == i}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label for="ano" class="form-label">Ano: <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="ano" name="ano"
+                               th:value="${#dates.year(#dates.createNow())}" min="2000" max="2100" required>
+                    </div>
+
+                    <div class="col-12 pt-3 mt-3 border-top d-flex justify-content-end gap-2">
+                        <a th:href="@{/relatorios/faturamentoRel}" class="btn btn-outline-secondary">
+                            <i class="bi bi-eraser me-1"></i> Limpar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-file-earmark-pdf-fill me-1"></i> Gerar Relatório
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script type="text/javascript" th:src="@{/js/bootstrap.bundle.min.js}"></script>
+<script type="text/javascript" th:src="@{/js/choices.min.js}"></script>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('formRelatorioFaturamento');
+        const radioMensal = document.getElementById('radioMensal');
+        const radioAnual = document.getElementById('radioAnual');
+        const containerMes = document.getElementById('containerMes');
+
+
+        const urlMensal = '/relatorios/fatMensal-gerar';
+        const urlAnual =  '/relatorios/fatAnual-gerar';
+
+        function atualizarFormulario() {
+            if (radioAnual.checked) {
+                containerMes.style.display = 'none';
+                form.action = urlAnual;
+            } else {
+                containerMes.style.display = 'block';
+                form.action = urlMensal;
+            }
+        }
+
+
+        radioMensal.addEventListener('change', atualizarFormulario);
+        radioAnual.addEventListener('change', atualizarFormulario);
+
+
+        atualizarFormulario();
+
+        const mesSelect = document.getElementById('mes');
+        if (mesSelect) {
+            new Choices(mesSelect, {searchEnabled: false, itemSelectText: ''});
+        }
+    });
+    /*]]>*/
+</script>
+</body>
+</html>

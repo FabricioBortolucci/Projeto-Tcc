@@ -20,6 +20,8 @@
 	<parameter name="LUCRO_LIQUIDO" class="java.math.BigDecimal"/>
 	<parameter name="dataInicio" class="java.time.LocalDate"/>
 	<parameter name="dataFim" class="java.time.LocalDate"/>
+	<parameter name="dataInicioFormat" class="java.lang.String"/>
+	<parameter name="dataFimFormat" class="java.lang.String"/>
 	<query language="SQL"><![CDATA[select p.codigo,
        p.descricao,
        p.natureza_conta,
@@ -87,7 +89,7 @@ order by p.codigo]]></query>
 				<text><![CDATA[Oficina - Bortolucci]]></text>
 			</element>
 			<element kind="textField" uuid="ae2af60d-10b9-46f3-ae76-27bac0bb5dad" x="9" y="70" width="221" height="16" forecolor="#FFFFFF" bold="true">
-				<expression><![CDATA["De " + $P{dataInicio} + " Até " + $P{dataFim}]]></expression>
+				<expression><![CDATA["De " + $P{dataInicioFormat}+ " Até " + $P{dataFimFormat}]]></expression>
 			</element>
 		</element>
 	</title>

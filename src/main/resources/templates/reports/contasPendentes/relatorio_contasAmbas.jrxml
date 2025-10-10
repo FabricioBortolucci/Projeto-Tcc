@@ -1,0 +1,162 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="relatorio_DRE" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dc333486-5706-443c-8ae6-9a65a9206996">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Produto"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="condicao" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="condCr" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="condCp" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dataInicio" class="java.time.LocalDateTime"/>
+	<parameter name="dataFim" class="java.time.LocalDateTime"/>
+	<parameter name="pessoaId" class="java.lang.Long"/>
+	<parameter name="dataInicioFormat" class="java.lang.String"/>
+	<parameter name="dataFimFormat" class="java.lang.String"/>
+	<query language="SQL"><![CDATA[SELECT cp.conta_pagar_id AS id,
+	'A Pagar' AS tipo,
+	p.pes_nome AS pessoaNome,
+	cp.conta_pagar_data_vencimento AS dataVencimento,
+	cp.conta_pagar_valor AS valor,
+	cp.conta_pagar_status AS status
+FROM conta_pagar cp
+	INNER JOIN pessoa p ON cp.fornecedor_id = p.pes_id 
+ $P!{condCp} 
+ 
+UNION ALL
+
+SELECT cr.conta_receber_id AS id,
+	'A Receber' AS tipo,
+	p.pes_nome AS pessoaNome,
+	cr.conta_receber_data_vencimento AS dataVencimento,
+	cr.conta_receber_valor AS valor,
+	cr.conta_receber_status AS status
+FROM conta_receber cr
+	INNER JOIN pessoa p ON cr.cliente_id = p.pes_id 
+ $P!{condCr}]]></query>
+	<field name="id" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="id"/>
+		<property name="com.jaspersoft.studio.field.label" value="id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_estoque"/>
+	</field>
+	<field name="tipo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="tipo"/>
+		<property name="com.jaspersoft.studio.field.label" value="tipo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_estoque"/>
+	</field>
+	<field name="pessoanome" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="pessoanome"/>
+		<property name="com.jaspersoft.studio.field.label" value="pessoanome"/>
+	</field>
+	<field name="datavencimento" class="java.sql.Date">
+		<property name="com.jaspersoft.studio.field.name" value="datavencimento"/>
+		<property name="com.jaspersoft.studio.field.label" value="datavencimento"/>
+	</field>
+	<field name="valor" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="valor"/>
+		<property name="com.jaspersoft.studio.field.label" value="valor"/>
+	</field>
+	<field name="status" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="status"/>
+		<property name="com.jaspersoft.studio.field.label" value="status"/>
+	</field>
+	<variable name="valorTotalPagar" calculation="Sum" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{tipo}.equals("A Pagar") ? $F{valor} : BigDecimal.ZERO]]></expression>
+	</variable>
+	<variable name="valorTotalReceber" calculation="Sum" class="java.math.BigDecimal">
+		<expression><![CDATA[$F{tipo}.equals("A Receber") ? $F{valor} : BigDecimal.ZERO]]></expression>
+	</variable>
+	<background/>
+	<title height="72">
+		<element kind="frame" uuid="983e13e0-383d-4a74-b8e8-bfa675850230" mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699">
+			<element kind="staticText" uuid="c36b1792-166a-444d-acc7-490de1071092" x="20" y="20" width="270" height="20" forecolor="#FFFFFF" backcolor="#FFFFFF" fontSize="14.0" bold="true">
+				<text><![CDATA[Relatório de Contas Pendentes Ambas]]></text>
+			</element>
+			<element kind="staticText" uuid="efb2e48a-ce82-4a21-b4f6-f10e68ad2374" x="464" y="10" width="120" height="20" forecolor="#FFFFFF" fontSize="14.0" bold="false" hTextAlign="Right">
+				<text><![CDATA[Oficina - Bortolucci]]></text>
+			</element>
+		</element>
+	</title>
+	<pageHeader height="13"/>
+	<columnHeader height="21">
+		<element kind="line" uuid="a4a1a047-2d2e-4790-9f32-5bded8384d9d" x="-20" y="20" width="595" height="1" forecolor="#666666"/>
+		<element kind="staticText" uuid="a8133038-1220-437c-a68f-e19ccae9e629" x="0" y="8" width="40" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[ID]]></text>
+		</element>
+		<element kind="staticText" uuid="6c07fa8c-dbcc-4634-b9e4-9f0775939eb6" x="40" y="8" width="140" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Nome]]></text>
+		</element>
+		<element kind="staticText" uuid="77676de6-8215-45d3-b38e-dfe3ace9d8eb" x="180" y="8" width="60" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Tipo]]></text>
+		</element>
+		<element kind="staticText" uuid="e022a83c-6568-492c-a755-c603d61e0e9b" x="310" y="8" width="60" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Valor]]></text>
+		</element>
+		<element kind="staticText" uuid="989c2f69-420d-4dd2-9a42-371eadde1d52" x="240" y="8" width="70" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Data Vencimento]]></text>
+		</element>
+		<element kind="staticText" uuid="f6ba2bc1-ebdc-415d-88e1-07df0ec1f52a" x="370" y="8" width="72" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Status]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<element kind="textField" uuid="3e2a3a78-1d51-472a-9ce9-035e842d5657" x="0" y="0" width="40" height="12" fontSize="8.0" hTextAlign="Center">
+				<expression><![CDATA[$F{id}]]></expression>
+			</element>
+			<element kind="textField" uuid="e72b718f-b25a-43dc-ac59-4d23aa799542" x="40" y="0" width="140" height="12" fontSize="8.0" textAdjust="StretchHeight" hTextAlign="Center">
+				<expression><![CDATA[$F{pessoanome}]]></expression>
+			</element>
+			<element kind="textField" uuid="1c13027e-4787-413b-9b01-a76df35b4ee6" x="180" y="0" width="60" height="12" fontSize="8.0" pattern="#,##0.#####;(#,##0.#####-)" hTextAlign="Center">
+				<expression><![CDATA[$F{tipo}]]></expression>
+			</element>
+			<element kind="textField" uuid="74e6f990-ee1a-4c29-bebe-9f54664c4153" x="310" y="-1" width="60" height="14" fontSize="8.0" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center">
+				<expression><![CDATA[$F{valor}]]></expression>
+			</element>
+			<element kind="textField" uuid="b93ba3d1-2fa9-4d87-a7cf-d2cb843ca52a" x="240" y="0" width="70" height="12" fontSize="8.0" pattern="dd/MM/yyyy" printWhenDetailOverflows="true" hTextAlign="Center">
+				<expression><![CDATA[$F{datavencimento}]]></expression>
+			</element>
+			<element kind="textField" uuid="9f322a96-ef05-4cbe-9bf0-db418c74f5cf" stretchType="NoStretch" x="370" y="0" width="72" height="12" fontSize="8.0" printWhenDetailOverflows="true" hTextAlign="Center">
+				<expression><![CDATA[$F{status}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter/>
+	<pageFooter height="20">
+		<element kind="line" uuid="d9bdbe90-4ca4-49b6-ae9f-406da94859c5" x="1" y="0" width="554" height="1">
+			<pen lineStyle="Dashed"/>
+		</element>
+		<element kind="textField" uuid="5b1f9286-121a-463d-96f0-f6616002d91e" x="0" y="0" width="200" height="20" evaluationTime="Report" vTextAlign="Bottom">
+			<expression><![CDATA["Gerado em: " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></expression>
+		</element>
+		<element kind="textField" uuid="11c14bb3-97d9-4a95-843b-d3d73be4ad12" x="455" y="0" width="100" height="20" hTextAlign="Right" vTextAlign="Bottom">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+	<summary height="54">
+		<element kind="staticText" uuid="ea0d5b94-4dac-414a-996f-1e2fc94683a6" x="311" y="22" width="128" height="12" fontSize="8.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<text><![CDATA[Valor Total Pendente a Pagar:]]></text>
+		</element>
+		<element kind="textField" uuid="a710bcbc-76dc-4e44-b6cc-7e6359aa2c47" x="440" y="22" width="80" height="12" fontSize="8.0" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center">
+			<expression><![CDATA[$V{valorTotalPagar}]]></expression>
+		</element>
+		<element kind="staticText" uuid="b606233c-75c4-4845-a8f9-d4c6bc21607d" x="311" y="34" width="128" height="12" fontSize="8.0" bold="true" hTextAlign="Left" vTextAlign="Middle">
+			<text><![CDATA[Valor Total Pendente a Receber:]]></text>
+		</element>
+		<element kind="textField" uuid="8dbd9e7a-ddb9-4afd-9a5b-756eb85d3e61" x="440" y="34" width="80" height="12" fontSize="8.0" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center">
+			<expression><![CDATA[$V{valorTotalReceber}]]></expression>
+		</element>
+	</summary>
+</jasperReport>

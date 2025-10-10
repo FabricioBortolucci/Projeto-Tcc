@@ -1,0 +1,155 @@
+<!-- Created with Jaspersoft Studio version 7.0.1.final using JasperReports Library version 7.0.1-573496633c2b4074e32f433154b543003f7d2498  -->
+<jasperReport name="relatorio_DRE" language="java" columnCount="1" pageWidth="595" pageHeight="842" orientation="Landscape" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="dc333486-5706-443c-8ae6-9a65a9206996">
+	<property name="com.jaspersoft.studio.data.sql.tables" value=""/>
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Produto"/>
+	<property name="com.jaspersoft.studio.unit." value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageHeight" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.pageWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.topMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.bottomMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.leftMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.rightMargin" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnWidth" value="pixel"/>
+	<property name="com.jaspersoft.studio.unit.columnSpacing" value="pixel"/>
+	<parameter name="condicao" class="java.lang.String">
+		<defaultValueExpression><![CDATA[""]]></defaultValueExpression>
+	</parameter>
+	<parameter name="dataInicio" class="java.time.LocalDateTime"/>
+	<parameter name="dataFim" class="java.time.LocalDateTime"/>
+	<parameter name="dataInicioFormat" class="java.lang.String"/>
+	<parameter name="dataFimFormat" class="java.lang.String"/>
+	<query language="SQL"><![CDATA[select me.id,
+       me.data_movimentacao,
+       me.tipo,
+       me.quantidade,
+       me.custo_unitario,
+       me.observacao,
+       me.origem_documento_tipo,
+       p.prod_nome
+from movimentacao_estoque me
+         left join produto p on me.produto_id = p.prod_id
+ where me.data_movimentacao between  $P{dataInicio} and  $P{dataFim} ]]></query>
+	<field name="id" class="java.lang.Long">
+		<property name="com.jaspersoft.studio.field.name" value="id"/>
+		<property name="com.jaspersoft.studio.field.label" value="id"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_estoque"/>
+	</field>
+	<field name="data_movimentacao" class="java.sql.Timestamp">
+		<property name="com.jaspersoft.studio.field.name" value="data_movimentacao"/>
+		<property name="com.jaspersoft.studio.field.label" value="data_movimentacao"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_estoque"/>
+	</field>
+	<field name="tipo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="tipo"/>
+		<property name="com.jaspersoft.studio.field.label" value="tipo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_estoque"/>
+	</field>
+	<field name="quantidade" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="quantidade"/>
+		<property name="com.jaspersoft.studio.field.label" value="quantidade"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_estoque"/>
+	</field>
+	<field name="custo_unitario" class="java.math.BigDecimal">
+		<property name="com.jaspersoft.studio.field.name" value="custo_unitario"/>
+		<property name="com.jaspersoft.studio.field.label" value="custo_unitario"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_estoque"/>
+	</field>
+	<field name="observacao" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="observacao"/>
+		<property name="com.jaspersoft.studio.field.label" value="observacao"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_estoque"/>
+	</field>
+	<field name="origem_documento_tipo" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="origem_documento_tipo"/>
+		<property name="com.jaspersoft.studio.field.label" value="origem_documento_tipo"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="movimentacao_estoque"/>
+	</field>
+	<field name="prod_nome" class="java.lang.String">
+		<property name="com.jaspersoft.studio.field.name" value="prod_nome"/>
+		<property name="com.jaspersoft.studio.field.label" value="prod_nome"/>
+		<property name="com.jaspersoft.studio.field.tree.path" value="produto"/>
+	</field>
+	<background/>
+	<title height="72">
+		<element kind="frame" uuid="983e13e0-383d-4a74-b8e8-bfa675850230" mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699">
+			<element kind="staticText" uuid="c36b1792-166a-444d-acc7-490de1071092" x="20" y="20" width="270" height="20" forecolor="#FFFFFF" backcolor="#FFFFFF" fontSize="14.0" bold="true">
+				<text><![CDATA[Relatório de Movimentação de Estoque]]></text>
+			</element>
+			<element kind="staticText" uuid="efb2e48a-ce82-4a21-b4f6-f10e68ad2374" x="464" y="10" width="120" height="20" forecolor="#FFFFFF" fontSize="14.0" bold="false" hTextAlign="Right">
+				<text><![CDATA[Oficina - Bortolucci]]></text>
+			</element>
+			<element kind="textField" uuid="10f0a928-f46e-4860-84d3-c18eee028271" x="9" y="70" width="221" height="16" forecolor="#FFFFFF" bold="true">
+				<expression><![CDATA["De " +$P{dataInicioFormat} + " Até " + $P{dataFimFormat}]]></expression>
+			</element>
+		</element>
+	</title>
+	<pageHeader height="13"/>
+	<columnHeader height="21">
+		<element kind="line" uuid="a4a1a047-2d2e-4790-9f32-5bded8384d9d" x="-20" y="20" width="595" height="1" forecolor="#666666"/>
+		<element kind="staticText" uuid="a8133038-1220-437c-a68f-e19ccae9e629" x="0" y="8" width="40" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[ID]]></text>
+		</element>
+		<element kind="staticText" uuid="6c07fa8c-dbcc-4634-b9e4-9f0775939eb6" x="40" y="8" width="130" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Nome]]></text>
+		</element>
+		<element kind="staticText" uuid="77676de6-8215-45d3-b38e-dfe3ace9d8eb" x="170" y="8" width="50" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Quantidade]]></text>
+		</element>
+		<element kind="staticText" uuid="e022a83c-6568-492c-a755-c603d61e0e9b" x="220" y="8" width="34" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Valor]]></text>
+		</element>
+		<element kind="staticText" uuid="0ad44322-9f24-42bb-ab7b-0ecbf4653124" x="254" y="8" width="52" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Tipo]]></text>
+		</element>
+		<element kind="staticText" uuid="989c2f69-420d-4dd2-9a42-371eadde1d52" x="306" y="8" width="54" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Data Mov.]]></text>
+		</element>
+		<element kind="staticText" uuid="f6ba2bc1-ebdc-415d-88e1-07df0ec1f52a" x="360" y="8" width="72" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Origem]]></text>
+		</element>
+		<element kind="staticText" uuid="724250b3-01b3-4c3b-b6dd-0741f7542e8b" x="433" y="8" width="122" height="12" fontSize="8.0" bold="true" hTextAlign="Center" vTextAlign="Middle">
+			<text><![CDATA[Observação]]></text>
+		</element>
+	</columnHeader>
+	<detail>
+		<band height="13" splitType="Stretch">
+			<element kind="textField" uuid="3e2a3a78-1d51-472a-9ce9-035e842d5657" x="0" y="0" width="40" height="12" fontSize="8.0" hTextAlign="Center">
+				<expression><![CDATA[$F{id}]]></expression>
+			</element>
+			<element kind="textField" uuid="e72b718f-b25a-43dc-ac59-4d23aa799542" x="40" y="0" width="130" height="12" fontSize="8.0" textAdjust="StretchHeight" hTextAlign="Center">
+				<expression><![CDATA[$F{prod_nome}]]></expression>
+			</element>
+			<element kind="textField" uuid="1c13027e-4787-413b-9b01-a76df35b4ee6" x="170" y="0" width="50" height="12" fontSize="8.0" pattern="#,##0.#####;(#,##0.#####-)" hTextAlign="Center">
+				<expression><![CDATA[$F{quantidade}]]></expression>
+			</element>
+			<element kind="textField" uuid="74e6f990-ee1a-4c29-bebe-9f54664c4153" x="220" y="-1" width="34" height="14" fontSize="8.0" pattern="R$ #,##0.00;R$ -#,##0.00" hTextAlign="Center">
+				<expression><![CDATA[$F{custo_unitario}]]></expression>
+			</element>
+			<element kind="textField" uuid="a135e27e-4cc4-4ea3-a557-d50cd31b1f8b" x="254" y="0" width="52" height="12" fontSize="8.0" hTextAlign="Center">
+				<expression><![CDATA[$F{tipo}]]></expression>
+			</element>
+			<element kind="textField" uuid="b93ba3d1-2fa9-4d87-a7cf-d2cb843ca52a" x="306" y="0" width="54" height="12" fontSize="8.0" pattern="dd/MM/yyyy" printWhenDetailOverflows="true" hTextAlign="Center">
+				<expression><![CDATA[$F{data_movimentacao}]]></expression>
+			</element>
+			<element kind="textField" uuid="9f322a96-ef05-4cbe-9bf0-db418c74f5cf" stretchType="NoStretch" x="360" y="0" width="72" height="12" fontSize="8.0" printWhenDetailOverflows="true" hTextAlign="Center">
+				<expression><![CDATA[$F{origem_documento_tipo}.toLowerCase()]]></expression>
+			</element>
+			<element kind="textField" uuid="0906d481-02a6-45b1-988c-1d159fba9b6a" stretchType="ContainerBottom" x="433" y="0" width="122" height="12" fontSize="8.0" textAdjust="StretchHeight" printWhenDetailOverflows="true" hTextAlign="Center">
+				<expression><![CDATA[$F{observacao}]]></expression>
+			</element>
+		</band>
+	</detail>
+	<columnFooter/>
+	<pageFooter height="20">
+		<element kind="line" uuid="d9bdbe90-4ca4-49b6-ae9f-406da94859c5" x="1" y="0" width="554" height="1">
+			<pen lineStyle="Dashed"/>
+		</element>
+		<element kind="textField" uuid="5b1f9286-121a-463d-96f0-f6616002d91e" x="0" y="0" width="200" height="20" evaluationTime="Report" vTextAlign="Bottom">
+			<expression><![CDATA["Gerado em: " + new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(new java.util.Date())]]></expression>
+		</element>
+		<element kind="textField" uuid="11c14bb3-97d9-4a95-843b-d3d73be4ad12" x="455" y="0" width="100" height="20" hTextAlign="Right" vTextAlign="Bottom">
+			<expression><![CDATA["Página " + $V{PAGE_NUMBER}]]></expression>
+		</element>
+	</pageFooter>
+	<summary height="16"/>
+</jasperReport>
