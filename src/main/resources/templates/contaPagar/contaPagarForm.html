@@ -115,15 +115,15 @@
                         class="bi bi-credit-card-fill me-2"></i>Informações do Pagamento</h5>
                 </div>
                 <div class="card-body p-4">
-                    <fieldset class="mb-4 p-3 border rounded bg-light"
-                              th:if="*{fornecedor?.pesCredito != null and fornecedor.pesCredito.compareTo(valor) > 0}">
+                    <fieldset class="mb-4 p-3 border rounded bg-light">
                         <legend class="col-form-label pt-0 fs-6 fw-semibold">
                             <i class="bi bi-wallet2 me-1"></i> Usar Crédito do Fornecedor?
                             <span class="fw-normal text-success"
                                   th:text="'(Disponível: ' + ${#numbers.formatCurrency(contaPagar.fornecedor.pesCredito)} + ').' + ' Após o uso: ' + ${#numbers.formatCurrency(contaPagar.fornecedor.pesCredito.subtract(contaPagar.valor))}"></span>
                         </legend>
                         <div class="d-flex flex-wrap gap-4">
-                            <div class="form-check form-check-inline">
+                            <div class="form-check form-check-inline"
+                                 th:if="*{fornecedor?.pesCredito != null and fornecedor.pesCredito.compareTo(valor) > 0}">
                                 <input class="form-check-input" type="radio" name="usarCredito"
                                        id="radioCreditoSim"
                                        value="S_CR"
@@ -248,13 +248,14 @@
         if (window.choicesInstances[elementId]) {
             try {
                 window.choicesInstances[elementId].destroy();
-            } catch (e) { /* Ignora o erro se a instância já foi removida do DOM */ }
+            } catch (e) { /* Ignora o erro se a instância já foi removida do DOM */
+            }
         }
 
         // Cria a nova instância e a armazena
         try {
-            window.choicesInstances[elementId] = new Choices(el, options || { searchEnabled: false, itemSelectText: '' });
-        } catch(e) {
+            window.choicesInstances[elementId] = new Choices(el, options || {searchEnabled: false, itemSelectText: ''});
+        } catch (e) {
             console.error("Falha ao inicializar Choices.js em #" + elementId, e);
         }
     }
@@ -266,6 +267,7 @@
             el.classList.add('vm-masked-payment');
         }
     }
+
     document.body.addEventListener('htmx:afterSwap', function (event) {
         // Verifica se o alvo do swap foi o container dos nossos campos de pagamento
         if (event.detail.target.id === 'replacePagamento') {
@@ -276,10 +278,12 @@
 
             // Reinicializa o tooltip no campo de caixa (se ele estiver no fragmento)
             const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); });
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
 
             // Reinicializa o Choices.js no select de tipo de pagamento que foi trocado
-            initializeChoices('tipoPagamentoUtilizado', { searchEnabled: false, itemSelectText: '' });
+            initializeChoices('tipoPagamentoUtilizado', {searchEnabled: false, itemSelectText: ''});
         }
     });
     document.addEventListener('DOMContentLoaded', function () {
@@ -290,7 +294,7 @@
         const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl);
         });
-        initializeChoices('tipoPagamentoUtilizado', { searchEnabled: false, itemSelectText: '' });
+        initializeChoices('tipoPagamentoUtilizado', {searchEnabled: false, itemSelectText: ''});
         // Inicializa Choices.js para selects, se presentes
         const tipoPagSelect = document.getElementById('tipoPagamentoUtilizado');
         if (tipoPagSelect && typeof Choices === "function") {

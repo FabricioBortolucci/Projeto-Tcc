@@ -230,6 +230,7 @@ public class OrdemServicoService {
 
         if (os.getPlanoPagamento().equals(PlanoPagamento.APRAZO)) {
             valorAPagar = valorAPagar.divide(BigDecimal.valueOf(os.getQuantParcelas()), RoundingMode.HALF_UP);
+            BigDecimal valorCorrigido = BigDecimal.ZERO;
             for (int i = 1; i <= os.getQuantParcelas(); i++) {
                 ContaReceber cr = new ContaReceber();
                 cr.setOrdemServico(os);
@@ -241,8 +242,10 @@ public class OrdemServicoService {
                 cr.setTotalParcelas(os.getQuantParcelas());
                 LocalDate dataVencimento = hoje.plusDays(os.getIntDias()).plusMonths(i - 1);
                 cr.setDataVencimento(dataVencimento);
+                valorCorrigido = valorCorrigido.add(valorAPagar);
                 contasReceber.add(cr);
             }
+            contasReceber.getLast().setValor(contasReceber.getLast().getValor().add(os.getValorTotal().subtract(valorCorrigido)));
         } else {
             ContaReceber cr = new ContaReceber();
             cr.setOrdemServico(os);

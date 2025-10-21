@@ -91,8 +91,10 @@ public class ContaPagarService {
             cp.setObservacao(contaPagar.getObservacao());
             cp.setStatus(StatusConta.PAGO);
             cp = contaPagarRepository.save(cp);
-            if (cp.getTipoPagamento().equals(TipoPagamento.PIX) || cp.getTipoPagamento().equals(TipoPagamento.DINHEIRO)) {
-                movimentaCaixaContaPagar(cp, TipoMovimentacao.SAIDA, false);
+            if (usarCredito.equals("N_CR")) {
+                if (cp.getTipoPagamento().equals(TipoPagamento.PIX) || cp.getTipoPagamento().equals(TipoPagamento.DINHEIRO)) {
+                    movimentaCaixaContaPagar(cp, TipoMovimentacao.SAIDA, false);
+                }
             }
         }
     }
@@ -168,7 +170,7 @@ public class ContaPagarService {
 
         List<ContaPagar> parcelasParaSalvar = new ArrayList<>();
         BigDecimal valorParcela = dadosDoFormulario.getValor().divide(BigDecimal.valueOf(dadosDoFormulario.getTotalParcelas()), RoundingMode.HALF_UP);
-
+        BigDecimal valorCorrigido = BigDecimal.ZERO;
         for (int i = 1; i <= dadosDoFormulario.getTotalParcelas(); i++) {
             ContaPagar parcela = new ContaPagar();
             parcela.setFornecedor(dadosDoFormulario.getFornecedor());
@@ -181,9 +183,11 @@ public class ContaPagarService {
             parcela.setTotalParcelas(dadosDoFormulario.getTotalParcelas());
             parcela.setValorTotalOriginal(dadosDoFormulario.getValor());
             parcela.setObservacao(dadosDoFormulario.getObservacao());
+            valorCorrigido = valorCorrigido.add(valorParcela);
             parcelasParaSalvar.add(parcela);
         }
 
+        parcelasParaSalvar.getLast().setValor(parcelasParaSalvar.getLast().getValor().add(dadosDoFormulario.getValor().subtract(valorCorrigido)));
         List<ContaPagar> parcelasSalvas = contaPagarRepository.saveAll(parcelasParaSalvar);
 
         Long idDaDespesa = parcelasSalvas.getFirst().getId();
@@ -194,7 +198,7 @@ public class ContaPagarService {
     }
 
     @Transactional
-    public void cancelarContaPagarAvulsa(Long umaParcelaId) {
+    public void cancelarContaPagarAvulsa(Long umaParcelaId, String usarCredito) {
         ContaPagar umaDasParcelas = contaPagarRepository.findById(umaParcelaId)
                 .orElseThrow(() -> new RuntimeException("Conta a Pagar com ID " + umaParcelaId + " não encontrada."));
 
@@ -204,31 +208,72 @@ public class ContaPagarService {
 
         List<ContaPagar> todasAsParcelas = contaPagarRepository.findByDespesaAvulsaId(umaDasParcelas.getDespesaAvulsaId());
 
-        BigDecimal valorTotalOriginalDaDespesa = BigDecimal.ZERO;
-        BigDecimal valorTotalJaPago = BigDecimal.ZERO;
-
-        for (ContaPagar parcela : todasAsParcelas) {
-            valorTotalOriginalDaDespesa = valorTotalOriginalDaDespesa.add(parcela.getValor());
-            if (parcela.getStatus() == StatusConta.PAGO) {
-                valorTotalJaPago = valorTotalJaPago.add(parcela.getValorPago());
-            }
-            parcela.setStatus(StatusConta.CANCELADO);
-        }
-        contaPagarRepository.saveAll(todasAsParcelas);
-
         LancamentoFinanceiro estornoDespesa = new LancamentoFinanceiro(
                 "Estorno da Despesa (originada pela CP #" + umaParcelaId + ")",
-                valorTotalOriginalDaDespesa.negate(),
+                umaDasParcelas.getValorTotalOriginal().negate(),
                 LocalDate.now(),
                 umaDasParcelas.getPlanoDeContas(),
                 null
         );
         lancamentoFinanceiroRepository.save(estornoDespesa);
 
-        Pessoa fornecedor = umaDasParcelas.getFornecedor();
-        BigDecimal creditoAtual = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
-        fornecedor.setPesCredito(creditoAtual.add(valorTotalJaPago));
-        pessoaService.salvarEdit(fornecedor);
+        if (usarCredito.equals("RECEBER_CREDITO")) {
+            BigDecimal valorTotalOriginalDaDespesa = BigDecimal.ZERO;
+            BigDecimal valorTotalJaPago = BigDecimal.ZERO;
+
+            for (ContaPagar parcela : todasAsParcelas) {
+                valorTotalOriginalDaDespesa = valorTotalOriginalDaDespesa.add(parcela.getValor());
+                if (parcela.getStatus() == StatusConta.PAGO) {
+                    valorTotalJaPago = valorTotalJaPago.add(parcela.getValorPago());
+                    parcela.setStatus(StatusConta.CANCELADO_CREDITO);
+                } else {
+                    parcela.setStatus(StatusConta.CANCELADO);
+                }
+            }
+            contaPagarRepository.saveAll(todasAsParcelas);
+
+            if (valorTotalJaPago.compareTo(BigDecimal.ZERO) > 0) {
+                Pessoa fornecedor = umaDasParcelas.getFornecedor();
+                BigDecimal creditoAtual = fornecedor.getPesCredito() != null ? fornecedor.getPesCredito() : BigDecimal.ZERO;
+                fornecedor.setPesCredito(creditoAtual.add(valorTotalJaPago));
+                pessoaService.salvarEdit(fornecedor);
+            }
+        } else if (usarCredito.equals("RECEBER_REEMBOLSO")) {
+            movimentaCaixaContaPagarAvulsa(umaDasParcelas, TipoMovimentacao.SAIDA);
+        }
+    }
+
+    @Transactional
+    public void movimentaCaixaContaPagarAvulsa(ContaPagar contaPagar, TipoMovimentacao tipoMovimentacao) {
+        MovimentacaoCaixa mv = new MovimentacaoCaixa();
+        Caixa caixaAtual = caixaService.buscaCaixaAtualAberto();
+        mv.setCaixa(caixaAtual);
+        mv.setContaPagar(contaPagar);
+        mv.setTipo(tipoMovimentacao);
+
+        BigDecimal valorTotalOriginalDaDespesa = BigDecimal.ZERO;
+        BigDecimal valorTotalJaPago = BigDecimal.ZERO;
+
+        List<ContaPagar> todasAsParcelas = contaPagarRepository.findByDespesaAvulsaId(contaPagar.getDespesaAvulsaId());
+        for (ContaPagar parcela : todasAsParcelas) {
+            valorTotalOriginalDaDespesa = valorTotalOriginalDaDespesa.add(parcela.getValor());
+            if (parcela.getStatus() == StatusConta.PAGO) {
+                valorTotalJaPago = valorTotalJaPago.add(parcela.getValorPago());
+                parcela.setStatus(StatusConta.CANCELADO_REEMBOLSO);
+            } else {
+                parcela.setStatus(StatusConta.CANCELADO);
+            }
+        }
+        contaPagarRepository.saveAll(todasAsParcelas);
+
+        mv.setValor(valorTotalJaPago);
+        mv.setDataMovimentacao(LocalDateTime.now());
+        mv.setPlanoDeContas(contaPagar.getPlanoDeContas());
+        mv.setOrigemId(contaPagar.getId());
+        mv.setOrigemTipo("REEMBOLSO_CONTA_PAGAR");
+        mv.setDescricao("Reembolso da Conta a Pagar ID " + contaPagar.getId());
+        caixaAtual.getMovimentacoes().add(mv);
+        caixaService.salvarCaixaAposMovimento(caixaAtual);
     }
 }
 

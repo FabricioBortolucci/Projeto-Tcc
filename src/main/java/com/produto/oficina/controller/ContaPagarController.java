@@ -62,8 +62,7 @@ public class ContaPagarController {
         model.addAttribute("contaPagar", new ContaPagar());
         List<NaturezaContaPlanoContas> naturezasDeSaida = Arrays.asList(
                 NaturezaContaPlanoContas.DESPESA,
-                NaturezaContaPlanoContas.CUSTO,
-                NaturezaContaPlanoContas.PASSIVO
+                NaturezaContaPlanoContas.CUSTO
         );
         model.addAttribute("planoDeContas", planoDeContasService.buscarContasIn(TipoContaPlanoContas.ANALITICA, naturezasDeSaida));
         model.addAttribute("fornecedores", pessoaService.buscaFornecedores());
@@ -75,7 +74,7 @@ public class ContaPagarController {
                                      RedirectAttributes redirectAttributes,
                                      Model model) {
         ContaPagar contaPagar = contaPagarService.findCp(id);
-        if (contaPagarService.verificaContaPagarLegivel(contaPagar)) {
+        if (!contaPagarService.verificaContaPagarLegivel(contaPagar)) {
             redirectAttributes.addFlashAttribute("mostrarModalPagamento", true);
             return "redirect:/contas-pagar";
         }
@@ -105,8 +104,9 @@ public class ContaPagarController {
     }
 
     @PostMapping("/cancelar-confirmado/{id}")
-    public String cancelarConfirmadoContaPagar(@PathVariable Long id) {
-        contaPagarService.cancelarContaPagarAvulsa(id);
+    public String cancelarConfirmadoContaPagar(@PathVariable Long id,
+                                               @RequestParam("acaoFinanceira") String usarCredito) {
+        contaPagarService.cancelarContaPagarAvulsa(id, usarCredito);
         return "redirect:/contas-pagar";
     }
 
