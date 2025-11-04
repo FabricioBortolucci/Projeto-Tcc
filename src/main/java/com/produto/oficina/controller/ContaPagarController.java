@@ -74,7 +74,7 @@ public class ContaPagarController {
                                      RedirectAttributes redirectAttributes,
                                      Model model) {
         ContaPagar contaPagar = contaPagarService.findCp(id);
-        if (!contaPagarService.verificaContaPagarLegivel(contaPagar)) {
+        if (contaPagarService.verificaContaPagarLegivel(contaPagar)) {
             redirectAttributes.addFlashAttribute("mostrarModalPagamento", true);
             return "redirect:/contas-pagar";
         }

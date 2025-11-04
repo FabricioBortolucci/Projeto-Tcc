@@ -29,101 +29,51 @@ public class Caixa {
     @Column(name = "caixa_id")
     private Long id;
 
-    /**
-     * Data e hora em que o caixa foi aberto/registrado no sistema.
-     * Preenchido automaticamente na criação.
-     */
     @Column(name = "data_abertura", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dataAbertura = LocalDateTime.now();
 
-    /**
-     * Data e hora em que o caixa foi efetivamente fechado.
-     * Preenchido durante o processo de fechamento.
-     */
     @Column(name = "data_fechamento")
     @Temporal(TemporalType.TIMESTAMP)
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dataFechamento;
 
-    /**
-     * Usuário responsável pela abertura do caixa.
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_abertura_id", nullable = false)
-    private Pessoa usuarioAbertura; // Assumindo que Pessoa representa um usuário
+    private Pessoa usuarioAbertura;
 
-    /**
-     * Usuário responsável pelo fechamento do caixa.
-     * Pode ser o mesmo da abertura ou diferente.
-     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_fechamento_id")
     private Pessoa usuarioFechamento;
 
-    /**
-     * Status atual do caixa (ABERTO, EM_CONFERENCIA, FECHADO, CANCELADO).
-     */
     @Enumerated(EnumType.STRING)
     @Column(name = "status_caixa", nullable = false, length = 20)
     private StatusCaixa status;
 
-    /**
-     * Valor inicial com que o caixa foi aberto (ex: fundo de troco).
-     * Este valor é fundamental para o cálculo do saldo esperado.
-     */
     @Column(name = "valor_abertura", nullable = false, precision = 10, scale = 2)
     private BigDecimal valorAbertura;
 
-    /**
-     * Valor total de todas as movimentações de ENTRADA (excluindo o valor de abertura se este for
-     * tratado como uma movimentação inicial).
-     * Calculado e armazenado no momento do fechamento para referência.
-     */
     @Column(name = "total_entradas_mov", precision = 10, scale = 2)
     private BigDecimal totalEntradasMovimentacoes;
 
-    /**
-     * Valor total de todas as movimentações de SAIDA.
-     * Calculado e armazenado no momento do fechamento para referência.
-     */
     @Column(name = "total_saidas_mov", precision = 10, scale = 2)
     private BigDecimal totalSaidasMovimentacoes;
 
-    /**
-     * Saldo esperado no caixa no momento do fechamento, calculado pelo sistema.
-     * Fórmula: valorAbertura + SOMA(Entradas) - SOMA(Saidas)
-     * Preenchido durante o processo de fechamento.
-     */
+    // valorAbertura + SOMA(Entradas) - SOMA(Saidas)
     @Column(name = "saldo_esperado_sistema", precision = 10, scale = 2)
     private BigDecimal saldoEsperadoSistema;
 
-    /**
-     * Valor efetivamente contado no caixa físico no momento do fechamento.
-     * Informado pelo usuário durante o processo de fechamento.
-     */
     @Column(name = "valor_fechamento_contado", precision = 10, scale = 2)
     private BigDecimal valorFechamentoContado;
 
-    /**
-     * Diferença entre o valor contado e o saldo esperado.
-     * Fórmula: valorFechamentoContado - saldoEsperadoSistema.
-     * Se positivo: Sobra. Se negativo: Falta.
-     * Preenchido durante o processo de fechamento.
-     */
+    // valorFechamentoContado - saldoEsperadoSistema
     @Column(name = "diferenca_caixa", precision = 10, scale = 2)
     private BigDecimal diferencaCaixa;
 
-    /**
-     * Observações gerais sobre a abertura do caixa.
-     */
     @Column(name = "observacao_abertura", length = 500, columnDefinition = "TEXT")
     private String observacaoAbertura;
 
-    /**
-     * Observações sobre o fechamento do caixa, como justificativas para diferenças.
-     */
     @Column(name = "observacao_fechamento", length = 500)
     private String observacaoFechamento;
 

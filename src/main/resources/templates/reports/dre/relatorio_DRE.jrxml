@@ -82,8 +82,8 @@ order by p.codigo]]></query>
 	<background/>
 	<title height="72">
 		<element kind="frame" uuid="983e13e0-383d-4a74-b8e8-bfa675850230" mode="Opaque" x="-20" y="-20" width="595" height="92" backcolor="#006699">
-			<element kind="staticText" uuid="c36b1792-166a-444d-acc7-490de1071092" x="20" y="20" width="250" height="20" forecolor="#FFFFFF" backcolor="#FFFFFF" fontSize="14.0" bold="true">
-				<text><![CDATA[Demonstrativo de Resultados (DRE)]]></text>
+			<element kind="staticText" uuid="c36b1792-166a-444d-acc7-490de1071092" x="20" y="20" width="270" height="20" forecolor="#FFFFFF" backcolor="#FFFFFF" fontSize="14.0" bold="true">
+				<text><![CDATA[Demonstrativo de Resultados Gerencial (DRE)]]></text>
 			</element>
 			<element kind="staticText" uuid="efb2e48a-ce82-4a21-b4f6-f10e68ad2374" x="464" y="10" width="120" height="20" forecolor="#FFFFFF" fontSize="14.0" bold="false" hTextAlign="Right">
 				<text><![CDATA[Oficina - Bortolucci]]></text>
