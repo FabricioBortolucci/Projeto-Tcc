@@ -29,7 +29,7 @@ O "cérebro" do sistema é a profunda integração entre os cadastros e o **Plan
 
 Para uma análise aprofundada da arquitetura, modelagem UML, diagramas de sequência, DER completo e todas as decisões de design deste projeto, consulte a documentação acadêmica (TCC) completa.
 
-➡️ **[Acessar a Documentação Completa do Projeto (PDF)](./docs/Tcc%20Oficina%20Fabricio.pdf)**
+➡️ **[Acessar a Documentação Completa do Projeto (PDF)](docs/Documentação.pdf)**
 
 ## ✨ Features Principais
 
@@ -107,5 +107,6 @@ O projeto segue uma arquitetura em camadas (MVC) para garantir a separação de 
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE.md) para mais detalhes.
+
 
 
