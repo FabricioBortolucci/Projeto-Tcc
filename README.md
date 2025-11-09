@@ -25,6 +25,12 @@ Este sistema centraliza toda a operação da empresa, desde a Ordem de Serviço 
 
 O "cérebro" do sistema é a profunda integração entre os cadastros e o **Plano de Contas**. Ao cadastrar um produto ou serviço, o usuário já define suas contas contábeis (Receita, Custo, Estoque). A partir daí, toda ação no sistema (como finalizar uma O.S. ou dar entrada numa compra) gera **automaticamente** todos os `Lançamentos Financeiros` e `Movimentações de Estoque` necessários, sem intervenção manual.
 
+## 📄 Documentação Completa (TCC)
+
+Para uma análise aprofundada da arquitetura, modelagem UML, diagramas de sequência, DER completo e todas as decisões de design deste projeto, consulte a documentação acadêmica (TCC) completa.
+
+➡️ **[Acessar a Documentação Completa do Projeto (PDF)](./docs/Tcc%20Oficina%20Fabricio.pdf)**
+
 ## ✨ Features Principais
 
 * **Gestão Financeira Completa:**
@@ -101,4 +107,5 @@ O projeto segue uma arquitetura em camadas (MVC) para garantir a separação de 
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE.md) para mais detalhes.
+
 
