@@ -31,4 +31,5 @@ public interface OrdemServicoRepository extends JpaRepository<OrdemServico, Long
 
     List<OrdemServico> findAllByDataFechamentoBetween(LocalDateTime dataInicio, LocalDateTime dataFim);
 
+    void deleteOrdemServicoById(Long id);
 }
