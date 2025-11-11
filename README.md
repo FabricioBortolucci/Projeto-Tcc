@@ -1,6 +1,6 @@
 # ⚙️ Sistema de Gestão para Metalúrgica (ERP)
 
-![Java](https://img.shields.io/badge/Java-17-blue.svg)
+![Java](https://img.shields.io/badge/Java-23-blue.svg)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)
 ![Thymeleaf](https://img.shields.io/badge/Thymeleaf-brightgreen.svg)
 ![HTMX](https://img.shields.io/badge/HTMX-blue.svg)
@@ -103,10 +103,49 @@ O projeto segue uma arquitetura em camadas (MVC) para garantir a separação de 
 | Cadastro de Produto (com Plano de Contas) |
 | <img width="2551" height="1272" alt="{5207A247-AD1E-4774-8952-33DBE259B75C}" src="https://github.com/user-attachments/assets/9af47b23-3f3a-4fc2-bf1c-9366e13241ee" /> |
 
+## 🔧 Instalação e Execução
+
+Siga os passos abaixo para rodar o projeto localmente:
+
+1.  **Clone o repositório:**
+    ```bash
+    git clone https://github.com/FabricioBortolucci/Sistema-Gestao-Oficina.git
+    cd Sistema-Gestao-Oficina
+    ```
+
+2.  **Configure o Banco de Dados (PostgreSQL):**
+    * Crie um banco de dados (ex: `oficina_db`).
+    * Crie um usuário e senha com permissões para este banco.
+
+3.  **Configure a Aplicação:**
+    * Renomeie (ou crie) o arquivo `src/main/resources/application.properties`.
+    * Atualize as seguintes propriedades com seus dados do PostgreSQL:
+    ```properties
+    spring.datasource.url=jdbc:postgresql://localhost:5432/oficina_db
+    spring.datasource.username=seu_usuario
+    spring.datasource.password=sua_senha
+    
+    # Configuração do Hibernate
+    spring.jpa.hibernate.ddl-auto=update
+    spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+    spring.jpa.show-sql=true
+    ```
+
+4.  **Execute a aplicação:**
+    * **Via Maven:**
+    ```bash
+    mvn spring-boot:run
+    ```
+    * **Via sua IDE (IntelliJ, Eclipse):**
+        Encontre a classe principal (`OficinaApplication.java`) e execute-a.
+
+5.  **Acesse:**
+    * Abra seu navegador e acesse `http://localhost:8080`
 
 ## 📄 Licença
 
 Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE.md) para mais detalhes.
+
 
 
 
